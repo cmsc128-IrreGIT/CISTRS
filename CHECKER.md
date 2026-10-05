@@ -14,11 +14,11 @@ The checker currently runs **5 checks**:
 
 | Check               | Purpose                                          | Auto-fix? |
 | ------------------- | ------------------------------------------------ | --------- |
-| Frontend ESLint     | Checks frontend code quality and common mistakes | ✅ Some    |
-| Backend ESLint      | Checks backend code quality and common mistakes  | ✅ Some    |
-| Frontend TypeScript | Checks frontend type errors                      | ❌ Manual  |
-| Backend TypeScript  | Checks backend type errors                       | ❌ Manual  |
-| Prettier            | Checks code formatting                           | ✅ Yes     |
+| Frontend ESLint     | Checks frontend code quality and common mistakes | ✅ Some   |
+| Backend ESLint      | Checks backend code quality and common mistakes  | ✅ Some   |
+| Frontend TypeScript | Checks frontend type errors                      | ❌ Manual |
+| Backend TypeScript  | Checks backend type errors                       | ❌ Manual |
+| Prettier            | Checks code formatting                           | ✅ Yes    |
 
 ---
 
