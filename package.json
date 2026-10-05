@@ -1,0 +1,28 @@
+{
+    "name": "cistrs",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "check": "node checker/check.mjs",
+        "format:check": "prettier --check .",
+        "format:write": "prettier --write .",
+        "lint:fix": "npm --prefix frontend run lint -- --fix && npm --prefix backend run lint -- --fix"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/cmsc128-IrreGIT/CISTRS.git"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "type": "commonjs",
+    "bugs": {
+        "url": "https://github.com/cmsc128-IrreGIT/CISTRS/issues"
+    },
+    "homepage": "https://github.com/cmsc128-IrreGIT/CISTRS#readme",
+    "devDependencies": {
+        "prettier": "^3.9.9"
+    }
+}

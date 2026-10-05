@@ -278,8 +278,8 @@ A successful response should look like:
 
 ```json
 {
-  "status": "ok",
-  "message": "CISTRS backend is running!"
+    "status": "ok",
+    "message": "CISTRS backend is running!"
 }
 ```
 
@@ -291,21 +291,21 @@ If you see this response, your local backend server is running successfully.
 
 Before considering the setup complete, make sure:
 
-* [ ] PostgreSQL installed
-* [ ] PostgreSQL 18 server running
-* [ ] PostgreSQL username is `postgres`
-* [ ] PostgreSQL password is `password`
-* [ ] PostgreSQL port is `5432`
-* [ ] pgAdmin 4 opens successfully
-* [ ] `cistrs` database created
-* [ ] `.env` created inside `backend`
-* [ ] `DATABASE_URL` configured correctly
-* [ ] `npx prisma db pull` successfully connects to PostgreSQL
-* [ ] Prisma migrations applied
-* [ ] Prisma Client generated
-* [ ] Prisma Studio can open
-* [ ] Backend starts with `npm run dev`
-* [ ] `/api/health` responds successfully
+- [ ] PostgreSQL installed
+- [ ] PostgreSQL 18 server running
+- [ ] PostgreSQL username is `postgres`
+- [ ] PostgreSQL password is `password`
+- [ ] PostgreSQL port is `5432`
+- [ ] pgAdmin 4 opens successfully
+- [ ] `cistrs` database created
+- [ ] `.env` created inside `backend`
+- [ ] `DATABASE_URL` configured correctly
+- [ ] `npx prisma db pull` successfully connects to PostgreSQL
+- [ ] Prisma migrations applied
+- [ ] Prisma Client generated
+- [ ] Prisma Studio can open
+- [ ] Backend starts with `npm run dev`
+- [ ] `/api/health` responds successfully
 
 If all of these are complete, your laptop is ready for CISTRS backend development.
 

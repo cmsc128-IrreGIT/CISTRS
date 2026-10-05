@@ -1,7 +1,9 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
+var __importDefault =
+    (this && this.__importDefault) ||
+    function (mod) {
+        return mod && mod.__esModule ? mod : { default: mod };
+    };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
@@ -12,7 +14,7 @@ app.use(express_1.default.json());
 app.get("/api/health", (_req, res) => {
     res.json({
         status: "ok",
-        message: "CISTRS backend is running!"
+        message: "CISTRS backend is running!",
     });
 });
 app.listen(PORT, () => {
