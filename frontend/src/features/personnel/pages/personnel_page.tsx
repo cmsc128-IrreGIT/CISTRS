@@ -1,16 +1,8 @@
-﻿import ComingSoon from "../../../shared/components/feedback/coming_soon";
-import Card from "../../../shared/components/ui/card";
+import RecordList from "../../../shared/components/records/record_list";
+import { personnel_config } from "../config/personnel_config";
+import usePersonnel from "../hooks/use_personnel";
 
 export default function PersonnelPage() {
-    return (
-        <section aria-labelledby="page_title" className="space-y-6">
-            <h1 id="page_title" className="text-2xl font-bold text-slate-900">
-                Employees and Pilots
-            </h1>
-
-            <Card>
-                <ComingSoon feature_name="Employees and Pilots" />
-            </Card>
-        </section>
-    );
+    const rows = usePersonnel();
+    return <RecordList config={personnel_config} rows={rows} can_add={true} />;
 }
