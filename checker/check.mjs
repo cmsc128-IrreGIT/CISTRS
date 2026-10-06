@@ -7,6 +7,8 @@ const checks = [
     ["Backend lint", "npm", ["--prefix", "backend", "run", "lint"]],
     ["Frontend typecheck", "npm", ["--prefix", "frontend", "run", "typecheck"]],
     ["Backend typecheck", "npm", ["--prefix", "backend", "run", "typecheck"]],
+    ["Frontend build", "npm", ["--prefix", "frontend", "run", "build"]],
+    ["Backend build", "npm", ["--prefix", "backend", "run", "build"]],
     ["Prettier", "npm", ["run", "format:check"]],
 ];
 
