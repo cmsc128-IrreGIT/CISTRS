@@ -1,16 +1,10 @@
-﻿import ComingSoon from "../../../shared/components/feedback/coming_soon";
-import Card from "../../../shared/components/ui/card";
+import RecordDetails from "../../../shared/components/records/record_details";
+import { user_management_config } from "../config/user_management_config";
+import useUserManagement from "../hooks/use_user_management";
+import { useParams } from "react-router";
 
 export default function UserDetailsPage() {
-    return (
-        <section aria-labelledby="page_title" className="space-y-6">
-            <h1 id="page_title" className="text-2xl font-bold text-slate-900">
-                User Account Details
-            </h1>
-
-            <Card>
-                <ComingSoon feature_name="User Account Details" />
-            </Card>
-        </section>
-    );
+    const rows = useUserManagement();
+    const { user_id } = useParams();
+    return <RecordDetails config={user_management_config} record={rows.find((row) => row.id === user_id)} edit_to={`/users/${user_id}/edit`} />;
 }

@@ -1,16 +1,8 @@
-﻿import ComingSoon from "../../../shared/components/feedback/coming_soon";
-import Card from "../../../shared/components/ui/card";
+import RecordList from "../../../shared/components/records/record_list";
+import { user_management_config } from "../config/user_management_config";
+import useUserManagement from "../hooks/use_user_management";
 
 export default function UsersPage() {
-    return (
-        <section aria-labelledby="page_title" className="space-y-6">
-            <h1 id="page_title" className="text-2xl font-bold text-slate-900">
-                User Accounts
-            </h1>
-
-            <Card>
-                <ComingSoon feature_name="User Accounts" />
-            </Card>
-        </section>
-    );
+    const rows = useUserManagement();
+    return <RecordList config={user_management_config} rows={rows} can_add={true} />;
 }
