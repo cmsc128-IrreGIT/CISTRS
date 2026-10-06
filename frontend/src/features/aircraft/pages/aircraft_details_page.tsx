@@ -1,16 +1,10 @@
-﻿import ComingSoon from "../../../shared/components/feedback/coming_soon";
-import Card from "../../../shared/components/ui/card";
+import RecordDetails from "../../../shared/components/records/record_details";
+import { aircraft_config } from "../config/aircraft_config";
+import useAircraft from "../hooks/use_aircraft";
+import { useParams } from "react-router";
 
 export default function AircraftDetailsPage() {
-    return (
-        <section aria-labelledby="page_title" className="space-y-6">
-            <h1 id="page_title" className="text-2xl font-bold text-slate-900">
-                Aircraft Details
-            </h1>
-
-            <Card>
-                <ComingSoon feature_name="Aircraft Details" />
-            </Card>
-        </section>
-    );
+    const rows = useAircraft();
+    const { aircraft_id } = useParams();
+    return <RecordDetails config={aircraft_config} record={rows.find((row) => row.id === aircraft_id)} edit_to={`/aircraft/${aircraft_id}/status`} />;
 }
