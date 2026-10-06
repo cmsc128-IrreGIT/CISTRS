@@ -1,10 +1,10 @@
-﻿import { Link, useNavigate, useParams } from "react-router";
+﻿import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
+import PreviewNotice from "../../../shared/components/feedback/preview_notice";
 import Card from "../../../shared/components/ui/card";
 import PageHeader from "../../../shared/components/ui/page_header";
-import EmptyState from "../../../shared/components/feedback/empty_state";
-import { button_styles } from "../../../shared/styles/button_styles";
 import InventoryForm from "../components/inventory_form";
+import InventoryNotFound from "../components/inventory_not_found";
 import { save_inventory_item } from "../data/inventory_store";
 import useInventory from "../hooks/use_inventory";
 import type { InventoryFormValues } from "../types/inventory_types";
@@ -24,7 +24,9 @@ export default function InventoryFormPage() {
                 : "Item added to preview inventory.");
             navigate("/inventory");
         } catch (error) {
-            toast.error(error instanceof Error ? error.message : "Could not save the preview item.");
+            toast.error(error instanceof Error
+                ? error.message
+                : "Could not save the preview item.");
         }
     }
 
@@ -36,21 +38,13 @@ export default function InventoryFormPage() {
                 description="Record aircraft parts and supplies."
             />
 
-            <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            <PreviewNotice>
                 Preview only. Changes reset when you refresh the page.
-            </p>
+            </PreviewNotice>
 
             <Card>
                 {is_editing && !existing_item ? (
-                    <EmptyState
-                        title="Item not found"
-                        description="This preview item may have been cleared by a page refresh."
-                        action={
-                            <Link to="/inventory" className={button_styles("secondary")}>
-                                Return to inventory
-                            </Link>
-                        }
-                    />
+                    <InventoryNotFound />
                 ) : (
                     <InventoryForm
                         key={item_id ?? "new"}

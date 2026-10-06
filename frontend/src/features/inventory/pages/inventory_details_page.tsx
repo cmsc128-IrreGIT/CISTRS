@@ -1,11 +1,15 @@
-﻿import { ArrowLeft, Pencil } from "lucide-react";
+﻿import { Pencil } from "lucide-react";
 import { Link, useParams } from "react-router";
-import EmptyState from "../../../shared/components/feedback/empty_state";
+import PreviewNotice from "../../../shared/components/feedback/preview_notice";
+import BackLink from "../../../shared/components/navigation/back_link";
 import Card from "../../../shared/components/ui/card";
+import DetailsList, { type DetailEntry } from "../../../shared/components/ui/details_list";
 import PageHeader from "../../../shared/components/ui/page_header";
 import StatusBadge from "../../../shared/components/ui/status_badge";
 import { button_styles } from "../../../shared/styles/button_styles";
 import InventoryHistoryTable from "../components/inventory_history_table";
+import InventoryNotFound from "../components/inventory_not_found";
+import { inventory_detail_fields } from "../config/inventory_fields";
 import useInventory from "../hooks/use_inventory";
 import useInventoryHistory from "../hooks/use_inventory_history";
 
@@ -19,32 +23,31 @@ export default function InventoryDetailsPage() {
     if (!item) {
         return (
             <Card>
-                <EmptyState
-                    title="Item not found"
-                    description="The item may not exist or may have been cleared by a preview refresh."
-                    action={
-                        <Link to="/inventory" className={button_styles("secondary")}>
-                            Return to inventory
-                        </Link>
-                    }
-                />
+                <InventoryNotFound />
             </Card>
         );
     }
 
-    const details = [
-        { label: "Part Number", value: item.part_number },
-        { label: "Category", value: item.category },
-        { label: "Quantity", value: `${item.quantity} ${item.unit}` },
-        { label: "Associated Aircraft", value: item.aircraft ?? "Unassigned" },
+    const details: DetailEntry[] = [
+        ...inventory_detail_fields.map(({ id, label, get_value }) => ({
+            id,
+            label,
+            value: get_value(item),
+        })),
+        {
+            id: "availability",
+            label: "Stock Availability",
+            value: (
+                <StatusBadge tone={item.quantity > 0 ? "success" : "danger"}>
+                    {item.quantity > 0 ? "In stock" : "Out of stock"}
+                </StatusBadge>
+            ),
+        },
     ];
 
     return (
         <section aria-labelledby="page_title" className="space-y-6">
-            <Link to="/inventory" className="inline-flex min-h-11 items-center gap-2 text-sm text-slate-600 hover:text-red-700">
-                <ArrowLeft size={18} aria-hidden="true" />
-                Back to inventory
-            </Link>
+            <BackLink to="/inventory" label="Back to inventory" />
 
             <PageHeader
                 title={item.name}
@@ -58,31 +61,13 @@ export default function InventoryDetailsPage() {
                 }
             />
 
-            <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            <PreviewNotice>
                 Preview only. Records and history reset on refresh.
                 Changes are not associated with an authenticated user yet.
-            </p>
+            </PreviewNotice>
 
             <Card title="Item Information">
-                <dl className="grid gap-5 sm:grid-cols-2">
-                    {details.map(({ label, value }) => (
-                        <div key={label}>
-                            <dt className="text-sm text-slate-500">{label}</dt>
-                            <dd className="mt-1 break-words font-medium text-slate-900">
-                                {value}
-                            </dd>
-                        </div>
-                    ))}
-
-                    <div>
-                        <dt className="text-sm text-slate-500">Stock Availability</dt>
-                        <dd className="mt-2">
-                            <StatusBadge tone={item.quantity > 0 ? "success" : "danger"}>
-                                {item.quantity > 0 ? "In stock" : "Out of stock"}
-                            </StatusBadge>
-                        </dd>
-                    </div>
-                </dl>
+                <DetailsList entries={details} />
 
                 <p className="mt-6 border-t border-slate-200 pt-4 text-sm text-slate-500">
                     Stock availability reflects quantity only, not approval for aircraft use.

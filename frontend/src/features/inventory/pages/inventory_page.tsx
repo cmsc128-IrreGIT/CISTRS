@@ -1,6 +1,6 @@
 ﻿import { History, Plus } from "lucide-react";
-import { useState } from "react";
 import { Link } from "react-router";
+import PreviewNotice from "../../../shared/components/feedback/preview_notice";
 import FormField from "../../../shared/components/forms/form_field";
 import SearchInput from "../../../shared/components/forms/search_input";
 import Button from "../../../shared/components/ui/button";
@@ -9,39 +9,20 @@ import PageHeader from "../../../shared/components/ui/page_header";
 import { button_styles } from "../../../shared/styles/button_styles";
 import InventoryTable from "../components/inventory_table";
 import useInventory from "../hooks/use_inventory";
+import useInventoryFilters from "../hooks/use_inventory_filters";
 
 export default function InventoryPage() {
     const inventory_items = useInventory();
-    const [search, set_search] = useState("");
-    const [aircraft_filter, set_aircraft_filter] = useState("");
-
-    const aircraft_options = Array.from(
-        new Set(
-            inventory_items
-                .map((item) => item.aircraft)
-                .filter((aircraft): aircraft is string => aircraft !== null),
-        ),
-    );
-
-    const search_term = search.trim().toLowerCase();
-    const is_filtered = search_term !== "" || aircraft_filter !== "";
-
-    const filtered_items = inventory_items.filter((item) => {
-        const matches_search = [item.name, item.part_number, item.category]
-            .some((value) => value.toLowerCase().includes(search_term));
-
-        const matches_aircraft = aircraft_filter === "" ||
-            (aircraft_filter === "unassigned"
-                ? item.aircraft === null
-                : item.aircraft === aircraft_filter);
-
-        return matches_search && matches_aircraft;
-    });
-
-    function clear_filters() {
-        set_search("");
-        set_aircraft_filter("");
-    }
+    const {
+        search,
+        set_search,
+        aircraft_filter,
+        set_aircraft_filter,
+        aircraft_options,
+        filtered_items,
+        is_filtered,
+        clear_filters,
+    } = useInventoryFilters(inventory_items);
 
     return (
         <section aria-labelledby="page_title" className="space-y-6">
@@ -63,9 +44,7 @@ export default function InventoryPage() {
                 }
             />
 
-            <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-                Preview records only. Records and history reset on refresh.
-            </p>
+            <PreviewNotice />
 
             <Card>
                 <div className="mb-5 flex flex-wrap items-end gap-4">

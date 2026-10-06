@@ -1,5 +1,5 @@
-﻿import { ArrowLeft } from "lucide-react";
-import { Link } from "react-router";
+﻿import PreviewNotice from "../../../shared/components/feedback/preview_notice";
+import BackLink from "../../../shared/components/navigation/back_link";
 import Card from "../../../shared/components/ui/card";
 import PageHeader from "../../../shared/components/ui/page_header";
 import InventoryHistoryTable from "../components/inventory_history_table";
@@ -10,10 +10,7 @@ export default function InventoryHistoryPage() {
 
     return (
         <section aria-labelledby="page_title" className="space-y-6">
-            <Link to="/inventory" className="inline-flex min-h-11 items-center gap-2 text-sm text-slate-600 hover:text-red-700">
-                <ArrowLeft size={18} aria-hidden="true" />
-                Back to inventory
-            </Link>
+            <BackLink to="/inventory" label="Back to inventory" />
 
             <PageHeader
                 title="Inventory Change History"
@@ -21,9 +18,9 @@ export default function InventoryHistoryPage() {
                 description="Additions and updates across all inventory items."
             />
 
-            <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            <PreviewNotice>
                 Preview history resets on refresh and does not identify an authenticated user.
-            </p>
+            </PreviewNotice>
 
             <Card>
                 <InventoryHistoryTable rows={history} />
