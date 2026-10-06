@@ -18,6 +18,8 @@ The checker currently runs **5 checks**:
 | Backend ESLint      | Checks backend code quality and common mistakes  | ✅ Some   |
 | Frontend TypeScript | Checks frontend type errors                      | ❌ Manual |
 | Backend TypeScript  | Checks backend type errors                       | ❌ Manual |
+| Frontend Build      | Checks whether the frontend builds successfully  | ❌ Manual |
+| Backend Build       | Checks whether the backend builds successfully   | ❌ Manual |
 | Prettier            | Checks code formatting                           | ✅ Yes    |
 
 ---
@@ -49,6 +51,22 @@ After fixing:
 ```powershell
 npm run check
 ```
+
+---
+
+## Builds
+
+Build checks verify that both the frontend and backend can successfully compile for production.
+
+### Frontend Build
+
+The frontend build runs TypeScript compilation and the Vite production build.
+
+### Backend Build
+
+The backend build runs TypeScript compilation.
+
+Build errors generally require **manual fixes**.
 
 ---
 
