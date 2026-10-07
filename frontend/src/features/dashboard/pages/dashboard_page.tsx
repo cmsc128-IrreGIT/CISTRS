@@ -35,7 +35,10 @@ export default function DashboardPage() {
                 <OutOfStockCard items={out_of_stock} />
 
                 <div className="min-w-0 xl:col-span-2">
-                    <AircraftStatusCard data={aircraft_status_data} maintenance={pending_maintenance} />
+                    <AircraftStatusCard
+                        data={aircraft_status_data}
+                        maintenance={pending_maintenance}
+                    />
                 </div>
             </div>
 

@@ -4,5 +4,7 @@ import useMaintenance from "../hooks/use_maintenance";
 
 export default function MaintenancePage() {
     const rows = useMaintenance();
-    return <RecordList config={maintenance_config} rows={rows} can_add={true} />;
+    return (
+        <RecordList config={maintenance_config} rows={rows} can_add={true} />
+    );
 }

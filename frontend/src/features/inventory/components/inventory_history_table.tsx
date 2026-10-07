@@ -30,7 +30,10 @@ const columns: TableColumn<InventoryChange>[] = [
         id: "item",
         header: "Item",
         render: (row) => (
-            <Link to={`/inventory/${row.item_id}`} className="rounded-sm font-medium text-blue-700 underline underline-offset-2 hover:text-blue-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700">
+            <Link
+                to={`/inventory/${row.item_id}`}
+                className="rounded-sm font-medium text-blue-700 underline underline-offset-2 hover:text-blue-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700"
+            >
                 {row.after.name}
             </Link>
         ),
@@ -49,7 +52,10 @@ const columns: TableColumn<InventoryChange>[] = [
             return (
                 <ul className="min-w-56 space-y-1">
                     {field_labels
-                        .filter(({ key }) => !before || before[key] !== row.after[key])
+                        .filter(
+                            ({ key }) =>
+                                !before || before[key] !== row.after[key],
+                        )
                         .map(({ key, label }) => (
                             <li key={key}>
                                 <span className="font-medium">{label}: </span>

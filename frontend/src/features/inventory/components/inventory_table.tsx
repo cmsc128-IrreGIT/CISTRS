@@ -5,7 +5,11 @@ import StatusBadge from "../../../shared/components/ui/status_badge";
 import type { InventoryItem } from "../types/inventory_types";
 
 const columns: TableColumn<InventoryItem>[] = [
-    { id: "part_number", header: "Part Number", render: (row) => row.part_number },
+    {
+        id: "part_number",
+        header: "Part Number",
+        render: (row) => row.part_number,
+    },
     { id: "name", header: "Item Name", render: (row) => row.name },
     { id: "category", header: "Category", render: (row) => row.category },
     {
@@ -47,17 +51,24 @@ type InventoryTableProps = {
     is_filtered: boolean;
 };
 
-export default function InventoryTable({ rows, is_filtered }: InventoryTableProps) {
+export default function InventoryTable({
+    rows,
+    is_filtered,
+}: InventoryTableProps) {
     return (
         <DataTable
             caption="Inventory preview: aircraft parts and supplies"
             columns={columns}
             rows={rows}
             get_row_key={(row) => row.id}
-            empty_title={is_filtered ? "No matching items" : "No inventory records yet"}
-            empty_description={is_filtered
-                ? "Try another search term or aircraft filter."
-                : "Added parts and supplies will appear here."}
+            empty_title={
+                is_filtered ? "No matching items" : "No inventory records yet"
+            }
+            empty_description={
+                is_filtered
+                    ? "Try another search term or aircraft filter."
+                    : "Added parts and supplies will appear here."
+            }
         />
     );
 }

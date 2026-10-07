@@ -7,8 +7,22 @@ import { logbook_store } from "../data/logbook_store";
 
 export default function LogbookFormPage() {
     const aircraft = useAircraft();
-    const config = { ...logbook_config, fields: logbook_config.fields.map((field) => field.key === "aircraft" ? { ...field, options: aircraft.map((row) => row.registration) } : field) };
+    const config = {
+        ...logbook_config,
+        fields: logbook_config.fields.map((field) =>
+            field.key === "aircraft"
+                ? { ...field, options: aircraft.map((row) => row.registration) }
+                : field,
+        ),
+    };
     const rows = useLogbook();
     const { entry_id } = useParams();
-    return <RecordFormPage config={config} rows={rows} record_id={entry_id} on_save={logbook_store.save} />;
+    return (
+        <RecordFormPage
+            config={config}
+            rows={rows}
+            record_id={entry_id}
+            on_save={logbook_store.save}
+        />
+    );
 }

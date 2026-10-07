@@ -24,9 +24,7 @@ export default function StatCard({
                     <p className="mt-2 text-3xl font-bold text-[#0b2238]">
                         {value}
                     </p>
-                    <p className="mt-2 text-xs text-slate-500">
-                        {description}
-                    </p>
+                    <p className="mt-2 text-xs text-slate-500">{description}</p>
                 </div>
 
                 <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-[#0b2238]">

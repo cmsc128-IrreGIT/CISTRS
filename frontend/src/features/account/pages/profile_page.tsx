@@ -13,13 +13,23 @@ export default function ProfilePage() {
         { label: "System Role", value: account.role },
     ];
 
-    const initials = account.display_name.split(/\s+/)
-        .slice(0, 2).map((part) => part[0]).join("").toUpperCase();
+    const initials = account.display_name
+        .split(/\s+/)
+        .slice(0, 2)
+        .map((part) => part[0])
+        .join("")
+        .toUpperCase();
 
     return (
-        <section aria-labelledby="page_title" className="mx-auto max-w-3xl space-y-6">
+        <section
+            aria-labelledby="page_title"
+            className="mx-auto max-w-3xl space-y-6"
+        >
             <div>
-                <h1 id="page_title" className="text-2xl font-bold text-slate-900">
+                <h1
+                    id="page_title"
+                    className="text-2xl font-bold text-slate-900"
+                >
                     My Profile
                 </h1>
                 <p className="mt-1 text-sm text-slate-600">
@@ -43,7 +53,9 @@ export default function ProfilePage() {
                         <h2 className="break-words text-lg font-semibold text-slate-900">
                             {account.display_name}
                         </h2>
-                        <p className="text-sm text-slate-600">{account.position}</p>
+                        <p className="text-sm text-slate-600">
+                            {account.position}
+                        </p>
                         <span className="mt-2 inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">
                             {account.role}
                         </span>
@@ -64,7 +76,8 @@ export default function ProfilePage() {
                 </dl>
 
                 <p className="mt-6 border-t border-slate-200 pt-4 text-sm text-slate-500">
-                    Account editing is not connected yet. Roles and permissions are managed by an administrator.
+                    Account editing is not connected yet. Roles and permissions
+                    are managed by an administrator.
                 </p>
             </Card>
 

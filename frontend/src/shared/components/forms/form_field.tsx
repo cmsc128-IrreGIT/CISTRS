@@ -29,15 +29,19 @@ export default function FormField({
     const field_id = id ?? generated_id;
     const hint_id = `${field_id}_hint`;
     const error_id = `${field_id}_error`;
-    const described_by = [
-        hint ? hint_id : "",
-        error ? error_id : "",
-    ].filter(Boolean).join(" ") || undefined;
+    const described_by =
+        [hint ? hint_id : "", error ? error_id : ""]
+            .filter(Boolean)
+            .join(" ") || undefined;
 
     return (
         <div>
-            <label htmlFor={field_id} className="mb-2 block text-sm font-medium text-slate-700">
-                {label}{required ? " *" : ""}
+            <label
+                htmlFor={field_id}
+                className="mb-2 block text-sm font-medium text-slate-700"
+            >
+                {label}
+                {required ? " *" : ""}
             </label>
 
             {children({

@@ -1,6 +1,9 @@
 import { useState } from "react";
 import type { InventoryItem } from "../types/inventory_types";
-import { filter_inventory, get_aircraft_options } from "../utils/inventory_filters";
+import {
+    filter_inventory,
+    get_aircraft_options,
+} from "../utils/inventory_filters";
 
 export default function useInventoryFilters(items: InventoryItem[]) {
     const [search, set_search] = useState("");

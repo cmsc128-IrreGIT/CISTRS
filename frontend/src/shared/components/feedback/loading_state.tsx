@@ -8,7 +8,10 @@ export default function LoadingState({
     message = "Loading records…",
 }: LoadingStateProps) {
     return (
-        <div role="status" className="flex items-center justify-center gap-3 px-4 py-12 text-sm text-slate-600">
+        <div
+            role="status"
+            className="flex items-center justify-center gap-3 px-4 py-12 text-sm text-slate-600"
+        >
             <LoaderCircle
                 size={22}
                 aria-hidden="true"

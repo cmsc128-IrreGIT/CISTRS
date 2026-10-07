@@ -32,8 +32,8 @@ import UsersPage from "../features/user_management/pages/users_page";
 import UserDetailsPage from "../features/user_management/pages/user_details_page";
 import UserFormPage from "../features/user_management/pages/user_form_page";
 
-const DashboardPage = lazy(() =>
-    import("../features/dashboard/pages/dashboard_page"),
+const DashboardPage = lazy(
+    () => import("../features/dashboard/pages/dashboard_page"),
 );
 
 export default function AppRoutes() {
@@ -48,7 +48,10 @@ export default function AppRoutes() {
                     element={
                         <Suspense
                             fallback={
-                                <p role="status" className="py-6 text-sm text-slate-500">
+                                <p
+                                    role="status"
+                                    className="py-6 text-sm text-slate-500"
+                                >
                                     Loading dashboard…
                                 </p>
                             }
@@ -62,27 +65,60 @@ export default function AppRoutes() {
 
                 <Route path="/inventory" element={<InventoryPage />} />
                 <Route path="/inventory/new" element={<InventoryFormPage />} />
-                <Route path="/inventory/history" element={<InventoryHistoryPage />} />
-                <Route path="/inventory/:item_id" element={<InventoryDetailsPage />} />
-                <Route path="/inventory/:item_id/edit" element={<InventoryFormPage />} />
+                <Route
+                    path="/inventory/history"
+                    element={<InventoryHistoryPage />}
+                />
+                <Route
+                    path="/inventory/:item_id"
+                    element={<InventoryDetailsPage />}
+                />
+                <Route
+                    path="/inventory/:item_id/edit"
+                    element={<InventoryFormPage />}
+                />
 
                 <Route path="/aircraft" element={<AircraftPage />} />
-                <Route path="/aircraft/:aircraft_id" element={<AircraftDetailsPage />} />
-                <Route path="/aircraft/:aircraft_id/status" element={<AircraftStatusPage />} />
+                <Route
+                    path="/aircraft/:aircraft_id"
+                    element={<AircraftDetailsPage />}
+                />
+                <Route
+                    path="/aircraft/:aircraft_id/status"
+                    element={<AircraftStatusPage />}
+                />
 
                 <Route path="/maintenance" element={<MaintenancePage />} />
-                <Route path="/maintenance/new" element={<MaintenanceFormPage />} />
-                <Route path="/maintenance/:maintenance_id/edit" element={<MaintenanceFormPage />} />
+                <Route
+                    path="/maintenance/new"
+                    element={<MaintenanceFormPage />}
+                />
+                <Route
+                    path="/maintenance/:maintenance_id/edit"
+                    element={<MaintenanceFormPage />}
+                />
 
                 <Route path="/logbook" element={<LogbookPage />} />
                 <Route path="/logbook/new" element={<LogbookFormPage />} />
-                <Route path="/logbook/:entry_id/edit" element={<LogbookFormPage />} />
+                <Route
+                    path="/logbook/:entry_id/edit"
+                    element={<LogbookFormPage />}
+                />
 
                 <Route path="/personnel" element={<PersonnelPage />} />
                 <Route path="/personnel/new" element={<PersonnelFormPage />} />
-                <Route path="/personnel/availability" element={<AvailabilityPage />} />
-                <Route path="/personnel/:personnel_id" element={<PersonnelDetailsPage />} />
-                <Route path="/personnel/:personnel_id/edit" element={<PersonnelFormPage />} />
+                <Route
+                    path="/personnel/availability"
+                    element={<AvailabilityPage />}
+                />
+                <Route
+                    path="/personnel/:personnel_id"
+                    element={<PersonnelDetailsPage />}
+                />
+                <Route
+                    path="/personnel/:personnel_id/edit"
+                    element={<PersonnelFormPage />}
+                />
 
                 <Route path="/notifications" element={<NotificationsPage />} />
 
@@ -95,7 +131,9 @@ export default function AppRoutes() {
                     path="*"
                     element={
                         <section>
-                            <h1 className="text-2xl font-bold">Page not found</h1>
+                            <h1 className="text-2xl font-bold">
+                                Page not found
+                            </h1>
                             <Link
                                 to="/dashboard"
                                 className="mt-4 inline-block rounded-sm text-slate-600 underline underline-offset-4 hover:text-[#0b2238] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-600"

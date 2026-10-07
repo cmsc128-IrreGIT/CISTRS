@@ -17,7 +17,10 @@ export default function OutOfStockCard({ items }: OutOfStockCardProps) {
         <Card
             title="Out-of-stock Items"
             action={
-                <Link to="/inventory" className="rounded-sm text-sm font-medium text-slate-600 underline underline-offset-4 decoration-slate-300 hover:text-[#0b2238] hover:decoration-slate-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-600">
+                <Link
+                    to="/inventory"
+                    className="rounded-sm text-sm font-medium text-slate-600 underline underline-offset-4 decoration-slate-300 hover:text-[#0b2238] hover:decoration-slate-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-600"
+                >
                     View inventory
                 </Link>
             }
@@ -41,7 +44,8 @@ export default function OutOfStockCard({ items }: OutOfStockCardProps) {
                                         {item.name}
                                     </Link>
                                     <p className="mt-1 text-sm text-slate-500">
-                                        {item.part_number} · {item.aircraft ?? "Unassigned"}
+                                        {item.part_number} ·{" "}
+                                        {item.aircraft ?? "Unassigned"}
                                     </p>
                                 </div>
 
@@ -56,7 +60,8 @@ export default function OutOfStockCard({ items }: OutOfStockCardProps) {
 
             {items.length > dashboard_list_limit && (
                 <p className="mt-4 text-xs text-slate-500">
-                    Showing {visible_items.length} of {items.length} out-of-stock items.
+                    Showing {visible_items.length} of {items.length}{" "}
+                    out-of-stock items.
                 </p>
             )}
         </Card>

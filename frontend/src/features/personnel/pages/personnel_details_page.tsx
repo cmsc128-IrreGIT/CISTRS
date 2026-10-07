@@ -6,5 +6,11 @@ import { useParams } from "react-router";
 export default function PersonnelDetailsPage() {
     const rows = usePersonnel();
     const { personnel_id } = useParams();
-    return <RecordDetails config={personnel_config} record={rows.find((row) => row.id === personnel_id)} edit_to={`/personnel/${personnel_id}/edit`} />;
+    return (
+        <RecordDetails
+            config={personnel_config}
+            record={rows.find((row) => row.id === personnel_id)}
+            edit_to={`/personnel/${personnel_id}/edit`}
+        />
+    );
 }

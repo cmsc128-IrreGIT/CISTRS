@@ -6,5 +6,11 @@ import { useParams } from "react-router";
 export default function AircraftDetailsPage() {
     const rows = useAircraft();
     const { aircraft_id } = useParams();
-    return <RecordDetails config={aircraft_config} record={rows.find((row) => row.id === aircraft_id)} edit_to={`/aircraft/${aircraft_id}/status`} />;
+    return (
+        <RecordDetails
+            config={aircraft_config}
+            record={rows.find((row) => row.id === aircraft_id)}
+            edit_to={`/aircraft/${aircraft_id}/status`}
+        />
+    );
 }

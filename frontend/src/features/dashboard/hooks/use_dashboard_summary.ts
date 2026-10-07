@@ -24,17 +24,21 @@ export default function useDashboardSummary() {
     const aircraft_status_data: DonutChartEntry[] = [
         {
             label: "Operational",
-            value: aircraft.filter((record) => record.status === "Operational").length,
+            value: aircraft.filter((record) => record.status === "Operational")
+                .length,
             color: "#15803d",
         },
         {
             label: "Maintenance",
-            value: aircraft.filter((record) => record.status === "Maintenance").length,
+            value: aircraft.filter((record) => record.status === "Maintenance")
+                .length,
             color: "#d97706",
         },
         {
             label: "Out of Service",
-            value: aircraft.filter((record) => record.status === "Out of Service").length,
+            value: aircraft.filter(
+                (record) => record.status === "Out of Service",
+            ).length,
             color: "#dc2626",
         },
     ];
@@ -60,7 +64,8 @@ export default function useDashboardSummary() {
         },
         {
             label: "Unread Alerts",
-            value: notifications.filter((record) => record.is_read === "false").length,
+            value: notifications.filter((record) => record.is_read === "false")
+                .length,
             description: "Sample notifications",
             icon: Bell,
         },

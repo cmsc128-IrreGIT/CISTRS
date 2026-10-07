@@ -19,7 +19,8 @@ export default function InventoryHistoryPage() {
             />
 
             <PreviewNotice>
-                Preview history resets on refresh and does not identify an authenticated user.
+                Preview history resets on refresh and does not identify an
+                authenticated user.
             </PreviewNotice>
 
             <Card>

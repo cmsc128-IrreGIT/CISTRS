@@ -86,7 +86,10 @@ export default function AircraftStatusCard({
 
                             <ul className="mt-2 divide-y divide-slate-100">
                                 {visible_maintenance.map((record) => (
-                                    <li key={record.id} className="space-y-2 py-4">
+                                    <li
+                                        key={record.id}
+                                        className="space-y-2 py-4"
+                                    >
                                         <Link
                                             to={`/maintenance/${record.id}/edit`}
                                             className={`${link_style} break-words`}
@@ -102,7 +105,11 @@ export default function AircraftStatusCard({
                                             <span>
                                                 Due:{" "}
                                                 {record.due_date ? (
-                                                    <time dateTime={record.due_date}>
+                                                    <time
+                                                        dateTime={
+                                                            record.due_date
+                                                        }
+                                                    >
                                                         {record.due_date}
                                                     </time>
                                                 ) : (

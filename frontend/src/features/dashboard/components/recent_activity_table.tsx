@@ -41,7 +41,9 @@ type RecentActivityTableProps = {
     rows: InventoryChange[];
 };
 
-export default function RecentActivityTable({ rows }: RecentActivityTableProps) {
+export default function RecentActivityTable({
+    rows,
+}: RecentActivityTableProps) {
     return (
         <DataTable
             caption="Recent inventory activity"

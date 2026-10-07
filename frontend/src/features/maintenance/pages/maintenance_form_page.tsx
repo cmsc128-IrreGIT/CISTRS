@@ -7,8 +7,22 @@ import { maintenance_store } from "../data/maintenance_store";
 
 export default function MaintenanceFormPage() {
     const aircraft = useAircraft();
-    const config = { ...maintenance_config, fields: maintenance_config.fields.map((field) => field.key === "aircraft" ? { ...field, options: aircraft.map((row) => row.registration) } : field) };
+    const config = {
+        ...maintenance_config,
+        fields: maintenance_config.fields.map((field) =>
+            field.key === "aircraft"
+                ? { ...field, options: aircraft.map((row) => row.registration) }
+                : field,
+        ),
+    };
     const rows = useMaintenance();
     const { maintenance_id } = useParams();
-    return <RecordFormPage config={config} rows={rows} record_id={maintenance_id} on_save={maintenance_store.save} />;
+    return (
+        <RecordFormPage
+            config={config}
+            rows={rows}
+            record_id={maintenance_id}
+            on_save={maintenance_store.save}
+        />
+    );
 }

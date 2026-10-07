@@ -19,21 +19,27 @@ export default function InventoryFormPage() {
     function handle_save(values: InventoryFormValues) {
         try {
             save_inventory_item(values, item_id);
-            toast.success(is_editing
-                ? "Preview item updated."
-                : "Item added to preview inventory.");
+            toast.success(
+                is_editing
+                    ? "Preview item updated."
+                    : "Item added to preview inventory.",
+            );
             navigate("/inventory");
         } catch (error) {
-            toast.error(error instanceof Error
-                ? error.message
-                : "Could not save the preview item.");
+            toast.error(
+                error instanceof Error
+                    ? error.message
+                    : "Could not save the preview item.",
+            );
         }
     }
 
     return (
         <section aria-labelledby="page_title" className="space-y-6">
             <PageHeader
-                title={is_editing ? "Edit Inventory Item" : "Add Inventory Item"}
+                title={
+                    is_editing ? "Edit Inventory Item" : "Add Inventory Item"
+                }
                 title_id="page_title"
                 description="Record aircraft parts and supplies."
             />
@@ -50,7 +56,11 @@ export default function InventoryFormPage() {
                         key={item_id ?? "new"}
                         initial_values={existing_item}
                         on_submit={handle_save}
-                        submit_text={is_editing ? "Update Preview Item" : "Add Preview Item"}
+                        submit_text={
+                            is_editing
+                                ? "Update Preview Item"
+                                : "Add Preview Item"
+                        }
                     />
                 )}
             </Card>

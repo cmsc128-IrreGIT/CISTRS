@@ -32,7 +32,10 @@ export default function InventoryPage() {
                 description="Aircraft parts and supplies."
                 actions={
                     <>
-                        <Link to="/inventory/history" className={button_styles("secondary")}>
+                        <Link
+                            to="/inventory/history"
+                            className={button_styles("secondary")}
+                        >
                             <History size={18} aria-hidden="true" />
                             Change History
                         </Link>
@@ -66,11 +69,17 @@ export default function InventoryPage() {
                                 <select
                                     {...field_props}
                                     value={aircraft_filter}
-                                    onChange={(event) => set_aircraft_filter(event.currentTarget.value)}
+                                    onChange={(event) =>
+                                        set_aircraft_filter(
+                                            event.currentTarget.value,
+                                        )
+                                    }
                                     className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm focus:outline-2 focus:outline-red-600"
                                 >
                                     <option value="">All aircraft</option>
-                                    <option value="unassigned">Unassigned</option>
+                                    <option value="unassigned">
+                                        Unassigned
+                                    </option>
                                     {aircraft_options.map((aircraft) => (
                                         <option key={aircraft} value={aircraft}>
                                             {aircraft}
@@ -89,10 +98,14 @@ export default function InventoryPage() {
                 </div>
 
                 <p role="status" className="mb-3 text-sm text-slate-500">
-                    {filtered_items.length} of {inventory_items.length} items shown
+                    {filtered_items.length} of {inventory_items.length} items
+                    shown
                 </p>
 
-                <InventoryTable rows={filtered_items} is_filtered={is_filtered} />
+                <InventoryTable
+                    rows={filtered_items}
+                    is_filtered={is_filtered}
+                />
             </Card>
         </section>
     );

@@ -20,11 +20,13 @@ export default function ErrorState({
             icon={CircleAlert}
             title={title}
             description={description}
-            action={on_retry ? (
-                <Button onClick={on_retry} is_loading={is_retrying}>
-                    {is_retrying ? "Retrying…" : "Try Again"}
-                </Button>
-            ) : undefined}
+            action={
+                on_retry ? (
+                    <Button onClick={on_retry} is_loading={is_retrying}>
+                        {is_retrying ? "Retrying…" : "Try Again"}
+                    </Button>
+                ) : undefined
+            }
         />
     );
 }

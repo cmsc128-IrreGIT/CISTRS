@@ -9,10 +9,25 @@ export default function UserFormPage() {
     const rows = useUserManagement();
     const { user_id } = useParams();
     function save(values: Omit<PreviewRecord, "id">, id?: string) {
-        if (rows.some((row) => row.id !== id && (row.username.toLowerCase() === values.username.toLowerCase() || row.email.toLowerCase() === values.email.toLowerCase()))) {
+        if (
+            rows.some(
+                (row) =>
+                    row.id !== id &&
+                    (row.username.toLowerCase() ===
+                        values.username.toLowerCase() ||
+                        row.email.toLowerCase() === values.email.toLowerCase()),
+            )
+        ) {
             throw new Error("Username or email already exists in the preview.");
         }
         return user_management_store.save(values, id);
     }
-    return <RecordFormPage config={user_management_config} rows={rows} record_id={user_id} on_save={save} />;
+    return (
+        <RecordFormPage
+            config={user_management_config}
+            rows={rows}
+            record_id={user_id}
+            on_save={save}
+        />
+    );
 }

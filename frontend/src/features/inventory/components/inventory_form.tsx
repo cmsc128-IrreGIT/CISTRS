@@ -65,7 +65,8 @@ export default function InventoryForm({
     return (
         <form onSubmit={handle_submit} className="space-y-6">
             <p className="text-sm text-slate-500">
-                Fields marked * are required. Fields are provisional pending the inventory template.
+                Fields marked * are required. Fields are provisional pending the
+                inventory template.
             </p>
 
             <div className="grid gap-5 sm:grid-cols-2">
@@ -81,8 +82,12 @@ export default function InventoryForm({
                                 {...field_props}
                                 name={field.name}
                                 maxLength={200}
-                                defaultValue={initial_values?.[field.name] ?? ""}
-                                onChange={(event) => event.currentTarget.setCustomValidity("")}
+                                defaultValue={
+                                    initial_values?.[field.name] ?? ""
+                                }
+                                onChange={(event) =>
+                                    event.currentTarget.setCustomValidity("")
+                                }
                                 className={input_style}
                             />
                         )}

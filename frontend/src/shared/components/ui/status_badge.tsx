@@ -20,7 +20,9 @@ export default function StatusBadge({
     tone = "neutral",
 }: StatusBadgeProps) {
     return (
-        <span className={`inline-flex whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium ${tone_styles[tone]}`}>
+        <span
+            className={`inline-flex whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium ${tone_styles[tone]}`}
+        >
             {children}
         </span>
     );

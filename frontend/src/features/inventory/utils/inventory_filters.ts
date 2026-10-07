@@ -23,7 +23,8 @@ export function filter_inventory(
             item[field].toLowerCase().includes(search_term),
         );
 
-        const matches_aircraft = aircraft_filter === "" ||
+        const matches_aircraft =
+            aircraft_filter === "" ||
             (aircraft_filter === "unassigned"
                 ? item.aircraft === null
                 : item.aircraft === aircraft_filter);

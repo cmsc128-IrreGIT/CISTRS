@@ -24,15 +24,34 @@ describe("preview records", () => {
         expect(store.get_snapshot()).toHaveLength(2);
         expect(listener).toHaveBeenCalledTimes(2);
         unsubscribe();
-        expect(() => store.save({ name: "Missing" }, "missing")).toThrow("Record not found");
+        expect(() => store.save({ name: "Missing" }, "missing")).toThrow(
+            "Record not found",
+        );
     });
     it("blocks whitespace and submits trimmed values with option IDs", async () => {
         const user = userEvent.setup();
         const submit = vi.fn();
-        render(<MemoryRouter><RecordForm fields={[
-            { key: "name", label: "Name", required: true },
-            { key: "person", label: "Person", required: true, type: "select", options: [{ value: "person-1", label: "Demo Person" }] },
-        ]} on_submit={submit} cancel_to="/personnel" submit_text="Save" /></MemoryRouter>);
+        render(
+            <MemoryRouter>
+                <RecordForm
+                    fields={[
+                        { key: "name", label: "Name", required: true },
+                        {
+                            key: "person",
+                            label: "Person",
+                            required: true,
+                            type: "select",
+                            options: [
+                                { value: "person-1", label: "Demo Person" },
+                            ],
+                        },
+                    ]}
+                    on_submit={submit}
+                    cancel_to="/personnel"
+                    submit_text="Save"
+                />
+            </MemoryRouter>,
+        );
         await user.type(screen.getByLabelText(/Name/), "   ");
         await user.selectOptions(screen.getByLabelText(/Person/), "person-1");
         await user.click(screen.getByRole("button", { name: "Save" }));
@@ -40,35 +59,72 @@ describe("preview records", () => {
         await user.clear(screen.getByLabelText(/Name/));
         await user.type(screen.getByLabelText(/Name/), " Demo ");
         await user.click(screen.getByRole("button", { name: "Save" }));
-        expect(submit).toHaveBeenCalledWith({ name: "Demo", person: "person-1" });
+        expect(submit).toHaveBeenCalledWith({
+            name: "Demo",
+            person: "person-1",
+        });
     });
     it("updates dashboard aircraft, pending maintenance, and unread counts from stores", () => {
         function Summary() {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const summary = useDashboardSummary() as any;
             const pendingMaintenance = summary.pending_maintenance ?? [];
-            return <div>{summary.aircraft_status_data[0].value} operational / {pendingMaintenance.length} pending / {summary.summaries[3].value} unread</div>;
+            return (
+                <div>
+                    {summary.aircraft_status_data[0].value} operational /{" "}
+                    {pendingMaintenance.length} pending /{" "}
+                    {summary.summaries[3].value} unread
+                </div>
+            );
         }
         render(<Summary />);
-        expect(screen.getByText("1 operational / 1 pending / 2 unread")).toBeTruthy();
+        expect(
+            screen.getByText("1 operational / 1 pending / 2 unread"),
+        ).toBeTruthy();
         cleanup();
         const original = aircraft_store.get_snapshot()[1];
-        aircraft_store.save({ ...original, status: "Operational" }, original.id);
+        aircraft_store.save(
+            { ...original, status: "Operational" },
+            original.id,
+        );
         const task = maintenance_store.get_snapshot()[0];
         maintenance_store.save({ ...task, status: "Completed" }, task.id);
-        notifications_store.get_snapshot().forEach((row) => notifications_store.save({ ...row, is_read: "true" }, row.id));
+        notifications_store
+            .get_snapshot()
+            .forEach((row) =>
+                notifications_store.save({ ...row, is_read: "true" }, row.id),
+            );
         render(<Summary />);
-        expect(screen.getByText("2 operational / 0 pending / 0 unread")).toBeTruthy();
+        expect(
+            screen.getByText("2 operational / 0 pending / 0 unread"),
+        ).toBeTruthy();
     });
     it("replaces availability for the same person and date", async () => {
         const user = userEvent.setup();
-        render(<MemoryRouter><AvailabilityPage /></MemoryRouter>);
-        await user.selectOptions(screen.getByRole("combobox", { name: /^Personnel/ }), "personnel-demo-1");
+        render(
+            <MemoryRouter>
+                <AvailabilityPage />
+            </MemoryRouter>,
+        );
+        await user.selectOptions(
+            screen.getByRole("combobox", { name: /^Personnel/ }),
+            "personnel-demo-1",
+        );
         await user.type(screen.getByLabelText(/^Date/), "2026-10-07");
-        await user.selectOptions(screen.getByRole("combobox", { name: /^Availability/ }), "Available");
-        await user.click(screen.getByRole("button", { name: "Save preview availability" }));
-        await user.selectOptions(screen.getByRole("combobox", { name: /^Availability/ }), "Unavailable");
-        await user.click(screen.getByRole("button", { name: "Save preview availability" }));
+        await user.selectOptions(
+            screen.getByRole("combobox", { name: /^Availability/ }),
+            "Available",
+        );
+        await user.click(
+            screen.getByRole("button", { name: "Save preview availability" }),
+        );
+        await user.selectOptions(
+            screen.getByRole("combobox", { name: /^Availability/ }),
+            "Unavailable",
+        );
+        await user.click(
+            screen.getByRole("button", { name: "Save preview availability" }),
+        );
         expect(screen.getAllByRole("row")).toHaveLength(2);
         expect(screen.getByRole("cell", { name: "Unavailable" })).toBeTruthy();
     });

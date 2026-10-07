@@ -3,9 +3,15 @@ import Card from "../../../shared/components/ui/card";
 
 export default function SettingsPage() {
     return (
-        <section aria-labelledby="page_title" className="mx-auto max-w-3xl space-y-6">
+        <section
+            aria-labelledby="page_title"
+            className="mx-auto max-w-3xl space-y-6"
+        >
             <div>
-                <h1 id="page_title" className="text-2xl font-bold text-slate-900">
+                <h1
+                    id="page_title"
+                    className="text-2xl font-bold text-slate-900"
+                >
                     Account Settings
                 </h1>
                 <p className="mt-1 text-sm text-slate-600">
@@ -24,8 +30,8 @@ export default function SettingsPage() {
                             Change Password
                         </h3>
                         <p className="mt-2 text-sm leading-6 text-slate-600">
-                            Password changes will be available once authentication
-                            and the account API are connected.
+                            Password changes will be available once
+                            authentication and the account API are connected.
                         </p>
                     </div>
                 </div>
@@ -39,7 +45,10 @@ export default function SettingsPage() {
                     Change Password
                 </button>
 
-                <p id="password_preview_note" className="mt-2 text-xs text-slate-500">
+                <p
+                    id="password_preview_note"
+                    className="mt-2 text-xs text-slate-500"
+                >
                     Unavailable in this preview.
                 </p>
             </Card>
