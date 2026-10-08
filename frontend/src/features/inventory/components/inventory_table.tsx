@@ -38,7 +38,7 @@ const columns: TableColumn<InventoryItem>[] = [
             <Link
                 to={`/inventory/${row.id}`}
                 aria-label={`View ${row.name}`}
-                className="font-medium text-red-700 underline"
+                className="inline-flex min-h-11 items-center font-medium text-slate-600 underline underline-offset-4 hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-600"
             >
                 View
             </Link>
@@ -66,7 +66,7 @@ export default function InventoryTable({
             }
             empty_description={
                 is_filtered
-                    ? "Try another search term or aircraft filter."
+                    ? "Try another search term or clear the aircraft and stock filters."
                     : "Added parts and supplies will appear here."
             }
         />

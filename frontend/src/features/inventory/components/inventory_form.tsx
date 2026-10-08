@@ -69,8 +69,10 @@ export default function InventoryForm({
                 inventory template.
             </p>
 
-            <div className="grid gap-5 sm:grid-cols-2">
-                {text_fields.map((field) => (
+            <fieldset className="space-y-4">
+                <legend className="text-base font-semibold text-slate-900">Item identification</legend>
+                <div className="grid gap-5 sm:grid-cols-2">
+                {text_fields.filter((field) => ["name", "part_number", "category"].includes(field.name)).map((field) => (
                     <FormField
                         key={field.name}
                         id={field.name}
@@ -94,6 +96,16 @@ export default function InventoryForm({
                     </FormField>
                 ))}
 
+                </div>
+            </fieldset>
+            <fieldset className="space-y-4 border-t border-slate-200 pt-5">
+                <legend className="text-base font-semibold text-slate-900">Stock and aircraft</legend>
+                <div className="grid gap-5 sm:grid-cols-2">
+                    {text_fields.filter((field) => ["unit", "aircraft"].includes(field.name)).map((field) => (
+                        <FormField key={field.name} id={field.name} label={field.label} required={field.required}>
+                            {(props) => <input {...props} name={field.name} maxLength={200} defaultValue={initial_values?.[field.name] ?? ""} onChange={(event) => event.currentTarget.setCustomValidity("")} className={input_style} />}
+                        </FormField>
+                    ))}
                 <FormField id="quantity" label="Quantity" required>
                     {(field_props) => (
                         <input
@@ -108,6 +120,7 @@ export default function InventoryForm({
                     )}
                 </FormField>
             </div>
+            </fieldset>
 
             <div className="flex justify-end gap-3 border-t border-slate-200 pt-5">
                 <Link to="/inventory" className={button_styles("secondary")}>
