@@ -88,10 +88,7 @@ export default function LoginPage() {
                     Sign in to your account.
                 </p>
 
-                <form
-                    onSubmit={handle_submit}
-                    className="mt-5 space-y-5"
-                >
+                <form onSubmit={handle_submit} className="mt-5 space-y-5">
                     <div>
                         <label
                             htmlFor="username"
