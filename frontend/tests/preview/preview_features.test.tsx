@@ -91,9 +91,7 @@ describe("preview records", () => {
         maintenance_store.save({ ...task, status: "Completed" }, task.id);
         notifications_store
             .get_snapshot()
-            .forEach((row) =>
-                notifications_store.save({ ...row, is_read: "true" }, row.id),
-            );
+            .forEach((row) => notifications_store.set_read(row.id, true));
         render(<Summary />);
         expect(
             screen.getByText("2 operational / 0 pending / 0 unread"),

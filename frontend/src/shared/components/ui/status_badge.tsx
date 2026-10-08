@@ -21,7 +21,7 @@ export default function StatusBadge({
 }: StatusBadgeProps) {
     return (
         <span
-            className={`inline-flex whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium ${tone_styles[tone]}`}
+            className={`inline-flex shrink-0 items-center self-start whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium ${tone_styles[tone]}`}
         >
             {children}
         </span>

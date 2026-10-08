@@ -64,7 +64,7 @@ export default function useDashboardSummary() {
         },
         {
             label: "Unread Alerts",
-            value: notifications.filter((record) => record.is_read === "false")
+            value: notifications.filter((record) => record.read_at === null)
                 .length,
             description: "Sample notifications",
             icon: Bell,
