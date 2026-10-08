@@ -1,10 +1,13 @@
 import { lazy, Suspense } from "react";
-import { Link, Navigate, Route, Routes } from "react-router";
+import { Navigate, Route, Routes } from "react-router";
 import AppLayout from "../shared/layouts/app_layout";
 
 import LoginPage from "../features/auth/pages/login_page";
 import ProfilePage from "../features/account/pages/profile_page";
 import SettingsPage from "../features/account/pages/settings_page";
+import SignupPage from "../features/auth/pages/signup_page";
+import ForgotPasswordPage from "../features/auth/pages/forgot_password_page";
+import NotFoundPage from "../shared/pages/not_found_page";
 
 import InventoryPage from "../features/inventory/pages/inventory_page";
 import InventoryDetailsPage from "../features/inventory/pages/inventory_details_page";
@@ -44,6 +47,9 @@ export default function AppRoutes() {
     return (
         <Routes>
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<SignupPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
             <Route element={<AppLayout />}>
                 <Route index element={<Navigate to="/dashboard" replace />} />
@@ -159,22 +165,7 @@ export default function AppRoutes() {
                 <Route path="/users/:user_id" element={<UserDetailsPage />} />
                 <Route path="/users/:user_id/edit" element={<UserFormPage />} />
 
-                <Route
-                    path="*"
-                    element={
-                        <section>
-                            <h1 className="text-2xl font-bold">
-                                Page not found
-                            </h1>
-                            <Link
-                                to="/dashboard"
-                                className="mt-4 inline-block rounded-sm text-slate-600 underline underline-offset-4 hover:text-[#0b2238] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-600"
-                            >
-                                Return to dashboard
-                            </Link>
-                        </section>
-                    }
-                />
+                <Route path="*" element={<NotFoundPage />} />
             </Route>
         </Routes>
     );
