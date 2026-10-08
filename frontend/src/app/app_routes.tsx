@@ -164,9 +164,9 @@ export default function AppRoutes() {
                 <Route path="/users/new" element={<UserFormPage />} />
                 <Route path="/users/:user_id" element={<UserDetailsPage />} />
                 <Route path="/users/:user_id/edit" element={<UserFormPage />} />
-
-                <Route path="*" element={<NotFoundPage />} />
             </Route>
+
+            <Route path="*" element={<NotFoundPage />} />
         </Routes>
     );
 }
