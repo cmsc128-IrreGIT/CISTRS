@@ -18,9 +18,6 @@ import AircraftStatusPage from "../features/aircraft/pages/aircraft_status_page"
 import MaintenancePage from "../features/maintenance/pages/maintenance_page";
 import MaintenanceFormPage from "../features/maintenance/pages/maintenance_form_page";
 
-import LogbookPage from "../features/logbook/pages/logbook_page";
-import LogbookFormPage from "../features/logbook/pages/logbook_form_page";
-
 import PersonnelPage from "../features/personnel/pages/personnel_page";
 import PersonnelDetailsPage from "../features/personnel/pages/personnel_details_page";
 import PersonnelFormPage from "../features/personnel/pages/personnel_form_page";
@@ -34,6 +31,13 @@ import UserFormPage from "../features/user_management/pages/user_form_page";
 
 const DashboardPage = lazy(
     () => import("../features/dashboard/pages/dashboard_page"),
+);
+
+const LogbookPage = lazy(
+    () => import("../features/logbook/pages/logbook_page"),
+);
+const LogbookFormPage = lazy(
+    () => import("../features/logbook/pages/logbook_form_page"),
 );
 
 export default function AppRoutes() {
@@ -98,11 +102,39 @@ export default function AppRoutes() {
                     element={<MaintenanceFormPage />}
                 />
 
-                <Route path="/logbook" element={<LogbookPage />} />
-                <Route path="/logbook/new" element={<LogbookFormPage />} />
+                <Route
+                    path="/logbook"
+                    element={
+                        <Suspense
+                            fallback={<p role="status">Loading logbook…</p>}
+                        >
+                            <LogbookPage />
+                        </Suspense>
+                    }
+                />
+                <Route
+                    path="/logbook/new"
+                    element={
+                        <Suspense
+                            fallback={
+                                <p role="status">Loading logbook form…</p>
+                            }
+                        >
+                            <LogbookFormPage />
+                        </Suspense>
+                    }
+                />
                 <Route
                     path="/logbook/:entry_id/edit"
-                    element={<LogbookFormPage />}
+                    element={
+                        <Suspense
+                            fallback={
+                                <p role="status">Loading logbook form…</p>
+                            }
+                        >
+                            <LogbookFormPage />
+                        </Suspense>
+                    }
                 />
 
                 <Route path="/personnel" element={<PersonnelPage />} />
