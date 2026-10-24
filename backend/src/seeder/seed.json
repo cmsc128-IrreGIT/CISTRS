@@ -1,0 +1,1336 @@
+{
+    "BASE": [
+        {
+            "base_UUID": "10000000-0000-4000-8000-000000000001",
+            "base_name": "Cebu",
+            "base_location": "Mactan-Cebu, Philippines",
+            "base_status": "Active"
+        },
+        {
+            "base_UUID": "10000000-0000-4000-8000-000000000002",
+            "base_name": "Manila",
+            "base_location": "Metro Manila, Philippines",
+            "base_status": "Active"
+        },
+        {
+            "base_UUID": "10000000-0000-4000-8000-000000000003",
+            "base_name": "Davao",
+            "base_location": "Davao City, Philippines",
+            "base_status": "Active"
+        }
+    ],
+    "EMPLOYMENT_STATUS": [
+        {
+            "emp_status_UUID": "11000000-0000-4000-8000-000000000001",
+            "status_name": "Regular",
+            "description": "Regular full-time employee."
+        },
+        {
+            "emp_status_UUID": "11000000-0000-4000-8000-000000000002",
+            "status_name": "Probationary",
+            "description": "Employee currently serving a probationary period."
+        },
+        {
+            "emp_status_UUID": "11000000-0000-4000-8000-000000000003",
+            "status_name": "On-call",
+            "description": "Employee engaged when operational needs require."
+        },
+        {
+            "emp_status_UUID": "11000000-0000-4000-8000-000000000004",
+            "status_name": "Contractual",
+            "description": "Employee engaged under a fixed-term contract."
+        },
+        {
+            "emp_status_UUID": "11000000-0000-4000-8000-000000000005",
+            "status_name": "Owner",
+            "description": "Owner or company proprietor."
+        }
+    ],
+    "EMPLOYEE": [
+        {
+            "emp_UUID": "20000000-0000-4000-8000-000000000001",
+            "emp_number": "SA-0001",
+            "f_name": "Adrian",
+            "m_initial": "M",
+            "l_name": "Reyes",
+            "date_of_birth": "1975-04-18",
+            "sex": "Male",
+            "position": "President / CEO",
+            "personnel_category": "Pilot",
+            "emp_status_UUID": "11000000-0000-4000-8000-000000000005",
+            "base_UUID": "10000000-0000-4000-8000-000000000001",
+            "record_status": "Active"
+        },
+        {
+            "emp_UUID": "20000000-0000-4000-8000-000000000002",
+            "emp_number": "SA-0002",
+            "f_name": "Marissa",
+            "m_initial": "L",
+            "l_name": "Santos",
+            "date_of_birth": "1983-09-12",
+            "sex": "Female",
+            "position": "Accountable Manager",
+            "personnel_category": "Operations Personnel",
+            "emp_status_UUID": "11000000-0000-4000-8000-000000000001",
+            "base_UUID": "10000000-0000-4000-8000-000000000001",
+            "record_status": "Active"
+        },
+        {
+            "emp_UUID": "20000000-0000-4000-8000-000000000003",
+            "emp_number": "SA-0003",
+            "f_name": "Ramon",
+            "m_initial": "C",
+            "l_name": "Villanueva",
+            "date_of_birth": "1979-02-23",
+            "sex": "Male",
+            "position": "Chief Aircraft Mechanic",
+            "personnel_category": "Aircraft Maintenance Technician",
+            "emp_status_UUID": "11000000-0000-4000-8000-000000000001",
+            "base_UUID": "10000000-0000-4000-8000-000000000001",
+            "record_status": "Active"
+        },
+        {
+            "emp_UUID": "20000000-0000-4000-8000-000000000004",
+            "emp_number": "SA-0004",
+            "f_name": "Angela",
+            "m_initial": "R",
+            "l_name": "Cruz",
+            "date_of_birth": "1991-07-06",
+            "sex": "Female",
+            "position": "First Officer",
+            "personnel_category": "Pilot",
+            "emp_status_UUID": "11000000-0000-4000-8000-000000000001",
+            "base_UUID": "10000000-0000-4000-8000-000000000002",
+            "record_status": "Active"
+        },
+        {
+            "emp_UUID": "20000000-0000-4000-8000-000000000005",
+            "emp_number": "SA-0005",
+            "f_name": "Patricia",
+            "m_initial": "D",
+            "l_name": "Flores",
+            "date_of_birth": "1986-11-20",
+            "sex": "Female",
+            "position": "Quality Manager",
+            "personnel_category": "Quality / Safety Personnel",
+            "emp_status_UUID": "11000000-0000-4000-8000-000000000001",
+            "base_UUID": "10000000-0000-4000-8000-000000000002",
+            "record_status": "Active"
+        },
+        {
+            "emp_UUID": "20000000-0000-4000-8000-000000000006",
+            "emp_number": "SA-0006",
+            "f_name": "Joshua",
+            "m_initial": "P",
+            "l_name": "Garcia",
+            "date_of_birth": "1994-03-15",
+            "sex": "Male",
+            "position": "Inventory Officer",
+            "personnel_category": "Inventory Personnel",
+            "emp_status_UUID": "11000000-0000-4000-8000-000000000002",
+            "base_UUID": "10000000-0000-4000-8000-000000000001",
+            "record_status": "Active"
+        },
+        {
+            "emp_UUID": "20000000-0000-4000-8000-000000000007",
+            "emp_number": "SA-0007",
+            "f_name": "Nicole",
+            "m_initial": "A",
+            "l_name": "Bautista",
+            "date_of_birth": "1990-01-28",
+            "sex": "Female",
+            "position": "Captain",
+            "personnel_category": "Pilot",
+            "emp_status_UUID": "11000000-0000-4000-8000-000000000001",
+            "base_UUID": "10000000-0000-4000-8000-000000000003",
+            "record_status": "Active"
+        },
+        {
+            "emp_UUID": "20000000-0000-4000-8000-000000000008",
+            "emp_number": "SA-0008",
+            "f_name": "Daniel",
+            "m_initial": "T",
+            "l_name": "Mendoza",
+            "date_of_birth": "1997-06-10",
+            "sex": "Male",
+            "position": "Assistant Safety Manager",
+            "personnel_category": "Quality / Safety Personnel",
+            "emp_status_UUID": "11000000-0000-4000-8000-000000000004",
+            "base_UUID": "10000000-0000-4000-8000-000000000002",
+            "record_status": "Inactive"
+        }
+    ],
+    "CONTACT": [
+        {
+            "contact_UUID": "30000000-0000-4000-8000-000000000001",
+            "contact_type": "Email",
+            "contact_value": "adrian.reyes@example.com"
+        },
+        {
+            "contact_UUID": "30000000-0000-4000-8000-000000000002",
+            "contact_type": "Phone",
+            "contact_value": "+63-917-555-0101"
+        },
+        {
+            "contact_UUID": "30000000-0000-4000-8000-000000000003",
+            "contact_type": "Email",
+            "contact_value": "marissa.santos@example.com"
+        },
+        {
+            "contact_UUID": "30000000-0000-4000-8000-000000000004",
+            "contact_type": "Phone",
+            "contact_value": "+63-917-555-0102"
+        },
+        {
+            "contact_UUID": "30000000-0000-4000-8000-000000000005",
+            "contact_type": "Email",
+            "contact_value": "ramon.villanueva@example.com"
+        },
+        {
+            "contact_UUID": "30000000-0000-4000-8000-000000000006",
+            "contact_type": "Phone",
+            "contact_value": "+63-917-555-0103"
+        },
+        {
+            "contact_UUID": "30000000-0000-4000-8000-000000000007",
+            "contact_type": "Email",
+            "contact_value": "angela.cruz@example.com"
+        },
+        {
+            "contact_UUID": "30000000-0000-4000-8000-000000000008",
+            "contact_type": "Phone",
+            "contact_value": "+63-917-555-0104"
+        },
+        {
+            "contact_UUID": "30000000-0000-4000-8000-000000000009",
+            "contact_type": "Email",
+            "contact_value": "patricia.flores@example.com"
+        },
+        {
+            "contact_UUID": "30000000-0000-4000-8000-000000000010",
+            "contact_type": "Phone",
+            "contact_value": "+63-917-555-0105"
+        },
+        {
+            "contact_UUID": "30000000-0000-4000-8000-000000000011",
+            "contact_type": "Email",
+            "contact_value": "joshua.garcia@example.com"
+        },
+        {
+            "contact_UUID": "30000000-0000-4000-8000-000000000012",
+            "contact_type": "Phone",
+            "contact_value": "+63-917-555-0106"
+        },
+        {
+            "contact_UUID": "30000000-0000-4000-8000-000000000013",
+            "contact_type": "Email",
+            "contact_value": "nicole.bautista@example.com"
+        },
+        {
+            "contact_UUID": "30000000-0000-4000-8000-000000000014",
+            "contact_type": "Phone",
+            "contact_value": "+63-917-555-0107"
+        },
+        {
+            "contact_UUID": "30000000-0000-4000-8000-000000000015",
+            "contact_type": "Email",
+            "contact_value": "daniel.mendoza@example.com"
+        },
+        {
+            "contact_UUID": "30000000-0000-4000-8000-000000000016",
+            "contact_type": "Phone",
+            "contact_value": "+63-917-555-0108"
+        },
+        {
+            "contact_UUID": "70000000-0000-4000-8000-000000000001",
+            "contact_type": "Email",
+            "contact_value": "sales@aeroparts.example"
+        },
+        {
+            "contact_UUID": "70000000-0000-4000-8000-000000000002",
+            "contact_type": "Email",
+            "contact_value": "orders@pacificsupply.example"
+        },
+        {
+            "contact_UUID": "70000000-0000-4000-8000-000000000003",
+            "contact_type": "Email",
+            "contact_value": "support@skyworks.example"
+        },
+        {
+            "contact_UUID": "70000000-0000-4000-8000-000000000004",
+            "contact_type": "Email",
+            "contact_value": "parts@islandaircraft.example"
+        },
+        {
+            "contact_UUID": "70000000-0000-4000-8000-000000000005",
+            "contact_type": "Email",
+            "contact_value": "sales@aviationtools.example"
+        },
+        {
+            "contact_UUID": "70000000-0000-4000-8000-000000000006",
+            "contact_type": "Email",
+            "contact_value": "info@northstar.example"
+        }
+    ],
+    "EMPLOYEE_CONTACT": [
+        {
+            "employee_UUID": "20000000-0000-4000-8000-000000000001",
+            "contact_UUID": "30000000-0000-4000-8000-000000000001"
+        },
+        {
+            "employee_UUID": "20000000-0000-4000-8000-000000000001",
+            "contact_UUID": "30000000-0000-4000-8000-000000000002"
+        },
+        {
+            "employee_UUID": "20000000-0000-4000-8000-000000000002",
+            "contact_UUID": "30000000-0000-4000-8000-000000000003"
+        },
+        {
+            "employee_UUID": "20000000-0000-4000-8000-000000000002",
+            "contact_UUID": "30000000-0000-4000-8000-000000000004"
+        },
+        {
+            "employee_UUID": "20000000-0000-4000-8000-000000000003",
+            "contact_UUID": "30000000-0000-4000-8000-000000000005"
+        },
+        {
+            "employee_UUID": "20000000-0000-4000-8000-000000000003",
+            "contact_UUID": "30000000-0000-4000-8000-000000000006"
+        },
+        {
+            "employee_UUID": "20000000-0000-4000-8000-000000000004",
+            "contact_UUID": "30000000-0000-4000-8000-000000000007"
+        },
+        {
+            "employee_UUID": "20000000-0000-4000-8000-000000000004",
+            "contact_UUID": "30000000-0000-4000-8000-000000000008"
+        },
+        {
+            "employee_UUID": "20000000-0000-4000-8000-000000000005",
+            "contact_UUID": "30000000-0000-4000-8000-000000000009"
+        },
+        {
+            "employee_UUID": "20000000-0000-4000-8000-000000000005",
+            "contact_UUID": "30000000-0000-4000-8000-000000000010"
+        },
+        {
+            "employee_UUID": "20000000-0000-4000-8000-000000000006",
+            "contact_UUID": "30000000-0000-4000-8000-000000000011"
+        },
+        {
+            "employee_UUID": "20000000-0000-4000-8000-000000000006",
+            "contact_UUID": "30000000-0000-4000-8000-000000000012"
+        },
+        {
+            "employee_UUID": "20000000-0000-4000-8000-000000000007",
+            "contact_UUID": "30000000-0000-4000-8000-000000000013"
+        },
+        {
+            "employee_UUID": "20000000-0000-4000-8000-000000000007",
+            "contact_UUID": "30000000-0000-4000-8000-000000000014"
+        },
+        {
+            "employee_UUID": "20000000-0000-4000-8000-000000000008",
+            "contact_UUID": "30000000-0000-4000-8000-000000000015"
+        },
+        {
+            "employee_UUID": "20000000-0000-4000-8000-000000000008",
+            "contact_UUID": "30000000-0000-4000-8000-000000000016"
+        }
+    ],
+    "LICENSE_TYPE": [
+        {
+            "license_type_UUID": "40000000-0000-4000-8000-000000000001",
+            "license_type_name": "Airline Transport Pilot License",
+            "description": "Pilot license for airline transport operations."
+        },
+        {
+            "license_type_UUID": "40000000-0000-4000-8000-000000000002",
+            "license_type_name": "Commercial Pilot License",
+            "description": "License for commercial pilot privileges."
+        },
+        {
+            "license_type_UUID": "40000000-0000-4000-8000-000000000003",
+            "license_type_name": "English Language Proficiency",
+            "description": "Aviation English proficiency qualification."
+        },
+        {
+            "license_type_UUID": "40000000-0000-4000-8000-000000000004",
+            "license_type_name": "CAAP AMT License",
+            "description": "Aircraft maintenance technician license."
+        },
+        {
+            "license_type_UUID": "40000000-0000-4000-8000-000000000005",
+            "license_type_name": "Radio Operator Certificate",
+            "description": "Certificate for radio operation privileges."
+        },
+        {
+            "license_type_UUID": "40000000-0000-4000-8000-000000000006",
+            "license_type_name": "Private Pilot License",
+            "description": "Private pilot license."
+        }
+    ],
+    "EMPLOYEE_LICENSE": [
+        {
+            "emp_license_UUID": "41000000-0000-4000-8000-000000000001",
+            "employee_UUID": "20000000-0000-4000-8000-000000000001",
+            "license_type_UUID": "40000000-0000-4000-8000-000000000001",
+            "license_number": "DEMO-ATPL-001",
+            "issuing_authority": "CAAP",
+            "date_issued": "2010-06-15",
+            "expiry_date": "2027-06-15",
+            "expiry_type": "EXPIRING",
+            "remarks": "Fictional sample license record."
+        },
+        {
+            "emp_license_UUID": "41000000-0000-4000-8000-000000000002",
+            "employee_UUID": "20000000-0000-4000-8000-000000000001",
+            "license_type_UUID": "40000000-0000-4000-8000-000000000003",
+            "license_number": "DEMO-ELP-001",
+            "issuing_authority": "CAAP",
+            "date_issued": "2024-05-10",
+            "expiry_date": "2027-05-10",
+            "expiry_type": "EXPIRING",
+            "remarks": "Fictional sample license record."
+        },
+        {
+            "emp_license_UUID": "41000000-0000-4000-8000-000000000003",
+            "employee_UUID": "20000000-0000-4000-8000-000000000004",
+            "license_type_UUID": "40000000-0000-4000-8000-000000000002",
+            "license_number": "DEMO-CPL-004",
+            "issuing_authority": "CAAP",
+            "date_issued": "2018-08-20",
+            "expiry_date": "2027-08-20",
+            "expiry_type": "EXPIRING",
+            "remarks": "Fictional sample license record."
+        },
+        {
+            "emp_license_UUID": "41000000-0000-4000-8000-000000000004",
+            "employee_UUID": "20000000-0000-4000-8000-000000000004",
+            "license_type_UUID": "40000000-0000-4000-8000-000000000003",
+            "license_number": "DEMO-ELP-004",
+            "issuing_authority": "CAAP",
+            "date_issued": "2023-09-01",
+            "expiry_date": "2026-12-01",
+            "expiry_type": "EXPIRING",
+            "remarks": "Fictional sample license record."
+        },
+        {
+            "emp_license_UUID": "41000000-0000-4000-8000-000000000005",
+            "employee_UUID": "20000000-0000-4000-8000-000000000003",
+            "license_type_UUID": "40000000-0000-4000-8000-000000000004",
+            "license_number": "DEMO-AMT-003",
+            "issuing_authority": "CAAP",
+            "date_issued": "2012-02-10",
+            "expiry_date": null,
+            "expiry_type": "NON_EXPIRING",
+            "remarks": "Fictional sample license; no expiry date recorded."
+        },
+        {
+            "emp_license_UUID": "41000000-0000-4000-8000-000000000006",
+            "employee_UUID": "20000000-0000-4000-8000-000000000007",
+            "license_type_UUID": "40000000-0000-4000-8000-000000000001",
+            "license_number": "DEMO-ATPL-007",
+            "issuing_authority": "CAAP",
+            "date_issued": "2015-04-12",
+            "expiry_date": "2027-04-12",
+            "expiry_type": "EXPIRING",
+            "remarks": "Fictional sample license record."
+        },
+        {
+            "emp_license_UUID": "41000000-0000-4000-8000-000000000007",
+            "employee_UUID": "20000000-0000-4000-8000-000000000007",
+            "license_type_UUID": "40000000-0000-4000-8000-000000000003",
+            "license_number": "DEMO-ELP-007",
+            "issuing_authority": "CAAP",
+            "date_issued": "2022-01-15",
+            "expiry_date": null,
+            "expiry_type": "UNKNOWN",
+            "remarks": "Expiry information requires verification."
+        },
+        {
+            "emp_license_UUID": "41000000-0000-4000-8000-000000000008",
+            "employee_UUID": "20000000-0000-4000-8000-000000000006",
+            "license_type_UUID": "40000000-0000-4000-8000-000000000004",
+            "license_number": "DEMO-AMT-006",
+            "issuing_authority": "CAAP",
+            "date_issued": "2021-03-22",
+            "expiry_date": null,
+            "expiry_type": "NON_EXPIRING",
+            "remarks": "Fictional sample license record."
+        },
+        {
+            "emp_license_UUID": "41000000-0000-4000-8000-000000000009",
+            "employee_UUID": "20000000-0000-4000-8000-000000000002",
+            "license_type_UUID": "40000000-0000-4000-8000-000000000005",
+            "license_number": "DEMO-ROC-002",
+            "issuing_authority": "CAAP",
+            "date_issued": "2020-07-18",
+            "expiry_date": null,
+            "expiry_type": "UNKNOWN",
+            "remarks": "Sample record; expiry status to be verified."
+        },
+        {
+            "emp_license_UUID": "41000000-0000-4000-8000-000000000010",
+            "employee_UUID": "20000000-0000-4000-8000-000000000008",
+            "license_type_UUID": "40000000-0000-4000-8000-000000000003",
+            "license_number": "DEMO-ELP-008",
+            "issuing_authority": "CAAP",
+            "date_issued": "2021-10-01",
+            "expiry_date": "2026-10-01",
+            "expiry_type": "EXPIRED",
+            "remarks": "Fictional sample license record."
+        }
+    ],
+    "ORGANIZATION": [
+        {
+            "organization_UUID": "50000000-0000-4000-8000-000000000001",
+            "organization_name": "AeroParts Cebu",
+            "organization_location": "Cebu, Philippines"
+        },
+        {
+            "organization_UUID": "50000000-0000-4000-8000-000000000002",
+            "organization_name": "Pacific Aviation Supply",
+            "organization_location": "Manila, Philippines"
+        },
+        {
+            "organization_UUID": "50000000-0000-4000-8000-000000000003",
+            "organization_name": "SkyWorks Components",
+            "organization_location": "Davao, Philippines"
+        },
+        {
+            "organization_UUID": "50000000-0000-4000-8000-000000000004",
+            "organization_name": "Island Aircraft Systems",
+            "organization_location": "Cebu, Philippines"
+        },
+        {
+            "organization_UUID": "50000000-0000-4000-8000-000000000005",
+            "organization_name": "Aviation Tools Depot",
+            "organization_location": "Manila, Philippines"
+        },
+        {
+            "organization_UUID": "50000000-0000-4000-8000-000000000006",
+            "organization_name": "Northstar Aviation Manufacturing",
+            "organization_location": "Clark, Philippines"
+        }
+    ],
+    "SUPPLIER": [
+        {
+            "organization_UUID": "50000000-0000-4000-8000-000000000001"
+        },
+        {
+            "organization_UUID": "50000000-0000-4000-8000-000000000002"
+        },
+        {
+            "organization_UUID": "50000000-0000-4000-8000-000000000003"
+        },
+        {
+            "organization_UUID": "50000000-0000-4000-8000-000000000005"
+        }
+    ],
+    "MANUFACTURER": [
+        {
+            "organization_UUID": "50000000-0000-4000-8000-000000000001"
+        },
+        {
+            "organization_UUID": "50000000-0000-4000-8000-000000000003"
+        },
+        {
+            "organization_UUID": "50000000-0000-4000-8000-000000000004"
+        },
+        {
+            "organization_UUID": "50000000-0000-4000-8000-000000000006"
+        }
+    ],
+    "PART": [
+        {
+            "part_UUID": "60000000-0000-4000-8000-000000000001",
+            "part_number": "FLT-001",
+            "part_name": "Oil Filter",
+            "unit_of_measure": "pcs",
+            "min_stock_level": 10,
+            "description": "Oil filter used for routine aircraft servicing."
+        },
+        {
+            "part_UUID": "60000000-0000-4000-8000-000000000002",
+            "part_number": "FLT-002",
+            "part_name": "Air Filter",
+            "unit_of_measure": "pcs",
+            "min_stock_level": 8,
+            "description": "Replacement air filter."
+        },
+        {
+            "part_UUID": "60000000-0000-4000-8000-000000000003",
+            "part_number": "BRK-001",
+            "part_name": "Brake Pad Set",
+            "unit_of_measure": "set",
+            "min_stock_level": 4,
+            "description": "Aircraft brake pad replacement set."
+        },
+        {
+            "part_UUID": "60000000-0000-4000-8000-000000000004",
+            "part_number": "ELC-001",
+            "part_name": "Aircraft Fuse",
+            "unit_of_measure": "pcs",
+            "min_stock_level": 20,
+            "description": "Replacement electrical fuse."
+        },
+        {
+            "part_UUID": "60000000-0000-4000-8000-000000000005",
+            "part_number": "LGT-001",
+            "part_name": "Navigation Light Bulb",
+            "unit_of_measure": "pcs",
+            "min_stock_level": 6,
+            "description": "Replacement aircraft navigation light bulb."
+        },
+        {
+            "part_UUID": "60000000-0000-4000-8000-000000000006",
+            "part_number": "SEA-001",
+            "part_name": "Rubber Seal Kit",
+            "unit_of_measure": "kit",
+            "min_stock_level": 5,
+            "description": "Seal kit for approved maintenance tasks."
+        },
+        {
+            "part_UUID": "60000000-0000-4000-8000-000000000007",
+            "part_number": "OIL-001",
+            "part_name": "Engine Oil",
+            "unit_of_measure": "liter",
+            "min_stock_level": 25,
+            "description": "Approved aviation engine oil."
+        },
+        {
+            "part_UUID": "60000000-0000-4000-8000-000000000008",
+            "part_number": "TOOL-001",
+            "part_name": "Torque Wrench",
+            "unit_of_measure": "pcs",
+            "min_stock_level": 2,
+            "description": "Calibrated torque wrench for maintenance operations."
+        }
+    ],
+    "INVENTORY_LOCATION": [
+        {
+            "location_UUID": "61000000-0000-4000-8000-000000000001",
+            "location_name": "Cebu Main Store",
+            "storage_area": "Warehouse A"
+        },
+        {
+            "location_UUID": "61000000-0000-4000-8000-000000000002",
+            "location_name": "Cebu Maintenance Room",
+            "storage_area": "Maintenance Bay 1"
+        },
+        {
+            "location_UUID": "61000000-0000-4000-8000-000000000003",
+            "location_name": "Manila Store",
+            "storage_area": "Warehouse B"
+        },
+        {
+            "location_UUID": "61000000-0000-4000-8000-000000000004",
+            "location_name": "Davao Store",
+            "storage_area": "Equipment Room"
+        }
+    ],
+    "PART_SUPPLIER": [
+        {
+            "part_UUID": "60000000-0000-4000-8000-000000000001",
+            "supplier_UUID": "50000000-0000-4000-8000-000000000001"
+        },
+        {
+            "part_UUID": "60000000-0000-4000-8000-000000000001",
+            "supplier_UUID": "50000000-0000-4000-8000-000000000002"
+        },
+        {
+            "part_UUID": "60000000-0000-4000-8000-000000000002",
+            "supplier_UUID": "50000000-0000-4000-8000-000000000002"
+        },
+        {
+            "part_UUID": "60000000-0000-4000-8000-000000000003",
+            "supplier_UUID": "50000000-0000-4000-8000-000000000003"
+        },
+        {
+            "part_UUID": "60000000-0000-4000-8000-000000000004",
+            "supplier_UUID": "50000000-0000-4000-8000-000000000005"
+        },
+        {
+            "part_UUID": "60000000-0000-4000-8000-000000000005",
+            "supplier_UUID": "50000000-0000-4000-8000-000000000001"
+        },
+        {
+            "part_UUID": "60000000-0000-4000-8000-000000000006",
+            "supplier_UUID": "50000000-0000-4000-8000-000000000003"
+        },
+        {
+            "part_UUID": "60000000-0000-4000-8000-000000000007",
+            "supplier_UUID": "50000000-0000-4000-8000-000000000002"
+        },
+        {
+            "part_UUID": "60000000-0000-4000-8000-000000000008",
+            "supplier_UUID": "50000000-0000-4000-8000-000000000005"
+        }
+    ],
+    "PART_MANUFACTURER": [
+        {
+            "part_UUID": "60000000-0000-4000-8000-000000000001",
+            "manufacturer_UUID": "50000000-0000-4000-8000-000000000001"
+        },
+        {
+            "part_UUID": "60000000-0000-4000-8000-000000000002",
+            "manufacturer_UUID": "50000000-0000-4000-8000-000000000003"
+        },
+        {
+            "part_UUID": "60000000-0000-4000-8000-000000000003",
+            "manufacturer_UUID": "50000000-0000-4000-8000-000000000004"
+        },
+        {
+            "part_UUID": "60000000-0000-4000-8000-000000000004",
+            "manufacturer_UUID": "50000000-0000-4000-8000-000000000006"
+        },
+        {
+            "part_UUID": "60000000-0000-4000-8000-000000000005",
+            "manufacturer_UUID": "50000000-0000-4000-8000-000000000004"
+        },
+        {
+            "part_UUID": "60000000-0000-4000-8000-000000000006",
+            "manufacturer_UUID": "50000000-0000-4000-8000-000000000006"
+        },
+        {
+            "part_UUID": "60000000-0000-4000-8000-000000000007",
+            "manufacturer_UUID": "50000000-0000-4000-8000-000000000003"
+        },
+        {
+            "part_UUID": "60000000-0000-4000-8000-000000000008",
+            "manufacturer_UUID": "50000000-0000-4000-8000-000000000004"
+        }
+    ],
+    "INVENTORY_STATUS": [
+        {
+            "status_UUID": "62000000-0000-4000-8000-000000000001",
+            "part_UUID": "60000000-0000-4000-8000-000000000001",
+            "location_UUID": "61000000-0000-4000-8000-000000000001",
+            "current_quantity": 32
+        },
+        {
+            "status_UUID": "62000000-0000-4000-8000-000000000002",
+            "part_UUID": "60000000-0000-4000-8000-000000000001",
+            "location_UUID": "61000000-0000-4000-8000-000000000002",
+            "current_quantity": 8
+        },
+        {
+            "status_UUID": "62000000-0000-4000-8000-000000000003",
+            "part_UUID": "60000000-0000-4000-8000-000000000002",
+            "location_UUID": "61000000-0000-4000-8000-000000000001",
+            "current_quantity": 15
+        },
+        {
+            "status_UUID": "62000000-0000-4000-8000-000000000004",
+            "part_UUID": "60000000-0000-4000-8000-000000000002",
+            "location_UUID": "61000000-0000-4000-8000-000000000003",
+            "current_quantity": 6
+        },
+        {
+            "status_UUID": "62000000-0000-4000-8000-000000000005",
+            "part_UUID": "60000000-0000-4000-8000-000000000003",
+            "location_UUID": "61000000-0000-4000-8000-000000000001",
+            "current_quantity": 3
+        },
+        {
+            "status_UUID": "62000000-0000-4000-8000-000000000006",
+            "part_UUID": "60000000-0000-4000-8000-000000000003",
+            "location_UUID": "61000000-0000-4000-8000-000000000004",
+            "current_quantity": 5
+        },
+        {
+            "status_UUID": "62000000-0000-4000-8000-000000000007",
+            "part_UUID": "60000000-0000-4000-8000-000000000004",
+            "location_UUID": "61000000-0000-4000-8000-000000000001",
+            "current_quantity": 75
+        },
+        {
+            "status_UUID": "62000000-0000-4000-8000-000000000008",
+            "part_UUID": "60000000-0000-4000-8000-000000000004",
+            "location_UUID": "61000000-0000-4000-8000-000000000003",
+            "current_quantity": 18
+        },
+        {
+            "status_UUID": "62000000-0000-4000-8000-000000000009",
+            "part_UUID": "60000000-0000-4000-8000-000000000005",
+            "location_UUID": "61000000-0000-4000-8000-000000000002",
+            "current_quantity": 4
+        },
+        {
+            "status_UUID": "62000000-0000-4000-8000-000000000010",
+            "part_UUID": "60000000-0000-4000-8000-000000000005",
+            "location_UUID": "61000000-0000-4000-8000-000000000003",
+            "current_quantity": 9
+        },
+        {
+            "status_UUID": "62000000-0000-4000-8000-000000000011",
+            "part_UUID": "60000000-0000-4000-8000-000000000006",
+            "location_UUID": "61000000-0000-4000-8000-000000000001",
+            "current_quantity": 12
+        },
+        {
+            "status_UUID": "62000000-0000-4000-8000-000000000012",
+            "part_UUID": "60000000-0000-4000-8000-000000000006",
+            "location_UUID": "61000000-0000-4000-8000-000000000004",
+            "current_quantity": 2
+        },
+        {
+            "status_UUID": "62000000-0000-4000-8000-000000000013",
+            "part_UUID": "60000000-0000-4000-8000-000000000007",
+            "location_UUID": "61000000-0000-4000-8000-000000000001",
+            "current_quantity": 40
+        },
+        {
+            "status_UUID": "62000000-0000-4000-8000-000000000014",
+            "part_UUID": "60000000-0000-4000-8000-000000000007",
+            "location_UUID": "61000000-0000-4000-8000-000000000002",
+            "current_quantity": 18
+        },
+        {
+            "status_UUID": "62000000-0000-4000-8000-000000000015",
+            "part_UUID": "60000000-0000-4000-8000-000000000008",
+            "location_UUID": "61000000-0000-4000-8000-000000000002",
+            "current_quantity": 3
+        },
+        {
+            "status_UUID": "62000000-0000-4000-8000-000000000016",
+            "part_UUID": "60000000-0000-4000-8000-000000000008",
+            "location_UUID": "61000000-0000-4000-8000-000000000004",
+            "current_quantity": 1
+        }
+    ],
+    "INVENTORY_TRANSACTION": [
+        {
+            "transaction_UUID": "a81f3c92-6d47-4b10-9e25-7f2a61c8d304",
+            "status_UUID": "62000000-0000-4000-8000-000000000004",
+            "transaction_type": "ADJUSTMENT",
+            "quantity_change": 7,
+            "updated_by": "20000000-0000-4000-8000-000000000006",
+            "created_at": "2026-10-01T08:00:00Z",
+            "remarks": "Opening balance at system setup"
+        },
+        {
+            "transaction_UUID": "b72e4d13-8a56-4c21-a735-6e9b02d4f817",
+            "status_UUID": "62000000-0000-4000-8000-000000000006",
+            "transaction_type": "ADJUSTMENT",
+            "quantity_change": 5,
+            "updated_by": "20000000-0000-4000-8000-000000000006",
+            "created_at": "2026-10-01T08:00:00Z",
+            "remarks": "Opening balance at system setup"
+        },
+        {
+            "transaction_UUID": "c63d5e24-9b67-4d32-8a46-5f1c93e7b208",
+            "status_UUID": "62000000-0000-4000-8000-000000000008",
+            "transaction_type": "ADJUSTMENT",
+            "quantity_change": 18,
+            "updated_by": "20000000-0000-4000-8000-000000000006",
+            "created_at": "2026-10-01T08:00:00Z",
+            "remarks": "Opening balance at system setup"
+        },
+        {
+            "transaction_UUID": "d54c6f35-ac78-4e43-9b57-4a2d84f6c109",
+            "status_UUID": "62000000-0000-4000-8000-000000000009",
+            "transaction_type": "ADJUSTMENT",
+            "quantity_change": 6,
+            "updated_by": "20000000-0000-4000-8000-000000000006",
+            "created_at": "2026-10-01T08:00:00Z",
+            "remarks": "Opening balance at system setup"
+        },
+        {
+            "transaction_UUID": "e45b7046-bd89-4f54-8c68-3b1e75a9d210",
+            "status_UUID": "62000000-0000-4000-8000-000000000010",
+            "transaction_type": "ISSUE",
+            "quantity_change": -1,
+            "updated_by": "20000000-0000-4000-8000-000000000006",
+            "created_at": "2026-10-05T08:00:00Z",
+            "remarks": "Stock issued"
+        },
+        {
+            "transaction_UUID": "f36a8157-ce9a-4056-9d79-2c0f64b8e321",
+            "status_UUID": "62000000-0000-4000-8000-000000000011",
+            "transaction_type": "ISSUE",
+            "quantity_change": -3,
+            "updated_by": "20000000-0000-4000-8000-000000000006",
+            "created_at": "2026-10-05T08:00:00Z",
+            "remarks": "Stock issued"
+        },
+        {
+            "transaction_UUID": "167b9268-dfab-4167-8e8a-1d9e53c7f432",
+            "status_UUID": "62000000-0000-4000-8000-000000000012",
+            "transaction_type": "ADJUSTMENT",
+            "quantity_change": 3,
+            "updated_by": "20000000-0000-4000-8000-000000000006",
+            "created_at": "2026-10-01T08:00:00Z",
+            "remarks": "Opening balance at system setup"
+        },
+        {
+            "transaction_UUID": "278ca379-e0bc-4278-9f9b-0e8d42b6a543",
+            "status_UUID": "62000000-0000-4000-8000-000000000014",
+            "transaction_type": "ADJUSTMENT",
+            "quantity_change": 18,
+            "updated_by": "20000000-0000-4000-8000-000000000006",
+            "created_at": "2026-10-01T08:00:00Z",
+            "remarks": "Opening balance at system setup"
+        },
+        {
+            "transaction_UUID": "389db48a-f1cd-4389-a0ac-9f7c31a5b654",
+            "status_UUID": "62000000-0000-4000-8000-000000000016",
+            "transaction_type": "ADJUSTMENT",
+            "quantity_change": 1,
+            "updated_by": "20000000-0000-4000-8000-000000000006",
+            "created_at": "2026-10-01T08:00:00Z",
+            "remarks": "Opening balance at system setup"
+        },
+
+        {
+            "transaction_UUID": "490ec59b-b20d-449a-8b10-1a2b3c4d5e61",
+            "status_UUID": "62000000-0000-4000-8000-000000000001",
+            "transaction_type": "ADJUSTMENT",
+            "quantity_change": 32,
+            "updated_by": "20000000-0000-4000-8000-000000000006",
+            "created_at": "2026-10-01T08:00:00Z",
+            "remarks": "Opening balance at system setup"
+        },
+        {
+            "transaction_UUID": "490ec59b-b20d-449a-8b10-1a2b3c4d5e62",
+            "status_UUID": "62000000-0000-4000-8000-000000000002",
+            "transaction_type": "ADJUSTMENT",
+            "quantity_change": 8,
+            "updated_by": "20000000-0000-4000-8000-000000000006",
+            "created_at": "2026-10-01T08:00:00Z",
+            "remarks": "Opening balance at system setup"
+        },
+        {
+            "transaction_UUID": "490ec59b-b20d-449a-8b10-1a2b3c4d5e63",
+            "status_UUID": "62000000-0000-4000-8000-000000000003",
+            "transaction_type": "ADJUSTMENT",
+            "quantity_change": 15,
+            "updated_by": "20000000-0000-4000-8000-000000000006",
+            "created_at": "2026-10-01T08:00:00Z",
+            "remarks": "Opening balance at system setup"
+        },
+        {
+            "transaction_UUID": "490ec59b-b20d-449a-8b10-1a2b3c4d5e64",
+            "status_UUID": "62000000-0000-4000-8000-000000000004",
+            "transaction_type": "ISSUE",
+            "quantity_change": -1,
+            "updated_by": "20000000-0000-4000-8000-000000000006",
+            "created_at": "2026-10-05T08:00:00Z",
+            "remarks": "Stock issued after opening balance"
+        },
+        {
+            "transaction_UUID": "490ec59b-b20d-449a-8b10-1a2b3c4d5e65",
+            "status_UUID": "62000000-0000-4000-8000-000000000005",
+            "transaction_type": "ADJUSTMENT",
+            "quantity_change": 3,
+            "updated_by": "20000000-0000-4000-8000-000000000006",
+            "created_at": "2026-10-01T08:00:00Z",
+            "remarks": "Opening balance at system setup"
+        },
+        {
+            "transaction_UUID": "490ec59b-b20d-449a-8b10-1a2b3c4d5e66",
+            "status_UUID": "62000000-0000-4000-8000-000000000007",
+            "transaction_type": "ADJUSTMENT",
+            "quantity_change": 75,
+            "updated_by": "20000000-0000-4000-8000-000000000006",
+            "created_at": "2026-10-01T08:00:00Z",
+            "remarks": "Opening balance at system setup"
+        },
+        {
+            "transaction_UUID": "490ec59b-b20d-449a-8b10-1a2b3c4d5e67",
+            "status_UUID": "62000000-0000-4000-8000-000000000010",
+            "transaction_type": "ADJUSTMENT",
+            "quantity_change": 10,
+            "updated_by": "20000000-0000-4000-8000-000000000006",
+            "created_at": "2026-10-01T08:00:00Z",
+            "remarks": "Opening balance at system setup"
+        },
+        {
+            "transaction_UUID": "490ec59b-b20d-449a-8b10-1a2b3c4d5e68",
+            "status_UUID": "62000000-0000-4000-8000-000000000009",
+            "transaction_type": "ISSUE",
+            "quantity_change": -2,
+            "updated_by": "20000000-0000-4000-8000-000000000006",
+            "created_at": "2026-10-05T08:00:00Z",
+            "remarks": "Stock issued after opening balance"
+        },
+        {
+            "transaction_UUID": "490ec59b-b20d-449a-8b10-1a2b3c4d5e69",
+            "status_UUID": "62000000-0000-4000-8000-000000000011",
+            "transaction_type": "ADJUSTMENT",
+            "quantity_change": 15,
+            "updated_by": "20000000-0000-4000-8000-000000000006",
+            "created_at": "2026-10-01T08:00:00Z",
+            "remarks": "Opening balance at system setup"
+        },
+        {
+            "transaction_UUID": "490ec59b-b20d-449a-8b10-1a2b3c4d5e70",
+            "status_UUID": "62000000-0000-4000-8000-000000000012",
+            "transaction_type": "ISSUE",
+            "quantity_change": -1,
+            "updated_by": "20000000-0000-4000-8000-000000000006",
+            "created_at": "2026-10-05T08:00:00Z",
+            "remarks": "Stock issued after opening balance"
+        },
+        {
+            "transaction_UUID": "490ec59b-b20d-449a-8b10-1a2b3c4d5e71",
+            "status_UUID": "62000000-0000-4000-8000-000000000013",
+            "transaction_type": "ADJUSTMENT",
+            "quantity_change": 40,
+            "updated_by": "20000000-0000-4000-8000-000000000006",
+            "created_at": "2026-10-01T08:00:00Z",
+            "remarks": "Opening balance at system setup"
+        },
+        {
+            "transaction_UUID": "490ec59b-b20d-449a-8b10-1a2b3c4d5e72",
+            "status_UUID": "62000000-0000-4000-8000-000000000015",
+            "transaction_type": "ADJUSTMENT",
+            "quantity_change": 3,
+            "updated_by": "20000000-0000-4000-8000-000000000006",
+            "created_at": "2026-10-01T08:00:00Z",
+            "remarks": "Opening balance at system setup"
+        }
+    ],
+
+    "ORGANIZATION_CONTACT": [
+        {
+            "organization_UUID": "50000000-0000-4000-8000-000000000001",
+            "contact_UUID": "70000000-0000-4000-8000-000000000001"
+        },
+        {
+            "organization_UUID": "50000000-0000-4000-8000-000000000002",
+            "contact_UUID": "70000000-0000-4000-8000-000000000002"
+        },
+        {
+            "organization_UUID": "50000000-0000-4000-8000-000000000003",
+            "contact_UUID": "70000000-0000-4000-8000-000000000003"
+        },
+        {
+            "organization_UUID": "50000000-0000-4000-8000-000000000004",
+            "contact_UUID": "70000000-0000-4000-8000-000000000004"
+        },
+        {
+            "organization_UUID": "50000000-0000-4000-8000-000000000005",
+            "contact_UUID": "70000000-0000-4000-8000-000000000005"
+        },
+        {
+            "organization_UUID": "50000000-0000-4000-8000-000000000006",
+            "contact_UUID": "70000000-0000-4000-8000-000000000006"
+        }
+    ],
+    "USER_ACCOUNT": [
+        {
+            "account_UUID": "80000000-0000-4000-8000-000000000001",
+            "emp_UUID": "20000000-0000-4000-8000-000000000001",
+            "username": "adrian.reyes",
+            "password_hash": "REPLACE_WITH_REAL_BCRYPT_HASH",
+            "account_status": "Active",
+            "created_at": "2026-09-01T08:00:00Z",
+            "last_login_at": "2026-10-20T02:30:00Z"
+        },
+        {
+            "account_UUID": "80000000-0000-4000-8000-000000000002",
+            "emp_UUID": "20000000-0000-4000-8000-000000000002",
+            "username": "marissa.santos",
+            "password_hash": "REPLACE_WITH_REAL_BCRYPT_HASH",
+            "account_status": "Active",
+            "created_at": "2026-09-01T08:10:00Z",
+            "last_login_at": "2026-10-21T01:45:00Z"
+        },
+        {
+            "account_UUID": "80000000-0000-4000-8000-000000000003",
+            "emp_UUID": "20000000-0000-4000-8000-000000000003",
+            "username": "ramon.villanueva",
+            "password_hash": "REPLACE_WITH_REAL_BCRYPT_HASH",
+            "account_status": "Active",
+            "created_at": "2026-09-02T08:00:00Z",
+            "last_login_at": "2026-10-22T04:15:00Z"
+        },
+        {
+            "account_UUID": "80000000-0000-4000-8000-000000000004",
+            "emp_UUID": "20000000-0000-4000-8000-000000000004",
+            "username": "angela.cruz",
+            "password_hash": "REPLACE_WITH_REAL_BCRYPT_HASH",
+            "account_status": "Active",
+            "created_at": "2026-09-03T08:00:00Z",
+            "last_login_at": "2026-10-19T07:00:00Z"
+        },
+        {
+            "account_UUID": "80000000-0000-4000-8000-000000000005",
+            "emp_UUID": "20000000-0000-4000-8000-000000000005",
+            "username": "patricia.flores",
+            "password_hash": "REPLACE_WITH_REAL_BCRYPT_HASH",
+            "account_status": "Active",
+            "created_at": "2026-09-03T08:15:00Z",
+            "last_login_at": "2026-10-18T03:20:00Z"
+        },
+        {
+            "account_UUID": "80000000-0000-4000-8000-000000000006",
+            "emp_UUID": "20000000-0000-4000-8000-000000000006",
+            "username": "joshua.garcia",
+            "password_hash": "REPLACE_WITH_REAL_BCRYPT_HASH",
+            "account_status": "Active",
+            "created_at": "2026-09-04T08:00:00Z",
+            "last_login_at": "2026-10-23T01:00:00Z"
+        },
+        {
+            "account_UUID": "80000000-0000-4000-8000-000000000007",
+            "emp_UUID": "20000000-0000-4000-8000-000000000007",
+            "username": "nicole.bautista",
+            "password_hash": "REPLACE_WITH_REAL_BCRYPT_HASH",
+            "account_status": "Active",
+            "created_at": "2026-09-05T08:00:00Z",
+            "last_login_at": "2026-10-17T06:00:00Z"
+        },
+        {
+            "account_UUID": "80000000-0000-4000-8000-000000000008",
+            "emp_UUID": "20000000-0000-4000-8000-000000000008",
+            "username": "daniel.mendoza",
+            "password_hash": "REPLACE_WITH_REAL_BCRYPT_HASH",
+            "account_status": "Inactive",
+            "created_at": "2026-09-05T08:15:00Z",
+            "last_login_at": "2026-10-02T02:00:00Z"
+        }
+    ],
+    "SYSTEM_ROLE": [
+        {
+            "role_UUID": "81000000-0000-4000-8000-000000000001",
+            "role_name": "Administrator",
+            "description": "Full access to all system features and user access management."
+        },
+        {
+            "role_UUID": "81000000-0000-4000-8000-000000000002",
+            "role_name": "Inventory User",
+            "description": "Manages parts, inventory locations, stock levels, and transactions."
+        },
+        {
+            "role_UUID": "81000000-0000-4000-8000-000000000003",
+            "role_name": "Pilot User",
+            "description": "Role intended for pilot-facing system features."
+        },
+        {
+            "role_UUID": "81000000-0000-4000-8000-000000000004",
+            "role_name": "Maintenance User",
+            "description": "Manages maintenance-related features and inventory access as authorized."
+        },
+        {
+            "role_UUID": "81000000-0000-4000-8000-000000000005",
+            "role_name": "Personnel Manager",
+            "description": "Manages employee records, contacts, and licenses."
+        },
+        {
+            "role_UUID": "81000000-0000-4000-8000-000000000006",
+            "role_name": "Operations User",
+            "description": "Accesses operational features relevant to assigned duties."
+        },
+        {
+            "role_UUID": "81000000-0000-4000-8000-000000000007",
+            "role_name": "Read-only User",
+            "description": "View-only access to explicitly permitted features."
+        }
+    ],
+    "ACCOUNT_ROLE": [
+        {
+            "account_UUID": "80000000-0000-4000-8000-000000000001",
+            "role_UUID": "81000000-0000-4000-8000-000000000001"
+        },
+        {
+            "account_UUID": "80000000-0000-4000-8000-000000000002",
+            "role_UUID": "81000000-0000-4000-8000-000000000006"
+        },
+        {
+            "account_UUID": "80000000-0000-4000-8000-000000000003",
+            "role_UUID": "81000000-0000-4000-8000-000000000004"
+        },
+        {
+            "account_UUID": "80000000-0000-4000-8000-000000000003",
+            "role_UUID": "81000000-0000-4000-8000-000000000002"
+        },
+        {
+            "account_UUID": "80000000-0000-4000-8000-000000000004",
+            "role_UUID": "81000000-0000-4000-8000-000000000003"
+        },
+        {
+            "account_UUID": "80000000-0000-4000-8000-000000000005",
+            "role_UUID": "81000000-0000-4000-8000-000000000005"
+        },
+        {
+            "account_UUID": "80000000-0000-4000-8000-000000000006",
+            "role_UUID": "81000000-0000-4000-8000-000000000002"
+        },
+        {
+            "account_UUID": "80000000-0000-4000-8000-000000000007",
+            "role_UUID": "81000000-0000-4000-8000-000000000003"
+        },
+        {
+            "account_UUID": "80000000-0000-4000-8000-000000000008",
+            "role_UUID": "81000000-0000-4000-8000-000000000007"
+        }
+    ],
+    "SYSTEM_FEATURE": [
+        {
+            "feature_UUID": "82000000-0000-4000-8000-000000000001",
+            "feature_name": "Dashboard",
+            "description": "System overview and summary information."
+        },
+        {
+            "feature_UUID": "82000000-0000-4000-8000-000000000002",
+            "feature_name": "Inventory",
+            "description": "Parts, stock levels, locations, suppliers, and transactions."
+        },
+        {
+            "feature_UUID": "82000000-0000-4000-8000-000000000003",
+            "feature_name": "Aircraft",
+            "description": "Aircraft records and details."
+        },
+        {
+            "feature_UUID": "82000000-0000-4000-8000-000000000004",
+            "feature_name": "Maintenance",
+            "description": "Maintenance records and related activities."
+        },
+        {
+            "feature_UUID": "82000000-0000-4000-8000-000000000005",
+            "feature_name": "Logbook",
+            "description": "Flight log and logbook features."
+        },
+        {
+            "feature_UUID": "82000000-0000-4000-8000-000000000006",
+            "feature_name": "Personnel",
+            "description": "Employee, contact, and license records."
+        },
+        {
+            "feature_UUID": "82000000-0000-4000-8000-000000000007",
+            "feature_name": "Availability",
+            "description": "Personnel and operational availability."
+        },
+        {
+            "feature_UUID": "82000000-0000-4000-8000-000000000008",
+            "feature_name": "Notifications",
+            "description": "System alerts and notifications."
+        },
+        {
+            "feature_UUID": "82000000-0000-4000-8000-000000000009",
+            "feature_name": "User Accounts",
+            "description": "Account administration and access management."
+        }
+    ],
+    "ROLE_FEATURE_ACCESS": [
+        {
+            "role_UUID": "81000000-0000-4000-8000-000000000001",
+            "feature_UUID": "82000000-0000-4000-8000-000000000001"
+        },
+        {
+            "role_UUID": "81000000-0000-4000-8000-000000000001",
+            "feature_UUID": "82000000-0000-4000-8000-000000000002"
+        },
+        {
+            "role_UUID": "81000000-0000-4000-8000-000000000001",
+            "feature_UUID": "82000000-0000-4000-8000-000000000003"
+        },
+        {
+            "role_UUID": "81000000-0000-4000-8000-000000000001",
+            "feature_UUID": "82000000-0000-4000-8000-000000000004"
+        },
+        {
+            "role_UUID": "81000000-0000-4000-8000-000000000001",
+            "feature_UUID": "82000000-0000-4000-8000-000000000005"
+        },
+        {
+            "role_UUID": "81000000-0000-4000-8000-000000000001",
+            "feature_UUID": "82000000-0000-4000-8000-000000000006"
+        },
+        {
+            "role_UUID": "81000000-0000-4000-8000-000000000001",
+            "feature_UUID": "82000000-0000-4000-8000-000000000007"
+        },
+        {
+            "role_UUID": "81000000-0000-4000-8000-000000000001",
+            "feature_UUID": "82000000-0000-4000-8000-000000000008"
+        },
+        {
+            "role_UUID": "81000000-0000-4000-8000-000000000001",
+            "feature_UUID": "82000000-0000-4000-8000-000000000009"
+        },
+        {
+            "role_UUID": "81000000-0000-4000-8000-000000000002",
+            "feature_UUID": "82000000-0000-4000-8000-000000000001"
+        },
+        {
+            "role_UUID": "81000000-0000-4000-8000-000000000002",
+            "feature_UUID": "82000000-0000-4000-8000-000000000002"
+        },
+        {
+            "role_UUID": "81000000-0000-4000-8000-000000000002",
+            "feature_UUID": "82000000-0000-4000-8000-000000000008"
+        },
+        {
+            "role_UUID": "81000000-0000-4000-8000-000000000003",
+            "feature_UUID": "82000000-0000-4000-8000-000000000001"
+        },
+        {
+            "role_UUID": "81000000-0000-4000-8000-000000000003",
+            "feature_UUID": "82000000-0000-4000-8000-000000000005"
+        },
+        {
+            "role_UUID": "81000000-0000-4000-8000-000000000003",
+            "feature_UUID": "82000000-0000-4000-8000-000000000007"
+        },
+        {
+            "role_UUID": "81000000-0000-4000-8000-000000000003",
+            "feature_UUID": "82000000-0000-4000-8000-000000000008"
+        },
+        {
+            "role_UUID": "81000000-0000-4000-8000-000000000004",
+            "feature_UUID": "82000000-0000-4000-8000-000000000001"
+        },
+        {
+            "role_UUID": "81000000-0000-4000-8000-000000000004",
+            "feature_UUID": "82000000-0000-4000-8000-000000000002"
+        },
+        {
+            "role_UUID": "81000000-0000-4000-8000-000000000004",
+            "feature_UUID": "82000000-0000-4000-8000-000000000004"
+        },
+        {
+            "role_UUID": "81000000-0000-4000-8000-000000000004",
+            "feature_UUID": "82000000-0000-4000-8000-000000000008"
+        },
+        {
+            "role_UUID": "81000000-0000-4000-8000-000000000005",
+            "feature_UUID": "82000000-0000-4000-8000-000000000001"
+        },
+        {
+            "role_UUID": "81000000-0000-4000-8000-000000000005",
+            "feature_UUID": "82000000-0000-4000-8000-000000000006"
+        },
+        {
+            "role_UUID": "81000000-0000-4000-8000-000000000005",
+            "feature_UUID": "82000000-0000-4000-8000-000000000008"
+        },
+        {
+            "role_UUID": "81000000-0000-4000-8000-000000000006",
+            "feature_UUID": "82000000-0000-4000-8000-000000000001"
+        },
+        {
+            "role_UUID": "81000000-0000-4000-8000-000000000006",
+            "feature_UUID": "82000000-0000-4000-8000-000000000003"
+        },
+        {
+            "role_UUID": "81000000-0000-4000-8000-000000000006",
+            "feature_UUID": "82000000-0000-4000-8000-000000000007"
+        },
+        {
+            "role_UUID": "81000000-0000-4000-8000-000000000006",
+            "feature_UUID": "82000000-0000-4000-8000-000000000008"
+        },
+        {
+            "role_UUID": "81000000-0000-4000-8000-000000000007",
+            "feature_UUID": "82000000-0000-4000-8000-000000000001"
+        },
+        {
+            "role_UUID": "81000000-0000-4000-8000-000000000007",
+            "feature_UUID": "82000000-0000-4000-8000-000000000008"
+        }
+    ]
+}
