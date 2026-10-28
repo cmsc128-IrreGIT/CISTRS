@@ -4,18 +4,18 @@
 const revoked = new Map<string, number>(); // jti -> expiry (seconds since epoch)
 
 function purgeExpired() {
-  const now = Math.floor(Date.now() / 1000);
-  for (const [jti, exp] of revoked) {
-    if (exp <= now) revoked.delete(jti);
-  }
+    const now = Math.floor(Date.now() / 1000);
+    for (const [jti, exp] of revoked) {
+        if (exp <= now) revoked.delete(jti);
+    }
 }
 
 export function revokeToken(jti: string, expSeconds: number) {
-  purgeExpired();
-  revoked.set(jti, expSeconds);
+    purgeExpired();
+    revoked.set(jti, expSeconds);
 }
 
 export function isRevoked(jti: string): boolean {
-  purgeExpired();
-  return revoked.has(jti);
+    purgeExpired();
+    return revoked.has(jti);
 }

@@ -4,10 +4,12 @@ import { PrismaClient } from "../generated/prisma/client.js";
 
 const connectionString = process.env.DATABASE_URL;
 if (!connectionString) {
-  throw new Error("DATABASE_URL is not set. Copy .env.example to .env first.");
+    throw new Error(
+        "DATABASE_URL is not set. Copy .env.example to .env first.",
+    );
 }
 
 // One shared client for the whole API process.
 export const prisma = new PrismaClient({
-  adapter: new PrismaPg({ connectionString }),
+    adapter: new PrismaPg({ connectionString }),
 });

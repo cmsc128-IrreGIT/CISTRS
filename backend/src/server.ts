@@ -20,7 +20,7 @@ app.use(express.json());
 // PUBLIC routes: no token needed
 // ---------------------------------------------------------------------------
 app.get("/api/health", (_req, res) => {
-  res.json({ status: "ok", message: "CISTRS backend is running!" });
+    res.json({ status: "ok", message: "CISTRS backend is running!" });
 });
 
 // /api/auth/login is public. /me and /logout check the token themselves.
@@ -38,21 +38,21 @@ app.use("/api/personnel", requireFeature(FEATURE.Personnel), personnelRouter);
 
 // Unknown /api paths answer with JSON instead of Express's HTML 404 page.
 app.use("/api", (_req, res) => {
-  res.status(404).json({ message: "Route not found" });
+    res.status(404).json({ message: "Route not found" });
 });
 
 // Must be the LAST app.use
 app.use(errorHandler);
 
 const server = app.listen(port, () => {
-  console.log(`CISTRS backend running on http://localhost:${port}`);
+    console.log(`CISTRS backend running on http://localhost:${port}`);
 });
 
 // Close the server and the database connection on Ctrl+C.
 async function shutdown() {
-  server.close();
-  await prisma.$disconnect();
-  process.exit(0);
+    server.close();
+    await prisma.$disconnect();
+    process.exit(0);
 }
 process.on("SIGINT", shutdown);
 process.on("SIGTERM", shutdown);
