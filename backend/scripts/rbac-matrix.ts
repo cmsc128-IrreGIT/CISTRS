@@ -12,7 +12,7 @@ const PASSWORD = process.env.SEED_DEFAULT_PASSWORD;
 if (!PASSWORD) throw new Error("SEED_DEFAULT_PASSWORD is not set in .env");
 
 interface RouteCase {
-    method: "GET" | "POST";
+    method: "GET" | "POST" | "PATCH";
     path: string;
     feature: string;
     body?: unknown;
@@ -62,6 +62,26 @@ const ROUTES: RouteCase[] = [
         method: "POST",
         path: "/api/users",
         feature: "User Accounts",
+        body: {},
+        permittedStatus: 400,
+    },
+    {
+        method: "GET",
+        path: "/api/inventory/parts/60000000-0000-4000-8000-000000000001",
+        feature: "Inventory",
+        permittedStatus: 200,
+    },
+    {
+        method: "POST",
+        path: "/api/inventory/parts",
+        feature: "Inventory",
+        body: {},
+        permittedStatus: 400,
+    },
+    {
+        method: "PATCH",
+        path: "/api/inventory/parts/60000000-0000-4000-8000-000000000001",
+        feature: "Inventory",
         body: {},
         permittedStatus: 400,
     },
