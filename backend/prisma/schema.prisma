@@ -1,7 +1,13 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
+// =============================================================================
+// CISTRS - Prisma schema (PostgreSQL 18, Prisma 7.10.0)
+//
+// Conventions
+//  - Model names are PascalCase; tables are snake_case via @@map.
+//  - Field names match the column names in the ERD / schema sheet exactly,
+//    so seed.json rows map 1:1 onto the models.
+//  - Every key column is a native Postgres `uuid`.
+//  - The connection URL lives in prisma.config.ts, NOT in this file (Prisma 7).
+// =============================================================================
 
 generator client {
   provider = "prisma-client"
@@ -10,4 +16,373 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+}
+
+// -----------------------------------------------------------------------------
+// ENUMS
+// -----------------------------------------------------------------------------
+
+enum RecordStatus {
+  Active
+  Inactive
+
+  @@map("record_status")
+}
+
+enum BaseStatus {
+  Active
+  Inactive
+
+  @@map("base_status")
+}
+
+enum AccountStatus {
+  Active
+  Inactive
+  Locked
+
+  @@map("account_status")
+}
+
+enum Sex {
+  Male
+  Female
+
+  @@map("sex")
+}
+
+enum ContactType {
+  Email
+  Phone
+
+  @@map("contact_type")
+}
+
+enum TransactionType {
+  RECEIPT
+  ISSUE
+  ADJUSTMENT
+  RETURN
+  TRANSFER
+
+  @@map("transaction_type")
+}
+
+enum ExpiryType {
+  EXPIRING
+  NON_EXPIRING
+  EXPIRED
+  UNKNOWN
+
+  @@map("expiry_type")
+}
+
+// =============================================================================
+// PARTS / INVENTORY
+// =============================================================================
+
+model Part {
+  part_UUID       String  @id @default(uuid()) @db.Uuid
+  part_number     String  @unique
+  part_name       String
+  unit_of_measure String
+  min_stock_level Int     @default(0)
+  description     String?
+
+  suppliers        PartSupplier[]
+  manufacturers    PartManufacturer[]
+  inventory_status InventoryStatus[]
+
+  @@map("part")
+}
+
+model InventoryLocation {
+  location_UUID String @id @default(uuid()) @db.Uuid
+  location_name String
+  storage_area  String
+
+  inventory_status InventoryStatus[]
+
+  @@map("inventory_location")
+}
+
+// One row per (part, location). Holds the current on-hand quantity.
+model InventoryStatus {
+  status_UUID      String @id @default(uuid()) @db.Uuid
+  part_UUID        String @db.Uuid
+  location_UUID    String @db.Uuid
+  current_quantity Int    @default(0)
+
+  part         Part                   @relation(fields: [part_UUID], references: [part_UUID], onDelete: Restrict)
+  location     InventoryLocation      @relation(fields: [location_UUID], references: [location_UUID], onDelete: Restrict)
+  transactions InventoryTransaction[]
+
+  @@unique([part_UUID, location_UUID])
+  @@index([location_UUID])
+  @@map("inventory_status")
+}
+
+// Append-only ledger of stock movements.
+model InventoryTransaction {
+  transaction_UUID String          @id @default(uuid()) @db.Uuid
+  status_UUID      String          @db.Uuid
+  transaction_type TransactionType
+  quantity_change  Int
+  updated_by       String          @db.Uuid
+  created_at       DateTime        @default(now()) @db.Timestamptz(6)
+  remarks          String?
+
+  status  InventoryStatus @relation(fields: [status_UUID], references: [status_UUID], onDelete: Restrict)
+  updater Employee        @relation("TransactionUpdatedBy", fields: [updated_by], references: [emp_UUID], onDelete: Restrict)
+
+  @@index([status_UUID])
+  @@index([updated_by])
+  @@index([created_at])
+  @@map("inventory_transaction")
+}
+
+// =============================================================================
+// ORGANIZATIONS  (ISA: ORGANIZATION -> SUPPLIER / MANUFACTURER, overlapping)
+// =============================================================================
+
+model Organization {
+  organization_UUID     String @id @default(uuid()) @db.Uuid
+  organization_name     String
+  organization_location String
+
+  supplier     Supplier?
+  manufacturer Manufacturer?
+  contacts     OrganizationContact[]
+
+  @@map("organization")
+}
+
+model Supplier {
+  organization_UUID String @id @db.Uuid
+
+  organization Organization   @relation(fields: [organization_UUID], references: [organization_UUID], onDelete: Cascade)
+  parts        PartSupplier[]
+
+  @@map("supplier")
+}
+
+model Manufacturer {
+  organization_UUID String @id @db.Uuid
+
+  organization Organization       @relation(fields: [organization_UUID], references: [organization_UUID], onDelete: Cascade)
+  parts        PartManufacturer[]
+
+  @@map("manufacturer")
+}
+
+// PART x SUPPLIER (many-to-many)
+model PartSupplier {
+  part_UUID     String @db.Uuid
+  supplier_UUID String @db.Uuid
+
+  part     Part     @relation(fields: [part_UUID], references: [part_UUID], onDelete: Cascade)
+  supplier Supplier @relation(fields: [supplier_UUID], references: [organization_UUID], onDelete: Cascade)
+
+  @@id([part_UUID, supplier_UUID])
+  @@index([supplier_UUID])
+  @@map("part_supplier")
+}
+
+// PART x MANUFACTURER (many-to-many)
+model PartManufacturer {
+  part_UUID         String @db.Uuid
+  manufacturer_UUID String @db.Uuid
+
+  part         Part         @relation(fields: [part_UUID], references: [part_UUID], onDelete: Cascade)
+  manufacturer Manufacturer @relation(fields: [manufacturer_UUID], references: [organization_UUID], onDelete: Cascade)
+
+  @@id([part_UUID, manufacturer_UUID])
+  @@index([manufacturer_UUID])
+  @@map("part_manufacturer")
+}
+
+// =============================================================================
+// CONTACTS
+// =============================================================================
+
+model Contact {
+  contact_UUID  String      @id @default(uuid()) @db.Uuid
+  contact_type  ContactType
+  contact_value String
+
+  organizations OrganizationContact[]
+  employees     EmployeeContact[]
+
+  @@map("contact")
+}
+
+model OrganizationContact {
+  organization_UUID String @db.Uuid
+  contact_UUID      String @db.Uuid
+
+  organization Organization @relation(fields: [organization_UUID], references: [organization_UUID], onDelete: Cascade)
+  contact      Contact      @relation(fields: [contact_UUID], references: [contact_UUID], onDelete: Cascade)
+
+  @@id([organization_UUID, contact_UUID])
+  @@index([contact_UUID])
+  @@map("organization_contact")
+}
+
+model EmployeeContact {
+  employee_UUID String @db.Uuid
+  contact_UUID  String @db.Uuid
+
+  employee Employee @relation(fields: [employee_UUID], references: [emp_UUID], onDelete: Cascade)
+  contact  Contact  @relation(fields: [contact_UUID], references: [contact_UUID], onDelete: Cascade)
+
+  @@id([employee_UUID, contact_UUID])
+  @@index([contact_UUID])
+  @@map("employee_contact")
+}
+
+// =============================================================================
+// PERSONNEL
+// =============================================================================
+
+model Base {
+  base_UUID     String     @id @default(uuid()) @db.Uuid
+  base_name     String     @unique
+  base_location String
+  base_status   BaseStatus @default(Active)
+
+  employees Employee[]
+
+  @@map("base")
+}
+
+model EmploymentStatus {
+  emp_status_UUID String @id @default(uuid()) @db.Uuid
+  status_name     String @unique
+  description     String
+
+  employees Employee[]
+
+  @@map("employment_status")
+}
+
+model Employee {
+  emp_UUID           String       @id @default(uuid()) @db.Uuid
+  emp_number         String       @unique
+  f_name             String
+  m_initial          String?
+  l_name             String
+  date_of_birth      DateTime     @db.Date
+  sex                Sex
+  position           String
+  personnel_category String
+  emp_status_UUID    String       @db.Uuid
+  base_UUID          String       @db.Uuid
+  record_status      RecordStatus @default(Active)
+
+  employment_status      EmploymentStatus       @relation(fields: [emp_status_UUID], references: [emp_status_UUID], onDelete: Restrict)
+  base                   Base                   @relation(fields: [base_UUID], references: [base_UUID], onDelete: Restrict)
+  contacts               EmployeeContact[]
+  licenses               EmployeeLicense[]
+  user_account           UserAccount?
+  inventory_transactions InventoryTransaction[] @relation("TransactionUpdatedBy")
+
+  @@index([emp_status_UUID])
+  @@index([base_UUID])
+  @@map("employee")
+}
+
+model LicenseType {
+  license_type_UUID String @id @default(uuid()) @db.Uuid
+  license_type_name String @unique
+  description       String
+
+  employee_licenses EmployeeLicense[]
+
+  @@map("license_type")
+}
+
+model EmployeeLicense {
+  emp_license_UUID  String     @id @default(uuid()) @db.Uuid
+  employee_UUID     String     @db.Uuid
+  license_type_UUID String     @db.Uuid
+  license_number    String
+  issuing_authority String
+  date_issued       DateTime   @db.Date
+  expiry_date       DateTime?  @db.Date
+  expiry_type       ExpiryType
+  remarks           String?
+
+  employee     Employee    @relation(fields: [employee_UUID], references: [emp_UUID], onDelete: Cascade)
+  license_type LicenseType @relation(fields: [license_type_UUID], references: [license_type_UUID], onDelete: Restrict)
+
+  @@index([employee_UUID])
+  @@index([license_type_UUID])
+  @@index([expiry_date])
+  @@map("employee_license")
+}
+
+// =============================================================================
+// ROLE-BASED ACCESS CONTROL
+// =============================================================================
+
+model UserAccount {
+  account_UUID   String        @id @default(uuid()) @db.Uuid
+  emp_UUID       String        @unique @db.Uuid
+  username       String        @unique
+  password_hash  String
+  account_status AccountStatus @default(Active)
+  created_at     DateTime      @default(now()) @db.Timestamptz(6)
+  last_login_at  DateTime?     @db.Timestamptz(6)
+
+  employee Employee      @relation(fields: [emp_UUID], references: [emp_UUID], onDelete: Restrict)
+  roles    AccountRole[]
+
+  @@map("user_account")
+}
+
+model SystemRole {
+  role_UUID   String @id @default(uuid()) @db.Uuid
+  role_name   String @unique
+  description String
+
+  accounts AccountRole[]
+  features RoleFeatureAccess[]
+
+  @@map("system_role")
+}
+
+model SystemFeature {
+  feature_UUID String @id @default(uuid()) @db.Uuid
+  feature_name String @unique
+  description  String
+
+  roles RoleFeatureAccess[]
+
+  @@map("system_feature")
+}
+
+// USER_ACCOUNT x SYSTEM_ROLE (many-to-many)
+model AccountRole {
+  account_UUID String @db.Uuid
+  role_UUID    String @db.Uuid
+
+  account UserAccount @relation(fields: [account_UUID], references: [account_UUID], onDelete: Cascade)
+  role    SystemRole  @relation(fields: [role_UUID], references: [role_UUID], onDelete: Cascade)
+
+  @@id([account_UUID, role_UUID])
+  @@index([role_UUID])
+  @@map("account_role")
+}
+
+// SYSTEM_ROLE x SYSTEM_FEATURE (many-to-many)
+model RoleFeatureAccess {
+  role_UUID    String @db.Uuid
+  feature_UUID String @db.Uuid
+
+  role    SystemRole    @relation(fields: [role_UUID], references: [role_UUID], onDelete: Cascade)
+  feature SystemFeature @relation(fields: [feature_UUID], references: [feature_UUID], onDelete: Cascade)
+
+  @@id([role_UUID, feature_UUID])
+  @@index([feature_UUID])
+  @@map("role_feature_access")
 }
