@@ -65,25 +65,25 @@ const ROUTES: RouteCase[] = [
         body: {},
         permittedStatus: 400,
     },
-    { 
-        method: "GET", 
-        path: "/api/inventory/parts/60000000-0000-4000-8000-000000000001", 
-        feature: "Inventory", 
-        permittedStatus: 
-        200 
+    {
+        method: "GET",
+        path: "/api/inventory/parts/60000000-0000-4000-8000-000000000001",
+        feature: "Inventory",
+        permittedStatus: 200,
     },
-    { 
-        method: "POST", 
-        path: "/api/inventory/parts", 
-        feature: "Inventory", 
-        body: {}, permittedStatus: 400 
+    {
+        method: "POST",
+        path: "/api/inventory/parts",
+        feature: "Inventory",
+        body: {},
+        permittedStatus: 400,
     },
-    { 
-        method: "PATCH", 
-        path: "/api/inventory/parts/60000000-0000-4000-8000-000000000001", 
-        feature: "Inventory", 
-        body: {}, 
-        permittedStatus: 400 
+    {
+        method: "PATCH",
+        path: "/api/inventory/parts/60000000-0000-4000-8000-000000000001",
+        feature: "Inventory",
+        body: {},
+        permittedStatus: 400,
     },
 ];
 

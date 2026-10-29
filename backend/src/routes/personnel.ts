@@ -1,5 +1,8 @@
 import { Router } from "express";
-import { listEmployees, listExpiringLicenses } from "../services/personnel.service.js";
+import {
+    listEmployees,
+    listExpiringLicenses,
+} from "../services/personnel.service.js";
 
 export const personnelRouter = Router();
 

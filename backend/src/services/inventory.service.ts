@@ -45,12 +45,14 @@ const partFields = z.object({
 
 // What to load with a part. Used by both list and detail.
 const partInclude = {
-    inventory_status:   { include: { location: true } },
-    suppliers:          { include: { supplier: { include: { organization: true } } } },
-    manufacturers:      { include: { manufacturer: { include: { organization: true } } }, },
+    inventory_status: { include: { location: true } },
+    suppliers: { include: { supplier: { include: { organization: true } } } },
+    manufacturers: {
+        include: { manufacturer: { include: { organization: true } } },
+    },
 } satisfies Prisma.PartInclude;
 
-type PartWithRelations = Prisma.PartGetPayload<{ include: typeof partInclude; }>;
+type PartWithRelations = Prisma.PartGetPayload<{ include: typeof partInclude }>;
 
 // One mapper for list, detail, create and update, so every endpoint returns the same shape for a part.
 function toPartResponse(part: PartWithRelations) {
@@ -176,7 +178,12 @@ export async function listParts(search?: string) {
         where: search
             ? {
                   OR: [
-                      { part_number: { contains: search, mode: "insensitive" } },
+                      {
+                          part_number: {
+                              contains: search,
+                              mode: "insensitive",
+                          },
+                      },
                       { part_name: { contains: search, mode: "insensitive" } },
                   ],
               }

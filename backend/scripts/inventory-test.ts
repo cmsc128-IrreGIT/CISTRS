@@ -58,7 +58,8 @@ async function login(username: string): Promise<string> {
         username,
         password: PASSWORD,
     });
-    if (status !== 200) throw new Error(`Login failed for ${username} (${status})`);
+    if (status !== 200)
+        throw new Error(`Login failed for ${username} (${status})`);
     return json.token as string;
 }
 
@@ -117,7 +118,11 @@ async function main() {
     check("RECEIPT ledger entry exists", entry?.transaction_type, "RECEIPT");
     check("ledger quantity_change", entry?.quantity_change, 20);
 
-    check("duplicate part_number -> 409", (await call("POST", P, token, body)).status, 409);
+    check(
+        "duplicate part_number -> 409",
+        (await call("POST", P, token, body)).status,
+        409,
+    );
 
     const base = {
         part_name: "x",
@@ -126,33 +131,52 @@ async function main() {
     };
     check(
         "missing part_name -> 400",
-        (await call("POST", P, token, { part_number: `${tag}-BAD1`, unit_of_measure: "pcs" })).status,
+        (
+            await call("POST", P, token, {
+                part_number: `${tag}-BAD1`,
+                unit_of_measure: "pcs",
+            })
+        ).status,
         400,
     );
     check(
         "negative min_stock_level -> 400",
-        (await call("POST", P, token, { ...base, part_number: `${tag}-BAD2`, min_stock_level: -1 })).status,
+        (
+            await call("POST", P, token, {
+                ...base,
+                part_number: `${tag}-BAD2`,
+                min_stock_level: -1,
+            })
+        ).status,
         400,
     );
     check(
         "initial quantity 0 -> 400",
-        (await call("POST", P, token, {
-            ...base,
-            part_number: `${tag}-BAD3`,
-            initial_stock: { location_UUID: SEED_LOCATION, quantity: 0 },
-        })).status,
+        (
+            await call("POST", P, token, {
+                ...base,
+                part_number: `${tag}-BAD3`,
+                initial_stock: { location_UUID: SEED_LOCATION, quantity: 0 },
+            })
+        ).status,
         400,
     );
     check(
         "unknown location -> 404",
-        (await call("POST", P, token, {
-            ...base,
-            part_number: `${tag}-BAD4`,
-            initial_stock: { location_UUID: MISSING_LOCATION, quantity: 1 },
-        })).status,
+        (
+            await call("POST", P, token, {
+                ...base,
+                part_number: `${tag}-BAD4`,
+                initial_stock: { location_UUID: MISSING_LOCATION, quantity: 1 },
+            })
+        ).status,
         404,
     );
-    check("create without token -> 401", (await call("POST", P, undefined, body)).status, 401);
+    check(
+        "create without token -> 401",
+        (await call("POST", P, undefined, body)).status,
+        401,
+    );
 
     const leftovers = await call("GET", `${P}?search=${tag}-BAD`, token);
     check("invalid creates saved nothing", leftovers.json.length, 0);
@@ -165,7 +189,11 @@ async function main() {
 
     const found = await call("GET", `${P}?search=${tag}`, token);
     check("search finds the new part", found.json.length, 1);
-    const foundLower = await call("GET", `${P}?search=${tag.toLowerCase()}`, token);
+    const foundLower = await call(
+        "GET",
+        `${P}?search=${tag.toLowerCase()}`,
+        token,
+    );
     check("search is case-insensitive", foundLower.json.length, 1);
 
     const one = await call("GET", `${P}/${id}`, token);
@@ -181,8 +209,16 @@ async function main() {
         JSON.stringify(one.json),
     );
 
-    check("nonexistent part -> 404", (await call("GET", `${P}/${MISSING_PART}`, token)).status, 404);
-    check("malformed id -> 400 (not 500)", (await call("GET", `${P}/abc`, token)).status, 400);
+    check(
+        "nonexistent part -> 404",
+        (await call("GET", `${P}/${MISSING_PART}`, token)).status,
+        404,
+    );
+    check(
+        "malformed id -> 400 (not 500)",
+        (await call("GET", `${P}/abc`, token)).status,
+        400,
+    );
 
     // --- BE-04: update ---------------------------------------------------------
     console.log("BE-04: update");
@@ -211,19 +247,65 @@ async function main() {
     r = await call("PATCH", url, token, { part_number: tag });
     check("re-sending own part_number is allowed", r.status, 200);
 
-    check("empty body -> 400", (await call("PATCH", url, token, {})).status, 400);
-    check("negative min_stock_level -> 400", (await call("PATCH", url, token, { min_stock_level: -1 })).status, 400);
-    check("blank part_name -> 400", (await call("PATCH", url, token, { part_name: "   " })).status, 400);
-    check("unknown field -> 400", (await call("PATCH", url, token, { current_quantity: 99 })).status, 400);
-    check("another part's number -> 409", (await call("PATCH", url, token, { part_number: seedPartNumber })).status, 409);
-    check("nonexistent part -> 404", (await call("PATCH", `${P}/${MISSING_PART}`, token, { part_name: "x" })).status, 404);
-    check("malformed id -> 400", (await call("PATCH", `${P}/abc`, token, { part_name: "x" })).status, 400);
-    check("update without token -> 401", (await call("PATCH", url, undefined, { part_name: "x" })).status, 401);
+    check(
+        "empty body -> 400",
+        (await call("PATCH", url, token, {})).status,
+        400,
+    );
+    check(
+        "negative min_stock_level -> 400",
+        (await call("PATCH", url, token, { min_stock_level: -1 })).status,
+        400,
+    );
+    check(
+        "blank part_name -> 400",
+        (await call("PATCH", url, token, { part_name: "   " })).status,
+        400,
+    );
+    check(
+        "unknown field -> 400",
+        (await call("PATCH", url, token, { current_quantity: 99 })).status,
+        400,
+    );
+    check(
+        "another part's number -> 409",
+        (await call("PATCH", url, token, { part_number: seedPartNumber }))
+            .status,
+        409,
+    );
+    check(
+        "nonexistent part -> 404",
+        (await call("PATCH", `${P}/${MISSING_PART}`, token, { part_name: "x" }))
+            .status,
+        404,
+    );
+    check(
+        "malformed id -> 400",
+        (await call("PATCH", `${P}/abc`, token, { part_name: "x" })).status,
+        400,
+    );
+    check(
+        "update without token -> 401",
+        (await call("PATCH", url, undefined, { part_name: "x" })).status,
+        401,
+    );
 
     r = await call("GET", url, token);
-    check("rejected updates changed nothing (name)", r.json.part_name, "Renamed Filter");
-    check("rejected updates changed nothing (min stock)", r.json.min_stock_level, 8);
-    check("rejected updates changed nothing (stock)", r.json.total_quantity, 20);
+    check(
+        "rejected updates changed nothing (name)",
+        r.json.part_name,
+        "Renamed Filter",
+    );
+    check(
+        "rejected updates changed nothing (min stock)",
+        r.json.min_stock_level,
+        8,
+    );
+    check(
+        "rejected updates changed nothing (stock)",
+        r.json.total_quantity,
+        20,
+    );
 }
 
 main()
