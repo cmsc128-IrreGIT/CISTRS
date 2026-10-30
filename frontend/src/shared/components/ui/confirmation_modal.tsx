@@ -1,4 +1,3 @@
-
 import { createPortal } from "react-dom";
 
 type ConfirmationModalProps = {
@@ -62,6 +61,6 @@ export default function ConfirmationModal({
                 </div>
             </div>
         </div>,
-        document.body
+        document.body,
     );
 }

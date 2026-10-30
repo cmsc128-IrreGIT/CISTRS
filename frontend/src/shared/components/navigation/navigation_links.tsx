@@ -25,7 +25,7 @@ export default function NavigationLinks({
                             collapsed ? "justify-center px-2" : "gap-3 px-3"
                         } ${
                             isActive
-                                ? "bg-red-600 text-white"
+                                ? "bg-[#1d4ed8] text-white"
                                 : "text-slate-300 hover:bg-white/10 hover:text-white"
                         }`
                     }

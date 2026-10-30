@@ -24,16 +24,12 @@ export default function AppHeader() {
                 </span>
             </Link>
 
-            <p className="hidden text-sm font-medium text-slate-600 md:block">
-                Shuttle Air Services, Inc.
-            </p>
-
-            <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+            <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
                 <Link
                     to="/notifications"
                     aria-label="Open notifications"
                     title="Notifications"
-                    className="flex size-11 items-center justify-center rounded-xl text-slate-500 transition-colors hover:bg-red-50 hover:text-red-600 focus-visible:outline-2 focus-visible:outline-red-600"
+                    className="flex size-11 items-center justify-center rounded-xl text-slate-500 transition-colors hover:bg-[#eaf0ff] hover:text-[#1d4ed8] focus-visible:outline-2 focus-visible:outline-[#1d4ed8]"
                 >
                     <Bell size={21} strokeWidth={1.8} aria-hidden="true" />
                 </Link>

@@ -4,7 +4,7 @@ import { Link, NavLink } from "react-router";
 import NavigationLinks from "./navigation_links";
 
 const mobile_links = [
-    { to: "/dashboard", label: "Home", icon: LayoutDashboard },
+    { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { to: "/inventory", label: "Inventory", icon: Package },
     { to: "/notifications", label: "Alerts", icon: Bell },
 ];
@@ -30,7 +30,7 @@ export default function MobileNavbar() {
                             className={({ isActive }) =>
                                 `flex min-h-16 flex-1 flex-col items-center justify-center gap-1 rounded-lg text-xs font-medium ${
                                     isActive
-                                        ? "bg-red-50 text-red-700"
+                                        ? "bg-[#eaf0ff] text-[#1d4ed8]"
                                         : "text-slate-600 hover:bg-slate-100"
                                 }`
                             }

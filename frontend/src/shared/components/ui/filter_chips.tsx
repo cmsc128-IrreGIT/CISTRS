@@ -5,10 +5,7 @@ type FilterChipProps = {
     on_remove: () => void;
 };
 
-export default function FilterChip({
-    label,
-    on_remove,
-}: FilterChipProps) {
+export default function FilterChip({ label, on_remove }: FilterChipProps) {
     return (
         <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-blue-100 px-3 py-1 text-sm font-medium text-blue-700">
             {label}
@@ -22,4 +19,5 @@ export default function FilterChip({
                 <X size={14} aria-hidden="true" />
             </button>
         </span>
-    );}
+    );
+}

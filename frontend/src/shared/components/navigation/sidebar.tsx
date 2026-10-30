@@ -9,14 +9,14 @@ export default function Sidebar() {
     return (
         <aside
             className={`sticky top-0 z-40 hidden h-dvh shrink-0 flex-col bg-[#0b2238] p-3 text-white transition-[width] duration-200 motion-reduce:transition-none md:flex ${
-                collapsed ? "w-20" : "w-64"
+                collapsed ? "w-20 pt-16" : "w-[248px]"
             }`}
         >
             <Link
                 to="/dashboard"
                 aria-label="CISTRS dashboard"
                 className={`flex h-14 shrink-0 items-center rounded-lg focus-visible:outline-2 focus-visible:outline-white ${
-                    collapsed ? "justify-center" : "gap-3 px-3"
+                    collapsed ? "justify-center" : "gap-2 pl-2 pr-11"
                 }`}
             >
                 <PlaneTakeoff
@@ -40,7 +40,7 @@ export default function Sidebar() {
                 aria-expanded={!collapsed}
                 aria-controls="desktop_navigation"
                 title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-                className="absolute -right-4 top-20 z-50 flex size-8 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-md transition-colors hover:bg-red-50 hover:text-red-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600"
+                className="absolute right-3 top-5 z-50 flex size-11 items-center justify-center rounded-full text-slate-200 transition-colors hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
             >
                 {collapsed ? (
                     <ChevronRight size={16} aria-hidden="true" />
@@ -62,7 +62,7 @@ export default function Sidebar() {
                 title="Login preview"
                 aria-label="Login preview"
                 className={`mt-4 flex min-h-11 shrink-0 items-center rounded-lg text-sm text-slate-300 transition-colors hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-white ${
-                    collapsed ? "justify-center" : "gap-3 px-3"
+                    collapsed ? "justify-center" : "gap-2 pl-2 pr-11"
                 }`}
             >
                 <LogIn size={20} aria-hidden="true" />
