@@ -1,6 +1,7 @@
+import LogoutAction from "./logout_action";
 import { Bell, LayoutDashboard, Menu, Package, X } from "lucide-react";
 import { useRef } from "react";
-import { Link, NavLink } from "react-router";
+import { NavLink } from "react-router";
 import NavigationLinks from "./navigation_links";
 
 const mobile_links = [
@@ -78,13 +79,7 @@ export default function MobileNavbar() {
                     <NavigationLinks on_navigate={close_menu} />
                 </nav>
 
-                <Link
-                    to="/login"
-                    onClick={close_menu}
-                    className="mt-4 block rounded-lg px-3 py-3 text-sm text-slate-300 hover:bg-white/10"
-                >
-                    Login preview
-                </Link>
+                <LogoutAction on_request={close_menu} />
             </dialog>
         </>
     );

@@ -1,3 +1,4 @@
+import MaintenanceDetailsPage from "./maintenance_details_page";
 import useAircraft from "../../aircraft/hooks/use_aircraft";
 import RecordFormPage from "../../../shared/components/records/record_form_page";
 import { maintenance_config } from "../config/maintenance_config";
@@ -19,6 +20,14 @@ export default function MaintenanceFormPage() {
     const { maintenance_id } = useParams();
     return (
         <RecordFormPage
+            background={maintenance_id ? <MaintenanceDetailsPage /> : undefined}
+            return_to={
+                maintenance_id
+                    ? `/maintenance/${maintenance_id}`
+                    : "/maintenance"
+            }
+            as_dialog
+            background_config={maintenance_config}
             config={config}
             rows={rows}
             record_id={maintenance_id}

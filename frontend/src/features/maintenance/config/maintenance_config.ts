@@ -15,7 +15,7 @@ export const maintenance_config: RecordConfig = {
             label: "Aircraft",
             required: true,
             type: "select",
-            options: ["Demo Aircraft A", "Demo Aircraft B"],
+            options: ["RP-C8333", "RP-C1738", "RP-C984"],
         },
         {
             key: "due_date",

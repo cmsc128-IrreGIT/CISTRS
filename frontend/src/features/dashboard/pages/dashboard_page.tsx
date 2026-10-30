@@ -1,10 +1,11 @@
-﻿import { Link } from "react-router";
-import PreviewNotice from "../../../shared/components/feedback/preview_notice";
+import ScreenLoading from "../../../shared/components/feedback/screen_loading";
+import { Link } from "react-router";
 import Card from "../../../shared/components/ui/card";
 import PageHeader from "../../../shared/components/ui/page_header";
-import StatCard from "../../../shared/components/ui/stat_card";
 import AircraftStatusCard from "../components/aircraft_status_card";
+import DashboardOverview from "../components/dashboard_overview";
 import OutOfStockCard from "../components/out_of_stock_card";
+import PendingMaintenanceCard from "../components/pending_maintenance_card";
 import RecentActivityTable from "../components/recent_activity_table";
 import useDashboardSummary from "../hooks/use_dashboard_summary";
 
@@ -15,34 +16,54 @@ export default function DashboardPage() {
         recent_changes,
         aircraft_status_data,
         pending_maintenance,
+        inventory_loading,
+        inventory_error,
+        reload_inventory,
+        history_loading,
+        history_error,
+        reload_history,
     } = useDashboardSummary();
 
     return (
-        <section aria-labelledby="page_title" className="space-y-5">
+        <section aria-labelledby="page_title" className="space-y-3">
             <PageHeader title="Dashboard" title_id="page_title" />
 
-            <PreviewNotice>
-                Preview mode · Changes reset on refresh.
-            </PreviewNotice>
+            <DashboardOverview summaries={summaries} />
 
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                {summaries.map((summary) => (
-                    <StatCard key={summary.label} {...summary} />
-                ))}
-            </div>
+            <div className="grid items-stretch gap-4 lg:grid-cols-[1.1fr_0.9fr_1.2fr]">
+                <div className="min-w-0">
+                    {inventory_loading ? (
+                        <ScreenLoading compact label="Loading inventory…" />
+                    ) : inventory_error ? (
+                        <div
+                            role="alert"
+                            className="h-full rounded-xl border border-slate-200 bg-white p-4 text-sm leading-6 text-slate-600"
+                        >
+                            <p>Inventory could not be loaded.</p>
+                            <button
+                                type="button"
+                                onClick={() => void reload_inventory()}
+                                className="min-h-11 rounded px-3 text-sm font-medium text-[#1d4ed8] underline focus-visible:outline-2"
+                            >
+                                Retry inventory
+                            </button>
+                        </div>
+                    ) : (
+                        <OutOfStockCard items={out_of_stock} />
+                    )}
+                </div>
 
-            <div className="grid items-stretch gap-4 xl:grid-cols-3">
-                <OutOfStockCard items={out_of_stock} />
+                <div className="min-w-0">
+                    <AircraftStatusCard data={aircraft_status_data} />
+                </div>
 
-                <div className="min-w-0 xl:col-span-2">
-                    <AircraftStatusCard
-                        data={aircraft_status_data}
-                        maintenance={pending_maintenance}
-                    />
+                <div className="min-w-0">
+                    <PendingMaintenanceCard maintenance={pending_maintenance} />
                 </div>
             </div>
 
             <Card
+                compact
                 title="Recent Activity"
                 action={
                     <Link
@@ -53,7 +74,25 @@ export default function DashboardPage() {
                     </Link>
                 }
             >
-                <RecentActivityTable rows={recent_changes} />
+                {history_loading ? (
+                    <ScreenLoading compact label="Loading activity…" />
+                ) : history_error ? (
+                    <div
+                        role="alert"
+                        className="rounded-xl border border-slate-200 bg-white p-4 text-sm leading-6 text-slate-600"
+                    >
+                        <p>Inventory activity could not be loaded.</p>
+                        <button
+                            type="button"
+                            onClick={() => void reload_history()}
+                            className="min-h-11 rounded px-3 text-sm font-medium text-[#1d4ed8] underline focus-visible:outline-2"
+                        >
+                            Retry activity
+                        </button>
+                    </div>
+                ) : (
+                    <RecentActivityTable rows={recent_changes.slice(0, 2)} />
+                )}
             </Card>
         </section>
     );

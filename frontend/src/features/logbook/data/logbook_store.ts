@@ -5,7 +5,7 @@ let records: LogbookEntry[] = [
     {
         ...empty_logbook_values(),
         id: "logbook-demo-1",
-        aircraft: "Demo Aircraft A",
+        aircraft: "RP-C8333",
         entry_date: "2026-10-06",
         log_page: "DEMO-001",
         station_from: "Demo Station A",

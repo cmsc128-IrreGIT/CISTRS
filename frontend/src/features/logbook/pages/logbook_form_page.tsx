@@ -1,14 +1,10 @@
 import { Link, useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
 import useAircraft from "../../aircraft/hooks/use_aircraft";
-import BackLink from "../../../shared/components/navigation/back_link";
-import Card from "../../../shared/components/ui/card";
-import PageHeader from "../../../shared/components/ui/page_header";
+import FormDialog from "../../../shared/components/ui/form_dialog";
 import EmptyState from "../../../shared/components/feedback/empty_state";
-import PreviewNotice from "../../../shared/components/feedback/preview_notice";
 import { button_styles } from "../../../shared/styles/button_styles";
 import LogbookForm from "../components/logbook_form";
-import { logbook_preview_note } from "../config/logbook_config";
 import { logbook_store } from "../data/logbook_store";
 import useLogbook from "../hooks/use_logbook";
 import type { LogbookFormValues } from "../types/logbook_types";
@@ -33,15 +29,12 @@ export default function LogbookFormPage() {
         }
     }
     return (
-        <section aria-labelledby="page_title" className="space-y-5">
-            <BackLink to="/logbook" label="Back to logbook" />
-            <PageHeader
-                title={`${entry_id ? "Edit" : "Add"} Technical Logbook Entry`}
-                title_id="page_title"
-            />
-            <PreviewNotice>{logbook_preview_note}</PreviewNotice>
+        <FormDialog
+            title={`${entry_id ? "Edit" : "Add"} Technical Logbook Entry`}
+            on_close={() => navigate("/logbook")}
+        >
             {entry_id && !entry ? (
-                <Card>
+                <div>
                     <EmptyState
                         title="Entry not found"
                         description="Preview records reset on refresh."
@@ -54,7 +47,7 @@ export default function LogbookFormPage() {
                             </Link>
                         }
                     />
-                </Card>
+                </div>
             ) : (
                 <LogbookForm
                     key={entry_id ?? "new"}
@@ -66,6 +59,6 @@ export default function LogbookFormPage() {
                     on_submit={save}
                 />
             )}
-        </section>
+        </FormDialog>
     );
 }

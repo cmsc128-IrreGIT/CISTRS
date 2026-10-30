@@ -8,14 +8,24 @@ import useNotifications from "../../notifications/hooks/use_notifications";
 import { dashboard_list_limit } from "../config/dashboard_config";
 
 export default function useDashboardSummary() {
-    const inventory_items = useInventory();
-    const inventory_history = useInventoryHistory();
+    const inventory = useInventory();
+    const inventory_items = inventory.items;
+    const transactions = useInventoryHistory();
+    const inventory_history = transactions.history;
     const aircraft = useAircraft();
     const maintenance = useMaintenance();
     const notifications = useNotifications();
 
-    const out_of_stock = inventory_items.filter((item) => item.quantity === 0);
-    const recent_changes = inventory_history.slice(0, dashboard_list_limit);
+    const out_of_stock = inventory_items.filter(
+        (item) => item.total_quantity === 0,
+    );
+    const recent_changes = [...inventory_history]
+        .sort(
+            (a, b) =>
+                new Date(b.created_at).getTime() -
+                new Date(a.created_at).getTime(),
+        )
+        .slice(0, dashboard_list_limit);
 
     const pending_maintenance = maintenance
         .filter((record) => record.status !== "Completed")
@@ -46,14 +56,22 @@ export default function useDashboardSummary() {
     const summaries = [
         {
             label: "Inventory Items",
-            value: inventory_items.length,
+            value: inventory.is_loading
+                ? "Loading…"
+                : inventory.error
+                  ? "Unavailable"
+                  : inventory_items.length,
             description: "Item records",
             icon: Package,
         },
         {
             label: "Low Stock",
-            value: "—",
-            description: "Thresholds pending",
+            value: inventory.is_loading
+                ? "Loading…"
+                : inventory.error
+                  ? "Unavailable"
+                  : inventory_items.filter((item) => item.is_low_stock).length,
+            description: "Below configured stock thresholds",
             icon: PackageX,
         },
         {
@@ -72,6 +90,12 @@ export default function useDashboardSummary() {
     ];
 
     return {
+        inventory_loading: inventory.is_loading,
+        inventory_error: inventory.error,
+        reload_inventory: inventory.reload,
+        history_loading: transactions.is_loading,
+        history_error: transactions.error,
+        reload_history: transactions.reload,
         summaries,
         out_of_stock,
         recent_changes,

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router";
 import { Plus } from "lucide-react";
-import PreviewNotice from "../../../shared/components/feedback/preview_notice";
 import SearchInput from "../../../shared/components/forms/search_input";
 import FormField from "../../../shared/components/forms/form_field";
 import Button from "../../../shared/components/ui/button";
@@ -11,7 +10,6 @@ import Pagination from "../../../shared/components/ui/pagination";
 import { button_styles } from "../../../shared/styles/button_styles";
 import LogbookTable from "../components/logbook_table";
 import LogbookDetails from "../components/logbook_details";
-import { logbook_preview_note } from "../config/logbook_config";
 import useLogbook from "../hooks/use_logbook";
 
 export default function LogbookPage() {
@@ -58,7 +56,6 @@ export default function LogbookPage() {
                     </Link>
                 }
             />
-            <PreviewNotice>{logbook_preview_note}</PreviewNotice>
             <Card>
                 <div className="mb-5 flex flex-wrap items-end gap-4">
                     <div className="min-w-0 flex-1 basis-64">

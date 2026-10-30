@@ -1,4 +1,10 @@
-import { afterEach, expect, it } from "vitest";
+vi.mock("../../src/features/auth/hooks/auth_context", () => ({
+    useAuth: () => ({
+        user: { username: "adrian.reyes", roles: ["Administrator"] },
+        logout: vi.fn(),
+    }),
+}));
+import { afterEach, expect, it, vi } from "vitest";
 import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";
@@ -12,6 +18,10 @@ it("keeps navigation accessible when the whole sidebar is collapsed", async () =
         <MemoryRouter initialEntries={["/inventory"]}>
             <Sidebar />
         </MemoryRouter>,
+    );
+    expect(screen.getByRole("link", { name: "Help & guides" })).toHaveAttribute(
+        "href",
+        "/help",
     );
     const nav = screen.getByRole("navigation", { name: "Main navigation" });
     expect(
