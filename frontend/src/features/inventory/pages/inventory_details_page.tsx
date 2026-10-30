@@ -1,4 +1,6 @@
-﻿import { Pencil } from "lucide-react";
+import RelatedMaintenance from "../../maintenance/components/related_maintenance";
+import ScreenLoading from "../../../shared/components/feedback/screen_loading";
+import { Pencil } from "lucide-react";
 import { Link, useParams } from "react-router";
 import BackLink from "../../../shared/components/navigation/back_link";
 import Card from "../../../shared/components/ui/card";
@@ -15,11 +17,7 @@ import useInventoryHistory from "../hooks/use_inventory_history";
 export default function InventoryDetailsPage() {
     const { item_id } = useParams();
 
-    const {
-        items,
-        is_loading,
-        error,
-    } = useInventory();
+    const { items, is_loading, error } = useInventory();
 
     const {
         history,
@@ -27,16 +25,12 @@ export default function InventoryDetailsPage() {
         error: history_error,
     } = useInventoryHistory();
 
-    const item = items.find(
-        (record) => record.part_UUID === item_id,
-    );
+    const item = items.find((record) => record.part_UUID === item_id);
 
     if (is_loading) {
         return (
             <Card>
-                <p className="text-sm text-slate-500">
-                    Loading inventory item...
-                </p>
+                <ScreenLoading compact label="Loading inventory item…" />
             </Card>
         );
     }
@@ -44,9 +38,7 @@ export default function InventoryDetailsPage() {
     if (error) {
         return (
             <Card>
-                <p className="text-sm text-red-600">
-                    {error}
-                </p>
+                <p className="text-sm text-red-600">{error}</p>
             </Card>
         );
     }
@@ -60,8 +52,7 @@ export default function InventoryDetailsPage() {
     }
 
     const item_history = history.filter(
-        (transaction) =>
-            transaction.status.part.part_UUID === item.part_UUID,
+        (transaction) => transaction.status.part.part_UUID === item.part_UUID,
     );
 
     const details: DetailEntry[] = [
@@ -90,15 +81,9 @@ export default function InventoryDetailsPage() {
             label: "Stock Availability",
             value: (
                 <StatusBadge
-                    tone={
-                        item.total_quantity > 0
-                            ? "success"
-                            : "danger"
-                    }
+                    tone={item.total_quantity > 0 ? "success" : "danger"}
                 >
-                    {item.total_quantity > 0
-                        ? "In stock"
-                        : "Out of stock"}
+                    {item.total_quantity > 0 ? "In stock" : "Out of stock"}
                 </StatusBadge>
             ),
         },
@@ -150,43 +135,36 @@ export default function InventoryDetailsPage() {
         {
             id: "description",
             label: "Description",
-            value:
-                item.description || "No description provided.",
+            value: item.description || "No description provided.",
         },
     ];
 
     return (
-        <section
-            aria-labelledby="page_title"
-            className="space-y-4"
-        >
-            <BackLink
-                to="/inventory"
-                label="Back to inventory"
-            />
+        <section aria-labelledby="page_title" className="space-y-4">
+            <BackLink to="/inventory" label="Back to inventory" />
 
             <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-                <p className="text-xs font-medium text-slate-500">
-                    Inventory / Item details
-                </p>
+                <div>
+                    <p className="text-xs font-medium text-slate-500">
+                        Inventory / Item details
+                    </p>
 
-                <h1
-                    id="page_title"
-                    className="mt-1 text-3xl font-semibold tracking-tight text-slate-900"
+                    <h1
+                        id="page_title"
+                        className="mt-1 text-3xl font-semibold tracking-tight text-slate-900"
+                    >
+                        {item.part_name}
+                    </h1>
+                </div>
+
+                <Link
+                    to={`/inventory/${item.part_UUID}/edit`}
+                    className={button_styles()}
                 >
-                    {item.part_name}
-                </h1>
+                    <Pencil size={18} aria-hidden="true" />
+                    Edit details
+                </Link>
             </div>
-
-            <Link
-                to={`/inventory/${item.part_UUID}/edit`}
-                className={button_styles()}
-            >
-                <Pencil size={18} aria-hidden="true"/>
-                Edit details
-            </Link>
-        </div>
             <Card>
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
@@ -195,18 +173,14 @@ export default function InventoryDetailsPage() {
                         </p>
 
                         <p className="mt-1 text-2xl font-semibold text-slate-900">
-                            {item.total_quantity}{" "}
-                            {item.unit_of_measure}
-                            {item.total_quantity !== 1
-                                ? "s"
-                                : ""}{" "}
-                            available
+                            {item.total_quantity} {item.unit_of_measure}
+                            {item.total_quantity !== 1 ? "s" : ""} available
                         </p>
                     </div>
 
                     <div className="flex items-center gap-3">
                         <button
-                            type="button" 
+                            type="button"
                             className="min-h-10 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-600"
                         >
                             Receive stock
@@ -226,8 +200,8 @@ export default function InventoryDetailsPage() {
                 <DetailsList entries={details} />
 
                 <p className="mt-6 border-t border-slate-200 pt-4 text-sm text-slate-500">
-                    Stock availability reflects quantity only, not
-                    approval for aircraft use.
+                    Stock availability reflects quantity only, not approval for
+                    aircraft use.
                 </p>
             </Card>
 
@@ -237,9 +211,7 @@ export default function InventoryDetailsPage() {
                         Loading item history...
                     </p>
                 ) : history_error ? (
-                    <p className="text-sm text-red-600">
-                        {history_error}
-                    </p>
+                    <p className="text-sm text-red-600">{history_error}</p>
                 ) : (
                     <InventoryHistoryTable
                         rows={item_history}
@@ -247,6 +219,7 @@ export default function InventoryDetailsPage() {
                     />
                 )}
             </Card>
+            <RelatedMaintenance part_number={item.part_number} />
         </section>
     );
 }

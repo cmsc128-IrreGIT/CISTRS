@@ -41,7 +41,12 @@ export default function FormField({
                 className="mb-2 block text-sm font-medium text-slate-700"
             >
                 {label}
-                {required ? " *" : ""}
+                {required && (
+                    <>
+                        {" "}
+                        <span className="text-[#c62828]">*</span>
+                    </>
+                )}
             </label>
 
             {children({

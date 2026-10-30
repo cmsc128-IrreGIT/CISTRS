@@ -1,7 +1,10 @@
-﻿import { Eye, EyeOff, PlaneTakeoff } from "lucide-react";
+import ScreenLoading from "../../../shared/components/feedback/screen_loading";
+import { useAuth } from "../hooks/auth_context";
+import { useRef } from "react";
+import { Eye, EyeOff, PlaneTakeoff } from "lucide-react";
 import { useState } from "react";
 import type { SubmitEvent } from "react";
-import { Link } from "react-router";
+import { Link, Navigate, useLocation, useNavigate } from "react-router";
 import login_plane from "../../../assets/login_plane.png";
 import AuthPanel from "../components/auth_panel";
 
@@ -15,7 +18,21 @@ export default function LoginPage() {
     const [show_password, set_show_password] = useState(false);
     const [error, set_error] = useState("");
 
-    function handle_submit(event: SubmitEvent<HTMLFormElement>) {
+    const { user, login, loading } = useAuth();
+    const navigate = useNavigate();
+    const location = useLocation();
+    const [pending, set_pending] = useState(false);
+    const submitting = useRef(false);
+    const requested = (location.state as { from?: string } | null)?.from;
+    const destination =
+        requested?.startsWith("/") &&
+        !requested.startsWith("//") &&
+        !requested.startsWith("/login")
+            ? requested
+            : "/dashboard";
+    if (loading) return <ScreenLoading label="Opening your workspace…" />;
+    if (user) return <Navigate to={destination} replace />;
+    async function handle_submit(event: SubmitEvent<HTMLFormElement>) {
         event.preventDefault();
 
         const form = event.currentTarget;
@@ -29,7 +46,24 @@ export default function LoginPage() {
 
         if (!form.reportValidity()) return;
 
-        set_error("Sign-in is not available in this preview.");
+        if (submitting.current) return;
+        const password = (
+            form.elements.namedItem("password") as HTMLInputElement
+        ).value;
+        submitting.current = true;
+        set_pending(true);
+        set_error("");
+        try {
+            await login((username as HTMLInputElement).value, password);
+            navigate(destination, { replace: true });
+        } catch (error) {
+            set_error(
+                error instanceof Error ? error.message : "Unable to sign in.",
+            );
+        } finally {
+            submitting.current = false;
+            set_pending(false);
+        }
     }
 
     return (
@@ -88,92 +122,106 @@ export default function LoginPage() {
                     Sign in to your account.
                 </p>
 
-                <form onSubmit={handle_submit} className="mt-5 space-y-5">
-                    <div>
-                        <label
-                            htmlFor="username"
-                            className="mb-2 block text-sm font-medium text-slate-700"
-                        >
-                            Username
-                        </label>
-
-                        <input
-                            id="username"
-                            name="username"
-                            type="text"
-                            autoComplete="username"
-                            autoCapitalize="none"
-                            spellCheck={false}
-                            required
-                            maxLength={200}
-                            onChange={(event) => {
-                                event.currentTarget.setCustomValidity("");
-                                set_error("");
-                            }}
-                            className={input_style}
-                        />
-                    </div>
-
-                    <div>
-                        <label
-                            htmlFor="password"
-                            className="mb-2 block text-sm font-medium text-slate-700"
-                        >
-                            Password
-                        </label>
-
-                        <div className="relative">
-                            <input
-                                id="password"
-                                name="password"
-                                type={show_password ? "text" : "password"}
-                                autoComplete="current-password"
-                                required
-                                onChange={() => set_error("")}
-                                className={`${input_style} pr-12`}
-                            />
-
-                            <button
-                                type="button"
-                                aria-label={
-                                    show_password
-                                        ? "Hide password"
-                                        : "Show password"
-                                }
-                                aria-pressed={show_password}
-                                aria-controls="password"
-                                onClick={() =>
-                                    set_show_password((previous) => !previous)
-                                }
-                                className="absolute right-0 top-0 flex size-11 items-center justify-center rounded-lg text-slate-500 hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-red-600"
-                            >
-                                {show_password ? (
-                                    <EyeOff size={19} aria-hidden="true" />
-                                ) : (
-                                    <Eye size={19} aria-hidden="true" />
-                                )}
-                            </button>
-                        </div>
-
-                        <div className="mt-2 text-right">
-                            <Link to="/forgot-password" className={link_style}>
-                                Forgot password?
-                            </Link>
-                        </div>
-                    </div>
-
-                    {error && (
-                        <p role="alert" className="text-sm text-amber-800">
-                            {error}
-                        </p>
-                    )}
-
-                    <button
-                        type="submit"
-                        className="flex min-h-11 w-full items-center justify-center rounded-lg bg-red-700 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600"
+                <form
+                    onSubmit={handle_submit}
+                    aria-busy={pending}
+                    className="mt-5 space-y-5"
+                >
+                    <fieldset
+                        disabled={pending}
+                        className="space-y-5 border-0 p-0"
                     >
-                        Log in
-                    </button>
+                        <div>
+                            <label
+                                htmlFor="username"
+                                className="mb-2 block text-sm font-medium text-slate-700"
+                            >
+                                Username
+                            </label>
+
+                            <input
+                                id="username"
+                                name="username"
+                                type="text"
+                                autoComplete="username"
+                                autoCapitalize="none"
+                                spellCheck={false}
+                                required
+                                maxLength={200}
+                                onChange={(event) => {
+                                    event.currentTarget.setCustomValidity("");
+                                    set_error("");
+                                }}
+                                className={input_style}
+                            />
+                        </div>
+
+                        <div>
+                            <label
+                                htmlFor="password"
+                                className="mb-2 block text-sm font-medium text-slate-700"
+                            >
+                                Password
+                            </label>
+
+                            <div className="relative">
+                                <input
+                                    id="password"
+                                    name="password"
+                                    type={show_password ? "text" : "password"}
+                                    autoComplete="current-password"
+                                    required
+                                    onChange={() => set_error("")}
+                                    className={`${input_style} cistrs-password pr-12`}
+                                />
+
+                                <button
+                                    type="button"
+                                    aria-label={
+                                        show_password
+                                            ? "Hide password"
+                                            : "Show password"
+                                    }
+                                    aria-pressed={show_password}
+                                    aria-controls="password"
+                                    onClick={() =>
+                                        set_show_password(
+                                            (previous) => !previous,
+                                        )
+                                    }
+                                    className="absolute right-0 top-0 flex size-11 items-center justify-center rounded-lg text-slate-500 hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-red-600"
+                                >
+                                    {show_password ? (
+                                        <EyeOff size={19} aria-hidden="true" />
+                                    ) : (
+                                        <Eye size={19} aria-hidden="true" />
+                                    )}
+                                </button>
+                            </div>
+
+                            <div className="mt-2 text-right">
+                                <Link
+                                    to="/forgot-password"
+                                    className={link_style}
+                                >
+                                    Forgot password?
+                                </Link>
+                            </div>
+                        </div>
+
+                        {error && (
+                            <p role="alert" className="text-sm text-red-700">
+                                {error}
+                            </p>
+                        )}
+
+                        <button
+                            type="submit"
+                            className="flex min-h-11 w-full items-center justify-center rounded-lg bg-red-700 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600"
+                        >
+                            {pending ? "Signing in…" : "Log in"}
+                        </button>
+                    </fieldset>
                 </form>
 
                 <p className="mt-5 text-center text-sm text-slate-500">
@@ -182,19 +230,6 @@ export default function LoginPage() {
                         Request access
                     </Link>
                 </p>
-
-                <div className="mt-6 border-t border-slate-200 pt-5 text-center">
-                    <Link
-                        to="/dashboard"
-                        className="inline-flex min-h-11 items-center justify-center rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-600"
-                    >
-                        Explore dashboard preview
-                    </Link>
-
-                    <p className="mt-2 text-xs text-slate-500">
-                        Sample records. Changes reset on refresh.
-                    </p>
-                </div>
             </AuthPanel>
         </main>
     );

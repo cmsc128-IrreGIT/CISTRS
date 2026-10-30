@@ -1,4 +1,3 @@
-
 export type InventoryLocation = {
     status_UUID: string;
     location_UUID: string;

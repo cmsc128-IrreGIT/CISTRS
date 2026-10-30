@@ -1,5 +1,6 @@
 ﻿import { Archive, History, Plus } from "lucide-react";
 import { useState } from "react";
+import ScreenLoading from "../../../shared/components/feedback/screen_loading";
 import Pagination from "../../../shared/components/ui/pagination";
 import { Link } from "react-router";
 import FormField from "../../../shared/components/forms/form_field";
@@ -22,13 +23,11 @@ export default function InventoryPage() {
         reload,
     } = useInventory();
 
-    const {
-    decommission_item,
-    is_decommissioned,
-    } = useDecommissionedInventory();
+    const { decommission_item, is_decommissioned } =
+        useDecommissionedInventory();
 
     const active_items = inventory_items.filter(
-        (item) => !is_decommissioned(item.part_UUID)
+        (item) => !is_decommissioned(item.part_UUID),
     );
 
     const {
@@ -42,19 +41,19 @@ export default function InventoryPage() {
     } = useInventoryFilters(active_items);
 
     const [sort_order, set_sort_order] = useState("name");
-    const [pagination, set_pagination] = useState({key: "", page: 1,});
-    const results = [...filtered_items].sort(
-        (first, second) =>
-            sort_order === "quantity"
-                ? first.total_quantity - second.total_quantity ||
-                first.part_name.localeCompare(second.part_name)
-                : first.part_name.localeCompare(second.part_name),
+    const [pagination, set_pagination] = useState({ key: "", page: 1 });
+    const results = [...filtered_items].sort((first, second) =>
+        sort_order === "quantity"
+            ? first.total_quantity - second.total_quantity ||
+              first.part_name.localeCompare(second.part_name)
+            : first.part_name.localeCompare(second.part_name),
     );
-    const page_size = 10;
+    const [page_size, set_page_size] = useState(5);
     const filter_key = JSON.stringify([
         search,
         stock_filter,
         sort_order,
+        page_size,
     ]);
     const total_pages = Math.max(1, Math.ceil(results.length / page_size));
     const page =
@@ -67,7 +66,7 @@ export default function InventoryPage() {
     );
     const has_filters = is_filtered || stock_filter !== "";
     return (
-        <section aria-labelledby="page_title" className="space-y-6">
+        <section aria-labelledby="page_title" className="space-y-4">
             <PageHeader
                 title="Inventory"
                 title_id="page_title"
@@ -97,7 +96,7 @@ export default function InventoryPage() {
             />
 
             <Card>
-                <div className="mb-5 flex flex-wrap items-end gap-4 ">
+                <div className="mb-3 flex flex-wrap items-end gap-3">
                     <div className="min-w-0 flex-1 basis-64">
                         <p className="mb-2 text-sm font-medium text-slate-700">
                             Search inventory
@@ -157,34 +156,36 @@ export default function InventoryPage() {
                     </div>
                 </div>
                 {has_filters && (
-                        <div className="flex flex-wrap items-center gap-2 -mt-3">
-                            {stock_filter && (
-                                <FilterChip
-                                    label={`${stock_filter}`}
-                                    on_remove={() => set_stock_filter("")}
-                                />
-                            )}
-                            <Button
-                                variant="ghost"
-                                onClick={() => {
-                                    clear_filters();
-                                    set_stock_filter("");
-                                }}
-                            >
-                                Clear All Filters
-                            </Button>
-                        </div>
-                    )}
+                    <div className="flex flex-wrap items-center gap-2 -mt-3">
+                        {stock_filter && (
+                            <FilterChip
+                                label={`${stock_filter}`}
+                                on_remove={() => set_stock_filter("")}
+                            />
+                        )}
+                        <Button
+                            variant="ghost"
+                            onClick={() => {
+                                clear_filters();
+                                set_stock_filter("");
+                            }}
+                        >
+                            Clear All Filters
+                        </Button>
+                    </div>
+                )}
 
                 <p role="status" className="mb-3 text-sm text-slate-500">
-                    {results.length === 0
-                        ? "No items shown"
-                        : `Showing ${(page - 1) * page_size + 1}–${Math.min(page * page_size, results.length)} of ${results.length} items`}
+                    {is_loading
+                        ? "Loading inventory…"
+                        : error
+                          ? "Inventory unavailable"
+                          : results.length === 0
+                            ? "No items shown"
+                            : `Showing ${(page - 1) * page_size + 1}–${Math.min(page * page_size, results.length)} of ${results.length} items`}
                 </p>
                 {is_loading ? (
-                    <p className="py-8 text-center text-sm text-slate-500">
-                        Loading inventory...
-                    </p>
+                    <ScreenLoading compact label="Loading inventory…" />
                 ) : error ? (
                     <div
                         role="alert"
@@ -207,7 +208,24 @@ export default function InventoryPage() {
                         on_decommission={decommission_item}
                     />
                 )}
-                <div className="mt-4">
+                <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 pt-3">
+                    <label className="flex items-center gap-2 text-sm text-slate-600">
+                        Rows per page
+                        <select
+                            aria-label="Rows per page"
+                            value={page_size}
+                            onChange={(event) =>
+                                set_page_size(Number(event.currentTarget.value))
+                            }
+                            className="min-h-11 rounded-lg border border-slate-300 bg-white px-3 focus-visible:outline-2 focus-visible:outline-[#1d4ed8]"
+                        >
+                            {[5, 10, 25].map((size) => (
+                                <option key={size} value={size}>
+                                    {size}
+                                </option>
+                            ))}
+                        </select>
+                    </label>
                     <Pagination
                         page={page}
                         total_pages={total_pages}

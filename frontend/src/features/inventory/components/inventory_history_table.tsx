@@ -38,7 +38,8 @@ const columns: TableColumn<InventoryTransaction>[] = [
     {
         id: "quantity",
         header: "Quantity Change",
-        render: (row) => row.quantity_change,
+        render: (row) =>
+            `${row.quantity_change > 0 ? "+" : ""}${row.quantity_change}`,
     },
     {
         id: "location",
@@ -46,10 +47,14 @@ const columns: TableColumn<InventoryTransaction>[] = [
         render: (row) => row.status.location.location_name,
     },
     {
+        id: "remarks",
+        header: "Remarks",
+        render: (row) => row.remarks || "No remarks recorded",
+    },
+    {
         id: "updated_by",
         header: "Updated By",
-        render: (row) =>
-            `${row.updater.f_name} ${row.updater.l_name}`,
+        render: (row) => `${row.updater.f_name} ${row.updater.l_name}`,
     },
 ];
 
@@ -64,6 +69,8 @@ export default function InventoryHistoryTable({
 }: InventoryHistoryTableProps) {
     return (
         <DataTable
+            bounded
+            compact_empty
             caption={caption}
             columns={columns}
             rows={rows}

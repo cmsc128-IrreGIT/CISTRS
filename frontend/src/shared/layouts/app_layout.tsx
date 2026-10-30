@@ -1,12 +1,9 @@
-import { Outlet, useLocation } from "react-router";
+import { Outlet } from "react-router";
 import AppHeader from "../components/header/app_header";
 import MobileNavbar from "../components/navigation/mobile_navbar";
 import Sidebar from "../components/navigation/sidebar";
-import PageTransition from "../components/transitions/page_transition";
 
 export default function AppLayout() {
-    const location = useLocation();
-
     return (
         <div className="flex min-h-dvh bg-[#f4f6f9]">
             <a
@@ -24,11 +21,9 @@ export default function AppLayout() {
                 <main
                     id="main_content"
                     tabIndex={-1}
-                    className="mx-auto w-full max-w-[1440px] p-4 pb-[calc(6rem+env(safe-area-inset-bottom))] md:px-8 md:py-8 xl:px-10"
+                    className="mx-auto w-full max-w-[1440px] p-4 pb-[calc(6rem+env(safe-area-inset-bottom))] md:px-6 md:py-5 xl:px-8"
                 >
-                    <PageTransition key={location.pathname}>
-                        <Outlet />
-                    </PageTransition>
+                    <Outlet />
                 </main>
             </div>
 

@@ -59,7 +59,6 @@ const columns = (
     },
 ];
 
-
 type InventoryTableProps = {
     rows: InventoryItem[];
     is_filtered: boolean;
@@ -71,7 +70,9 @@ export default function InventoryTable({
     is_filtered,
     on_decommission,
 }: InventoryTableProps) {
-    const [selected_item, set_selected_item] = useState<InventoryItem | null>(null);
+    const [selected_item, set_selected_item] = useState<InventoryItem | null>(
+        null,
+    );
 
     const handle_confirm = () => {
         if (!selected_item) return;
@@ -81,21 +82,24 @@ export default function InventoryTable({
     };
     return (
         <>
-        <DataTable
-            caption="Inventory preview: aircraft parts and supplies"
-            columns={columns(set_selected_item)}
-            rows={rows}
-            get_row_key={(row) => row.part_UUID}
-            empty_title={
-                is_filtered ? "No matching items" : "No inventory records yet"
-            }
-            empty_description={
-                is_filtered
-                    ? "Try another search term or clear the filters."
-                    : "Added parts and supplies will appear here."
-            }
-        />
-        <ConfirmationModal
+            <DataTable
+                caption="Inventory: aircraft parts and supplies"
+                bounded
+                columns={columns(set_selected_item)}
+                rows={rows}
+                get_row_key={(row) => row.part_UUID}
+                empty_title={
+                    is_filtered
+                        ? "No matching items"
+                        : "No inventory records yet"
+                }
+                empty_description={
+                    is_filtered
+                        ? "Try another search term or clear the filters."
+                        : "Added parts and supplies will appear here."
+                }
+            />
+            <ConfirmationModal
                 is_open={selected_item !== null}
                 title="Decommission Part?"
                 message={

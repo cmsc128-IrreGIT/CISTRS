@@ -1,9 +1,10 @@
 import { Bell, PlaneTakeoff } from "lucide-react";
 import { Link } from "react-router";
-import { account_preview } from "../../../features/account/data/account_preview";
+import { useAuth } from "../../../features/auth/hooks/auth_context";
 import ProfileMenu from "./profile_menu";
 
 export default function AppHeader() {
+    const { user, logout } = useAuth();
     return (
         <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 sm:px-6">
             <Link
@@ -36,9 +37,9 @@ export default function AppHeader() {
 
                 <div className="border-l border-slate-200 pl-2 sm:pl-3">
                     <ProfileMenu
-                        display_name={account_preview.display_name}
-                        role={`${account_preview.role} · Preview`}
-                        email={account_preview.email}
+                        display_name={user?.username ?? "Account"}
+                        role={user?.roles.join(" · ") ?? ""}
+                        on_logout={logout}
                     />
                 </div>
             </div>

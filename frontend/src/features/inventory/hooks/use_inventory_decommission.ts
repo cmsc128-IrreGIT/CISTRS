@@ -1,4 +1,3 @@
-
 import { useSyncExternalStore } from "react";
 import type { InventoryItem } from "../types/inventory_types";
 
@@ -20,9 +19,7 @@ function get_snapshot(): PartId[] {
         try {
             const parsed: unknown = JSON.parse(raw ?? "[]");
             cached_ids = Array.isArray(parsed)
-                ? parsed.filter(
-                      (id): id is PartId => typeof id === "string"
-                  )
+                ? parsed.filter((id): id is PartId => typeof id === "string")
                 : [];
         } catch {
             cached_ids = [];
@@ -55,7 +52,7 @@ export default function useDecommissionedInventory() {
     const decommissioned_ids = useSyncExternalStore(
         subscribe,
         get_snapshot,
-        get_server_snapshot
+        get_server_snapshot,
     );
 
     function decommission_item(id: PartId) {
@@ -67,9 +64,7 @@ export default function useDecommissionedInventory() {
     }
 
     function restore_item(id: PartId) {
-        save_ids(
-            get_snapshot().filter((stored_id) => stored_id !== id)
-        );
+        save_ids(get_snapshot().filter((stored_id) => stored_id !== id));
     }
 
     function is_decommissioned(id: PartId) {

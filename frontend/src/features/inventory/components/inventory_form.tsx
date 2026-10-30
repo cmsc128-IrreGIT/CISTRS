@@ -33,7 +33,7 @@ export default function InventoryForm({
     locations,
     on_submit,
     submit_text,
-}: InventoryFormProps)  {
+}: InventoryFormProps) {
     function handle_submit(event: SubmitEvent<HTMLFormElement>) {
         event.preventDefault();
 
@@ -51,11 +51,24 @@ export default function InventoryForm({
             }
         }
 
+        const location = form.elements.namedItem("initial_stock_location");
+        const quantity_input = form.elements.namedItem(
+            "initial_stock_quantity",
+        );
+        if (
+            location instanceof HTMLSelectElement &&
+            quantity_input instanceof HTMLInputElement
+        ) {
+            location.setCustomValidity(
+                Number(quantity_input.value) > 0 && !location.value
+                    ? "Select a location for the initial stock."
+                    : "",
+            );
+        }
         if (!form.reportValidity()) return;
 
         const data = new FormData(form);
-        const get_text = (name: string) =>
-            String(data.get(name) ?? "").trim();
+        const get_text = (name: string) => String(data.get(name) ?? "").trim();
         const min_stock_level = Number(data.get("min_stock_level"));
 
         if (!Number.isInteger(min_stock_level) || min_stock_level < 0) {
@@ -63,25 +76,26 @@ export default function InventoryForm({
         }
 
         const quantity = Number(data.get("initial_stock_quantity"));
-        const location_UUID = String(
-            data.get("initial_stock_location") ?? "",
-        );
+        const location_UUID = String(data.get("initial_stock_location") ?? "");
 
         const initial_stock =
             !initial_values && quantity > 0 && location_UUID
                 ? {
-                    location_UUID,
-                    quantity,
-                }
+                      location_UUID,
+                      quantity,
+                  }
                 : undefined;
 
-        on_submit({
-            part_name: get_text("part_name"),
-            part_number: get_text("part_number"),
-            unit_of_measure: get_text("unit_of_measure"),
-            min_stock_level,
-            description: get_text("description"),
-        }, initial_stock);
+        on_submit(
+            {
+                part_name: get_text("part_name"),
+                part_number: get_text("part_number"),
+                unit_of_measure: get_text("unit_of_measure"),
+                min_stock_level,
+                description: get_text("description"),
+            },
+            initial_stock,
+        );
     }
 
     return (
@@ -156,9 +170,7 @@ export default function InventoryForm({
                                 {...field_props}
                                 name="description"
                                 maxLength={500}
-                                defaultValue={
-                                    initial_values?.description ?? ""
-                                }
+                                defaultValue={initial_values?.description ?? ""}
                                 className={input_style}
                             />
                         )}
@@ -173,20 +185,20 @@ export default function InventoryForm({
                     </legend>
 
                     <div className="grid gap-5 sm:grid-cols-2">
-                        <FormField
-                            id="initial_stock_location"
-                            label="Location"
-                        >
+                        <FormField id="initial_stock_location" label="Location">
                             {(field_props) => (
                                 <select
                                     {...field_props}
                                     name="initial_stock_location"
+                                    onChange={(event) =>
+                                        event.currentTarget.setCustomValidity(
+                                            "",
+                                        )
+                                    }
                                     className={input_style}
                                     defaultValue=""
                                 >
-                                    <option value="">
-                                        Select a location
-                                    </option>
+                                    <option value="">Select a location</option>
 
                                     {locations.map((location) => (
                                         <option
@@ -203,10 +215,7 @@ export default function InventoryForm({
                             )}
                         </FormField>
 
-                        <FormField
-                            id="initial_stock_quantity"
-                            label="Quantity"
-                        >
+                        <FormField id="initial_stock_quantity" label="Quantity">
                             {(field_props) => (
                                 <input
                                     {...field_props}
@@ -224,10 +233,7 @@ export default function InventoryForm({
             )}
 
             <div className="flex justify-end gap-3 border-t border-slate-200 pt-5">
-                <Link
-                    to="/inventory"
-                    className={button_styles("secondary")}
-                >
+                <Link to="/inventory" className={button_styles("secondary")}>
                     Cancel
                 </Link>
 
