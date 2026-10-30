@@ -1,17 +1,28 @@
 import { create_preview_store } from "../../../shared/data/create_preview_store";
+
 export const aircraft_store = create_preview_store([
     {
         id: "aircraft-demo-a",
-        registration: "Demo Aircraft A",
-        model: "Sample aircraft model",
+        registration: "RP-C8333",
+        model: "",
+        current_aircraft_hours: "4,286.7",
         status: "Operational",
-        notes: "Fictional record. This status is not clearance to fly.",
+        notes: "Preview status and hours only. Aircraft type is not confirmed in the supplied reference files.",
     },
     {
         id: "aircraft-demo-b",
-        registration: "Demo Aircraft B",
-        model: "Sample aircraft model",
+        registration: "RP-C1738",
+        model: "",
+        current_aircraft_hours: "6,914.2",
         status: "Maintenance",
-        notes: "Fictional maintenance status.",
+        notes: "Preview maintenance status and hours only. Aircraft type is not confirmed in the supplied reference files.",
+    },
+    {
+        id: "aircraft-demo-c",
+        registration: "RP-C984",
+        model: "",
+        current_aircraft_hours: "3,758.5",
+        status: "Out of Service",
+        notes: "Preview status and hours only. Aircraft type is not confirmed in the supplied reference files.",
     },
 ]);

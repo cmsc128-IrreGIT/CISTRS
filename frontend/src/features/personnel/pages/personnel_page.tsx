@@ -1,8 +1,13 @@
-import RecordList from "../../../shared/components/records/record_list";
-import { personnel_config } from "../config/personnel_config";
-import usePersonnel from "../hooks/use_personnel";
-
-export default function PersonnelPage() {
-    const rows = usePersonnel();
-    return <RecordList config={personnel_config} rows={rows} can_add={true} />;
+import LiveDirectory from "../../directory/live_directory";
+import { useLocation } from "react-router";
+export default function Page() {
+    const { pathname } = useLocation();
+    return (
+        <LiveDirectory
+            key={pathname}
+            kind="personnel"
+            detail={false}
+            form={false}
+        />
+    );
 }

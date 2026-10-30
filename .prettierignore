@@ -1,2 +1,3 @@
 dist/
 **/dist/
+/backend/src/generated/prisma/

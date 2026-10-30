@@ -1,38 +1,51 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { get_inventory } from "../services/inventory_services";
 import type { InventoryItem } from "../types/inventory_types";
 
 export default function useInventory() {
-    const [items, set_items] = useState<InventoryItem[]>([]);
+    const [items, set_data] = useState<InventoryItem[]>([]);
     const [is_loading, set_is_loading] = useState(true);
     const [error, set_error] = useState<string | null>(null);
+    const request_id = useRef({ id: 0 });
 
-    const load_inventory = useCallback(async () => {
-        try {
-            set_is_loading(true);
-            set_error(null);
-
-            const data = await get_inventory();
-            set_items(data);
-        } catch (error) {
-            set_error(
-                error instanceof Error
-                    ? error.message
-                    : "Failed to load inventory.",
-            );
-        } finally {
-            set_is_loading(false);
-        }
+    const load = useCallback(() => {
+        const current_request = ++request_id.current.id;
+        return get_inventory()
+            .then(
+                (data) => {
+                    if (current_request === request_id.current.id) {
+                        set_data(data);
+                        set_error(null);
+                    }
+                },
+                (cause: unknown) => {
+                    if (current_request === request_id.current.id)
+                        set_error(
+                            cause instanceof Error
+                                ? cause.message
+                                : "Failed to load inventory data.",
+                        );
+                },
+            )
+            .finally(() => {
+                if (current_request === request_id.current.id)
+                    set_is_loading(false);
+            });
     }, []);
 
-    useEffect(() => {
-        load_inventory();
-    }, [load_inventory]);
+    const reload = useCallback(() => {
+        set_is_loading(true);
+        set_error(null);
+        return load();
+    }, [load]);
 
-    return {
-        items,
-        is_loading,
-        error,
-        reload: load_inventory,
-    };
+    useEffect(() => {
+        const state = request_id.current;
+        void load();
+        return () => {
+            ++state.id;
+        };
+    }, [load]);
+
+    return { items, is_loading, error, reload };
 }

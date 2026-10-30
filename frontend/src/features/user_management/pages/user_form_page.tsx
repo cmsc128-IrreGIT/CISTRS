@@ -1,33 +1,8 @@
-import type { PreviewRecord } from "../../../shared/types/record_types";
-import RecordFormPage from "../../../shared/components/records/record_form_page";
-import { user_management_config } from "../config/user_management_config";
-import useUserManagement from "../hooks/use_user_management";
-import { useParams } from "react-router";
-import { user_management_store } from "../data/user_management_store";
-
-export default function UserFormPage() {
-    const rows = useUserManagement();
-    const { user_id } = useParams();
-    function save(values: Omit<PreviewRecord, "id">, id?: string) {
-        if (
-            rows.some(
-                (row) =>
-                    row.id !== id &&
-                    (row.username.toLowerCase() ===
-                        values.username.toLowerCase() ||
-                        row.email.toLowerCase() === values.email.toLowerCase()),
-            )
-        ) {
-            throw new Error("Username or email already exists in the preview.");
-        }
-        return user_management_store.save(values, id);
-    }
+import LiveDirectory from "../../directory/live_directory";
+import { useLocation } from "react-router";
+export default function Page() {
+    const { pathname } = useLocation();
     return (
-        <RecordFormPage
-            config={user_management_config}
-            rows={rows}
-            record_id={user_id}
-            on_save={save}
-        />
+        <LiveDirectory key={pathname} kind="users" detail={false} form={true} />
     );
 }

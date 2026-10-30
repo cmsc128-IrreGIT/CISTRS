@@ -1,6 +1,10 @@
+import MaintenanceDetailsPage from "../features/maintenance/pages/maintenance_details_page";
+import HelpPage from "../shared/pages/help_page";
 import { lazy, Suspense } from "react";
+import ScreenLoading from "../shared/components/feedback/screen_loading";
+import ForbiddenPage from "../shared/pages/forbidden_page";
 import { Navigate, Route, Routes } from "react-router";
-import AppLayout from "../shared/layouts/app_layout";
+import RequireSession from "../features/auth/components/require_session";
 
 import LoginPage from "../features/auth/pages/login_page";
 import ProfilePage from "../features/account/pages/profile_page";
@@ -14,12 +18,22 @@ import InventoryDetailsPage from "../features/inventory/pages/inventory_details_
 import InventoryFormPage from "../features/inventory/pages/inventory_form_page";
 import InventoryHistoryPage from "../features/inventory/pages/inventory_history_page";
 
-import AircraftPage from "../features/aircraft/pages/aircraft_page";
-import AircraftDetailsPage from "../features/aircraft/pages/aircraft_details_page";
-import AircraftStatusPage from "../features/aircraft/pages/aircraft_status_page";
+const AircraftPage = lazy(
+    () => import("../features/aircraft/pages/aircraft_page"),
+);
+const AircraftDetailsPage = lazy(
+    () => import("../features/aircraft/pages/aircraft_details_page"),
+);
+const AircraftStatusPage = lazy(
+    () => import("../features/aircraft/pages/aircraft_status_page"),
+);
 
-import MaintenancePage from "../features/maintenance/pages/maintenance_page";
-import MaintenanceFormPage from "../features/maintenance/pages/maintenance_form_page";
+const MaintenancePage = lazy(
+    () => import("../features/maintenance/pages/maintenance_page"),
+);
+const MaintenanceFormPage = lazy(
+    () => import("../features/maintenance/pages/maintenance_form_page"),
+);
 
 import PersonnelPage from "../features/personnel/pages/personnel_page";
 import PersonnelDetailsPage from "../features/personnel/pages/personnel_details_page";
@@ -47,31 +61,22 @@ export default function AppRoutes() {
     return (
         <Routes>
             <Route path="/login" element={<LoginPage />} />
-            <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
-            <Route element={<AppLayout />}>
+            <Route element={<RequireSession />}>
                 <Route index element={<Navigate to="/dashboard" replace />} />
                 <Route
                     path="/dashboard"
                     element={
-                        <Suspense
-                            fallback={
-                                <p
-                                    role="status"
-                                    className="py-6 text-sm text-slate-500"
-                                >
-                                    Loading dashboard…
-                                </p>
-                            }
-                        >
+                        <Suspense fallback={<ScreenLoading />}>
                             <DashboardPage />
                         </Suspense>
                     }
                 />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/settings" element={<SettingsPage />} />
+                <Route path="/help" element={<HelpPage />} />
 
                 <Route path="/inventory" element={<InventoryPage />} />
                 <Route path="/inventory/new" element={<InventoryFormPage />} />
@@ -88,32 +93,64 @@ export default function AppRoutes() {
                     element={<InventoryFormPage />}
                 />
 
-                <Route path="/aircraft" element={<AircraftPage />} />
+                <Route
+                    path="/aircraft"
+                    element={
+                        <Suspense fallback={<ScreenLoading />}>
+                            <AircraftPage />
+                        </Suspense>
+                    }
+                />
                 <Route
                     path="/aircraft/:aircraft_id"
-                    element={<AircraftDetailsPage />}
+                    element={
+                        <Suspense fallback={<ScreenLoading />}>
+                            <AircraftDetailsPage />
+                        </Suspense>
+                    }
                 />
                 <Route
                     path="/aircraft/:aircraft_id/status"
-                    element={<AircraftStatusPage />}
+                    element={
+                        <Suspense fallback={<ScreenLoading />}>
+                            <AircraftStatusPage />
+                        </Suspense>
+                    }
                 />
 
-                <Route path="/maintenance" element={<MaintenancePage />} />
+                <Route
+                    path="/maintenance"
+                    element={
+                        <Suspense fallback={<ScreenLoading />}>
+                            <MaintenancePage />
+                        </Suspense>
+                    }
+                />
+                <Route
+                    path="/maintenance/:maintenance_id"
+                    element={<MaintenanceDetailsPage />}
+                />
                 <Route
                     path="/maintenance/new"
-                    element={<MaintenanceFormPage />}
+                    element={
+                        <Suspense fallback={<ScreenLoading />}>
+                            <MaintenanceFormPage />
+                        </Suspense>
+                    }
                 />
                 <Route
                     path="/maintenance/:maintenance_id/edit"
-                    element={<MaintenanceFormPage />}
+                    element={
+                        <Suspense fallback={<ScreenLoading />}>
+                            <MaintenanceFormPage />
+                        </Suspense>
+                    }
                 />
 
                 <Route
                     path="/logbook"
                     element={
-                        <Suspense
-                            fallback={<p role="status">Loading logbook…</p>}
-                        >
+                        <Suspense fallback={<ScreenLoading />}>
                             <LogbookPage />
                         </Suspense>
                     }
@@ -121,11 +158,7 @@ export default function AppRoutes() {
                 <Route
                     path="/logbook/new"
                     element={
-                        <Suspense
-                            fallback={
-                                <p role="status">Loading logbook form…</p>
-                            }
-                        >
+                        <Suspense fallback={<ScreenLoading />}>
                             <LogbookFormPage />
                         </Suspense>
                     }
@@ -133,11 +166,7 @@ export default function AppRoutes() {
                 <Route
                     path="/logbook/:entry_id/edit"
                     element={
-                        <Suspense
-                            fallback={
-                                <p role="status">Loading logbook form…</p>
-                            }
-                        >
+                        <Suspense fallback={<ScreenLoading />}>
                             <LogbookFormPage />
                         </Suspense>
                     }
@@ -166,6 +195,8 @@ export default function AppRoutes() {
                 <Route path="/users/:user_id/edit" element={<UserFormPage />} />
             </Route>
 
+            <Route path="/403" element={<ForbiddenPage />} />
+            <Route path="/404" element={<NotFoundPage />} />
             <Route path="*" element={<NotFoundPage />} />
         </Routes>
     );

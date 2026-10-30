@@ -1,4 +1,12 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import {
+    beforeAll,
+    afterAll,
+    afterEach,
+    describe,
+    expect,
+    it,
+    vi,
+} from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";
@@ -10,6 +18,60 @@ import { maintenance_store } from "../../src/features/maintenance/data/maintenan
 import { notifications_store } from "../../src/features/notifications/data/notifications_store";
 import AvailabilityPage from "../../src/features/personnel/pages/availability_page";
 
+vi.mock("../../src/features/inventory/hooks/use_inventory", () => ({
+    default: () => ({
+        items: [],
+        is_loading: false,
+        error: null,
+        reload: vi.fn(),
+    }),
+}));
+vi.mock("../../src/features/inventory/hooks/use_inventory_history", () => ({
+    default: () => ({
+        history: [],
+        is_loading: false,
+        error: null,
+        reload: vi.fn(),
+    }),
+}));
+const original_show = Object.getOwnPropertyDescriptor(
+    HTMLDialogElement.prototype,
+    "showModal",
+);
+const original_close = Object.getOwnPropertyDescriptor(
+    HTMLDialogElement.prototype,
+    "close",
+);
+beforeAll(() => {
+    Object.defineProperty(HTMLDialogElement.prototype, "showModal", {
+        configurable: true,
+        value: function (this: HTMLDialogElement) {
+            this.setAttribute("open", "");
+        },
+    });
+    Object.defineProperty(HTMLDialogElement.prototype, "close", {
+        configurable: true,
+        value: function (this: HTMLDialogElement) {
+            this.removeAttribute("open");
+        },
+    });
+});
+afterAll(() => {
+    if (original_show)
+        Object.defineProperty(
+            HTMLDialogElement.prototype,
+            "showModal",
+            original_show,
+        );
+    else Reflect.deleteProperty(HTMLDialogElement.prototype, "showModal");
+    if (original_close)
+        Object.defineProperty(
+            HTMLDialogElement.prototype,
+            "close",
+            original_close,
+        );
+    else Reflect.deleteProperty(HTMLDialogElement.prototype, "close");
+});
 afterEach(cleanup);
 describe("preview records", () => {
     it("adds records and updates them without changing the previous snapshot", () => {
@@ -66,8 +128,7 @@ describe("preview records", () => {
     });
     it("updates dashboard aircraft, pending maintenance, and unread counts from stores", () => {
         function Summary() {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const summary = useDashboardSummary() as any;
+            const summary = useDashboardSummary();
             const pendingMaintenance = summary.pending_maintenance ?? [];
             return (
                 <div>
@@ -79,7 +140,7 @@ describe("preview records", () => {
         }
         render(<Summary />);
         expect(
-            screen.getByText("1 operational / 1 pending / 2 unread"),
+            screen.getByText("1 operational / 3 pending / 2 unread"),
         ).toBeTruthy();
         cleanup();
         const original = aircraft_store.get_snapshot()[1];
@@ -87,8 +148,15 @@ describe("preview records", () => {
             { ...original, status: "Operational" },
             original.id,
         );
-        const task = maintenance_store.get_snapshot()[0];
-        maintenance_store.save({ ...task, status: "Completed" }, task.id);
+        maintenance_store
+            .get_snapshot()
+            .filter((task) => task.status !== "Completed")
+            .forEach((task) =>
+                maintenance_store.save(
+                    { ...task, status: "Completed" },
+                    task.id,
+                ),
+            );
         notifications_store
             .get_snapshot()
             .forEach((row) => notifications_store.set_read(row.id, true));
@@ -104,25 +172,26 @@ describe("preview records", () => {
                 <AvailabilityPage />
             </MemoryRouter>,
         );
-        await user.selectOptions(
-            screen.getByRole("combobox", { name: /^Personnel/ }),
-            "personnel-demo-1",
-        );
-        await user.type(screen.getByLabelText(/^Date/), "2026-10-07");
-        await user.selectOptions(
-            screen.getByRole("combobox", { name: /^Availability/ }),
-            "Available",
-        );
-        await user.click(
-            screen.getByRole("button", { name: "Save preview availability" }),
-        );
-        await user.selectOptions(
-            screen.getByRole("combobox", { name: /^Availability/ }),
-            "Unavailable",
-        );
-        await user.click(
-            screen.getByRole("button", { name: "Save preview availability" }),
-        );
+        for (const value of ["Available", "Unavailable"]) {
+            await user.click(
+                screen.getByRole("button", { name: "Record availability" }),
+            );
+            await user.selectOptions(
+                screen.getByRole("combobox", { name: /^Personnel/ }),
+                "personnel-demo-1",
+            );
+            await user.type(screen.getByLabelText(/^Date/), "2026-10-07");
+            await user.selectOptions(
+                screen.getByRole("combobox", { name: /^Availability/ }),
+                value,
+            );
+            await user.click(
+                screen.getByRole("button", { name: "Save availability" }),
+            );
+            expect(
+                screen.queryByRole("dialog", { name: "Record availability" }),
+            ).not.toBeInTheDocument();
+        }
         expect(screen.getAllByRole("row")).toHaveLength(2);
         expect(screen.getByRole("cell", { name: "Unavailable" })).toBeTruthy();
     });

@@ -1,7 +1,7 @@
 import {
-    Bell,
     BookOpen,
     CalendarDays,
+    CircleHelp,
     LayoutDashboard,
     Package,
     Plane,
@@ -22,6 +22,6 @@ export const navigation_items = [
         label: "Availability",
         icon: CalendarDays,
     },
-    { to: "/notifications", label: "Notifications", icon: Bell },
     { to: "/users", label: "User Accounts", icon: ShieldCheck },
+    { to: "/help", label: "Help & guides", icon: CircleHelp },
 ];

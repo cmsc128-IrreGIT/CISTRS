@@ -142,8 +142,9 @@ export default function LogbookForm({
                                                         key={row.registration}
                                                         value={row.registration}
                                                     >
-                                                        {row.registration} ·{" "}
-                                                        {row.model}
+                                                        {row.model
+                                                            ? `${row.registration} · ${row.model}`
+                                                            : row.registration}
                                                     </option>
                                                 ))}
                                             </select>

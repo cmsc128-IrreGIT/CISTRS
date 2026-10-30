@@ -1,1 +1,7 @@
 @import "tailwindcss";
+
+/* Keep the labelled application toggle when Edge supplies its own reveal button. */
+.cistrs-password::-ms-reveal,
+.cistrs-password::-ms-clear {
+    display: none;
+}

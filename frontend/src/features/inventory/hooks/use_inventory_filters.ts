@@ -1,9 +1,7 @@
 import { useState } from "react";
 import type { InventoryItem } from "../types/inventory_types";
 
-export default function useInventoryFilters(
-    items: InventoryItem[],
-) {
+export default function useInventoryFilters(items: InventoryItem[]) {
     const [search, set_search] = useState("");
     const [stock_filter, set_stock_filter] = useState("");
 
@@ -35,8 +33,7 @@ export default function useInventoryFilters(
         stock_filter,
         set_stock_filter,
         filtered_items,
-        is_filtered:
-            search.trim() !== "" || stock_filter !== "",
+        is_filtered: search.trim() !== "" || stock_filter !== "",
         clear_filters,
     };
 }

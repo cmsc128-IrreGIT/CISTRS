@@ -1,4 +1,5 @@
 import type { RecordConfig } from "../../../shared/types/record_types";
+
 export const aircraft_config: RecordConfig = {
     title: "Aircraft",
     singular: "Aircraft",
@@ -6,14 +7,20 @@ export const aircraft_config: RecordConfig = {
     fields: [
         {
             key: "registration",
-            label: "Registration",
+            label: "Registration / Tail No.",
             required: true,
             type: "text",
         },
         {
             key: "model",
-            label: "Model",
-            required: true,
+            label: "Aircraft Type",
+            required: false,
+            type: "text",
+        },
+        {
+            key: "current_aircraft_hours",
+            label: "Current Aircraft Hours",
+            required: false,
             type: "text",
         },
         {
@@ -31,5 +38,5 @@ export const aircraft_config: RecordConfig = {
         },
     ],
     details: true,
-    note: "Status does not authorize aircraft operation.",
+    note: "Aircraft registrations follow the supplied client reference files. Aircraft type, hours, and recorded status remain preview values until confirmed by Shuttle Air records.",
 };

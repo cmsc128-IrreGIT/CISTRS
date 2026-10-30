@@ -14,12 +14,14 @@ export default function RecordForm({
     on_submit,
     cancel_to,
     submit_text,
+    on_cancel,
 }: {
     fields: RecordField[];
     initial_values?: PreviewRecord;
     on_submit: (values: Omit<PreviewRecord, "id">) => void;
     cancel_to: string;
     submit_text: string;
+    on_cancel?: () => void;
 }) {
     const [error, set_error] = useState("");
     function handle_submit(event: SubmitEvent<HTMLFormElement>) {
@@ -38,7 +40,7 @@ export default function RecordForm({
     return (
         <form onSubmit={handle_submit} className="space-y-5">
             <p className="text-sm text-slate-500">
-                Fields marked * are required. Fields are provisional.
+                Fields marked * are required.
             </p>
             {error && (
                 <p role="alert" className="text-sm text-red-700">
@@ -107,9 +109,15 @@ export default function RecordForm({
                 ))}
             </div>
             <div className="flex justify-end gap-3 border-t border-slate-200 pt-4">
-                <Link to={cancel_to} className={button_styles("secondary")}>
-                    Cancel
-                </Link>
+                {on_cancel ? (
+                    <Button variant="secondary" onClick={on_cancel}>
+                        Cancel
+                    </Button>
+                ) : (
+                    <Link to={cancel_to} className={button_styles("secondary")}>
+                        Cancel
+                    </Link>
+                )}
                 <Button type="submit">{submit_text}</Button>
             </div>
         </form>

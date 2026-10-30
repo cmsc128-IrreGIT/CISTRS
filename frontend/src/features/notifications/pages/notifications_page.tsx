@@ -5,7 +5,6 @@ import { toast } from "sonner";
 import Button from "../../../shared/components/ui/button";
 import Card from "../../../shared/components/ui/card";
 import PageHeader from "../../../shared/components/ui/page_header";
-import PreviewNotice from "../../../shared/components/feedback/preview_notice";
 import EmptyState from "../../../shared/components/feedback/empty_state";
 import useNotifications from "../hooks/use_notifications";
 import { notification_service } from "../services/notification_service";
@@ -108,11 +107,6 @@ export default function NotificationsPage() {
                     </Button>
                 }
             />
-
-            <PreviewNotice>
-                Sample notifications only · Email and SMS delivery are not
-                connected.
-            </PreviewNotice>
 
             <Card>
                 <div className="mb-5 border-b border-slate-200 pb-4">

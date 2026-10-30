@@ -1,18 +1,15 @@
-import RecordFormPage from "../../../shared/components/records/record_form_page";
-import { personnel_config } from "../config/personnel_config";
-import usePersonnel from "../hooks/use_personnel";
-import { useParams } from "react-router";
-import { personnel_store } from "../data/personnel_store";
-
+import { Link } from "react-router";
 export default function PersonnelFormPage() {
-    const rows = usePersonnel();
-    const { personnel_id } = useParams();
     return (
-        <RecordFormPage
-            config={personnel_config}
-            rows={rows}
-            record_id={personnel_id}
-            on_save={personnel_store.save}
-        />
+        <section className="space-y-4">
+            <h1 className="text-2xl font-bold">Personnel records</h1>
+            <p className="text-sm text-slate-600">
+                Personnel records are currently read-only. Contact your
+                administrator to request changes.
+            </p>
+            <Link className="text-blue-700 underline" to="/personnel">
+                Return to personnel
+            </Link>
+        </section>
     );
 }

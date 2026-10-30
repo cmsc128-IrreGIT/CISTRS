@@ -6,6 +6,7 @@ type EmptyStateProps = {
     description?: string;
     icon?: LucideIcon;
     action?: ReactNode;
+    compact?: boolean;
 };
 
 export default function EmptyState({
@@ -13,10 +14,13 @@ export default function EmptyState({
     description,
     icon: Icon,
     action,
+    compact = false,
 }: EmptyStateProps) {
     return (
-        <div className="flex flex-col items-center px-4 py-12 text-center">
-            {Icon && (
+        <div
+            className={`flex flex-col items-center px-4 text-center ${compact ? "py-4" : "py-12"}`}
+        >
+            {Icon && !compact && (
                 <div className="mb-4 rounded-full bg-slate-100 p-4">
                     <Icon
                         size={28}

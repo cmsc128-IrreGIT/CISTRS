@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import Pagination from "../../../shared/components/ui/pagination";
 import SearchInput from "../../../shared/components/forms/search_input";
@@ -62,20 +61,19 @@ export default function DecommissionedPartsPage() {
         reload,
     } = useInventory();
 
-    const {
-        is_decommissioned,
-        restore_item,
-    } = useDecommissionedInventory();
+    const { is_decommissioned, restore_item } = useDecommissionedInventory();
 
     const [search, set_search] = useState("");
     const [pagination, set_pagination] = useState({
         key: "",
         page: 1,
     });
-    const [selected_item, set_selected_item] = useState<InventoryItem | null>(null);
+    const [selected_item, set_selected_item] = useState<InventoryItem | null>(
+        null,
+    );
 
-    const decommissioned_items = inventory_items.filter(
-        (item) => is_decommissioned(item.part_UUID)
+    const decommissioned_items = inventory_items.filter((item) =>
+        is_decommissioned(item.part_UUID),
     );
 
     const results = decommissioned_items
@@ -88,23 +86,18 @@ export default function DecommissionedPartsPage() {
             );
         })
         .sort((first, second) =>
-            first.part_name.localeCompare(second.part_name)
+            first.part_name.localeCompare(second.part_name),
         );
 
     const page_size = 10;
-    const total_pages = Math.max(
-        1,
-        Math.ceil(results.length / page_size)
-    );
+    const total_pages = Math.max(1, Math.ceil(results.length / page_size));
 
     const page =
-        pagination.key === search
-            ? Math.min(pagination.page, total_pages)
-            : 1;
+        pagination.key === search ? Math.min(pagination.page, total_pages) : 1;
 
     const visible_items = results.slice(
         (page - 1) * page_size,
-        page * page_size
+        page * page_size,
     );
 
     const handle_confirm = () => {
@@ -157,7 +150,10 @@ export default function DecommissionedPartsPage() {
                     </div>
                 ) : (
                     <>
-                        <p role="status" className="mb-3 text-sm text-slate-500">
+                        <p
+                            role="status"
+                            className="mb-3 text-sm text-slate-500"
+                        >
                             {results.length === 0
                                 ? "No decommissioned parts shown"
                                 : `Showing ${(page - 1) * page_size + 1}–${Math.min(page * page_size, results.length)} of ${results.length} parts`}
