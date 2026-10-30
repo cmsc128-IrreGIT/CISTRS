@@ -1,77 +1,63 @@
 import { Router } from "express";
-import { prisma } from "../lib/prisma.js";
+import { parseOrThrow, parseUuid } from "../lib/validate.js";
+import {
+    createPart,
+    createPartSchema,
+    getPart,
+    listParts,
+    listPartsQuerySchema,
+    listTransactions,
+    updatePart,
+    updatePartSchema,
+} from "../services/inventory.service.js";
 
+// Mounted in server.ts behind requireAuth + requireFeature(FEATURE.Inventory).
 export const inventoryRouter = Router();
 
-// GET /api/inventory/parts  -> every part with total stock and its suppliers
-inventoryRouter.get("/parts", async (_req, res, next) => {
-    try {
-        const parts = await prisma.part.findMany({
-            orderBy: { part_number: "asc" },
-            include: {
-                inventory_status: {
-                    include: { location: true },
-                },
-                suppliers: {
-                    include: { supplier: { include: { organization: true } } },
-                },
-                manufacturers: {
-                    include: {
-                        manufacturer: { include: { organization: true } },
-                    },
-                },
-            },
-        });
+// -----------------------------------------------------------------------------
+// BE-02: create
 
-        res.json(
-            parts.map((part) => {
-                const total_quantity = part.inventory_status.reduce(
-                    (sum, row) => sum + row.current_quantity,
-                    0,
-                );
-                return {
-                    part_UUID: part.part_UUID,
-                    part_number: part.part_number,
-                    part_name: part.part_name,
-                    unit_of_measure: part.unit_of_measure,
-                    min_stock_level: part.min_stock_level,
-                    total_quantity,
-                    is_low_stock: total_quantity < part.min_stock_level,
-                    locations: part.inventory_status.map((row) => ({
-                        location_name: row.location.location_name,
-                        storage_area: row.location.storage_area,
-                        current_quantity: row.current_quantity,
-                    })),
-                    suppliers: part.suppliers.map(
-                        (link) => link.supplier.organization.organization_name,
-                    ),
-                    manufacturers: part.manufacturers.map(
-                        (link) =>
-                            link.manufacturer.organization.organization_name,
-                    ),
-                };
-            }),
-        );
-    } catch (error) {
-        next(error);
-    }
+// POST /api/inventory/parts
+// body: { part_number, part_name, unit_of_measure, min_stock_level?, description?,
+//         initial_stock?: { location_UUID, quantity } }
+inventoryRouter.post("/parts", async (req, res) => {
+    const input = parseOrThrow(createPartSchema, req.body);
+    const part = await createPart(input, req.user!.emp_UUID);
+    res.status(201).json(part);
 });
 
+// -----------------------------------------------------------------------------
+// BE-03: retrieve
+
+// GET /api/inventory/parts?search=filter
+// -> every part with total stock, locations, suppliers and manufacturers
+inventoryRouter.get("/parts", async (req, res) => {
+    const { search } = parseOrThrow(listPartsQuerySchema, req.query);
+    res.json(await listParts(search));
+});
+
+// GET /api/inventory/parts/:part_UUID  -> one part (404 if it does not exist)
+inventoryRouter.get("/parts/:part_UUID", async (req, res) => {
+    const part_UUID = parseUuid(req.params.part_UUID, "part ID");
+    res.json(await getPart(part_UUID));
+});
+
+// -----------------------------------------------------------------------------
+// BE-04: update
+
+// PATCH /api/inventory/parts/:part_UUID
+// body: any subset of { part_number, part_name, unit_of_measure,
+//                       min_stock_level, description (null clears it) }
+inventoryRouter.patch("/parts/:part_UUID", async (req, res) => {
+    const part_UUID = parseUuid(req.params.part_UUID, "part ID");
+    const input = parseOrThrow(updatePartSchema, req.body);
+    res.json(await updatePart(part_UUID, input));
+});
+
+// -----------------------------------------------------------------------------
+// Supporting: transaction history
+
 // GET /api/inventory/transactions  -> latest 50 stock movements
-inventoryRouter.get("/transactions", async (_req, res, next) => {
-    try {
-        const transactions = await prisma.inventoryTransaction.findMany({
-            orderBy: { created_at: "desc" },
-            take: 50,
-            include: {
-                status: { include: { part: true, location: true } },
-                updater: {
-                    select: { emp_number: true, f_name: true, l_name: true },
-                },
-            },
-        });
-        res.json(transactions);
-    } catch (error) {
-        next(error);
-    }
+inventoryRouter.get("/transactions", async (_req, res) => {
+    res.json(await listTransactions());
 });

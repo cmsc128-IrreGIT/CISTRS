@@ -1,27 +1,42 @@
 import { useState } from "react";
 import type { InventoryItem } from "../types/inventory_types";
-import {
-    filter_inventory,
-    get_aircraft_options,
-} from "../utils/inventory_filters";
 
-export default function useInventoryFilters(items: InventoryItem[]) {
+export default function useInventoryFilters(
+    items: InventoryItem[],
+) {
     const [search, set_search] = useState("");
-    const [aircraft_filter, set_aircraft_filter] = useState("");
+    const [stock_filter, set_stock_filter] = useState("");
+
+    const filtered_items = items.filter((item) => {
+        const search_value = search.trim().toLowerCase();
+
+        const matches_search =
+            search_value === "" ||
+            item.part_name.toLowerCase().includes(search_value) ||
+            item.part_number.toLowerCase().includes(search_value);
+
+        const matches_stock =
+            stock_filter === "" ||
+            (stock_filter === "in_stock"
+                ? item.total_quantity > 0
+                : item.total_quantity === 0);
+
+        return matches_search && matches_stock;
+    });
 
     function clear_filters() {
         set_search("");
-        set_aircraft_filter("");
+        set_stock_filter("");
     }
 
     return {
         search,
         set_search,
-        aircraft_filter,
-        set_aircraft_filter,
-        aircraft_options: get_aircraft_options(items),
-        filtered_items: filter_inventory(items, search, aircraft_filter),
-        is_filtered: search.trim() !== "" || aircraft_filter !== "",
+        stock_filter,
+        set_stock_filter,
+        filtered_items,
+        is_filtered:
+            search.trim() !== "" || stock_filter !== "",
         clear_filters,
     };
 }

@@ -10,7 +10,8 @@
         "lint": "eslint .",
         "typecheck": "tsc --noEmit",
         "postinstall": "prisma skills sync || exit 0",
-        "test:rbac": "tsx scripts/rbac-matrix.ts"
+        "test:rbac": "tsx scripts/rbac-matrix.ts",
+        "test:inventory": "tsx scripts/inventory-test.ts"
     },
     "keywords": [],
     "author": "",

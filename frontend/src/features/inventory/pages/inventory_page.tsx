@@ -1,8 +1,7 @@
-﻿import { History, Plus } from "lucide-react";
+﻿import { Archive, History, Plus } from "lucide-react";
 import { useState } from "react";
 import Pagination from "../../../shared/components/ui/pagination";
 import { Link } from "react-router";
-import PreviewNotice from "../../../shared/components/feedback/preview_notice";
 import FormField from "../../../shared/components/forms/form_field";
 import SearchInput from "../../../shared/components/forms/search_input";
 import Button from "../../../shared/components/ui/button";
@@ -12,41 +11,48 @@ import { button_styles } from "../../../shared/styles/button_styles";
 import InventoryTable from "../components/inventory_table";
 import useInventory from "../hooks/use_inventory";
 import useInventoryFilters from "../hooks/use_inventory_filters";
+import FilterChip from "../../../shared/components/ui/filter_chips";
+import useDecommissionedInventory from "../hooks/use_inventory_decommission";
 
 export default function InventoryPage() {
-    const inventory_items = useInventory();
+    const {
+        items: inventory_items,
+        is_loading,
+        error,
+        reload,
+    } = useInventory();
+
+    const {
+    decommission_item,
+    is_decommissioned,
+    } = useDecommissionedInventory();
+
+    const active_items = inventory_items.filter(
+        (item) => !is_decommissioned(item.part_UUID)
+    );
+
     const {
         search,
         set_search,
-        aircraft_filter,
-        set_aircraft_filter,
-        aircraft_options,
+        stock_filter,
+        set_stock_filter,
         filtered_items,
         is_filtered,
         clear_filters,
-    } = useInventoryFilters(inventory_items);
+    } = useInventoryFilters(active_items);
 
-    const [stock_filter, set_stock_filter] = useState("");
     const [sort_order, set_sort_order] = useState("name");
-    const [pagination, set_pagination] = useState({ key: "", page: 1 });
-    const results = filtered_items
-        .filter(
-            (item) =>
-                stock_filter === "" ||
-                (stock_filter === "in_stock"
-                    ? item.quantity > 0
-                    : item.quantity === 0),
-        )
-        .sort((first, second) =>
+    const [pagination, set_pagination] = useState({key: "", page: 1,});
+    const results = [...filtered_items].sort(
+        (first, second) =>
             sort_order === "quantity"
-                ? first.quantity - second.quantity ||
-                  first.name.localeCompare(second.name)
-                : first.name.localeCompare(second.name),
-        );
+                ? first.total_quantity - second.total_quantity ||
+                first.part_name.localeCompare(second.part_name)
+                : first.part_name.localeCompare(second.part_name),
+    );
     const page_size = 10;
     const filter_key = JSON.stringify([
         search,
-        aircraft_filter,
         stock_filter,
         sort_order,
     ]);
@@ -60,7 +66,6 @@ export default function InventoryPage() {
         page * page_size,
     );
     const has_filters = is_filtered || stock_filter !== "";
-
     return (
         <section aria-labelledby="page_title" className="space-y-6">
             <PageHeader
@@ -69,6 +74,13 @@ export default function InventoryPage() {
                 description="Find parts, check quantities, and review item records."
                 actions={
                     <>
+                        <Link
+                            to="/inventory/decommissioned"
+                            className={button_styles("secondary")}
+                        >
+                            <Archive size={18} aria-hidden="true" />
+                            Decommissioned Parts
+                        </Link>
                         <Link
                             to="/inventory/history"
                             className={button_styles("secondary")}
@@ -84,10 +96,8 @@ export default function InventoryPage() {
                 }
             />
 
-            <PreviewNotice />
-
             <Card>
-                <div className="mb-5 flex flex-wrap items-end gap-4">
+                <div className="mb-5 flex flex-wrap items-end gap-4 ">
                     <div className="min-w-0 flex-1 basis-64">
                         <p className="mb-2 text-sm font-medium text-slate-700">
                             Search inventory
@@ -96,35 +106,8 @@ export default function InventoryPage() {
                             value={search}
                             on_change={set_search}
                             label="Search inventory"
-                            placeholder="Item name, part number, or category"
+                            placeholder="Item name or part number"
                         />
-                    </div>
-
-                    <div className="w-full sm:w-52">
-                        <FormField id="aircraft_filter" label="Aircraft">
-                            {(field_props) => (
-                                <select
-                                    {...field_props}
-                                    value={aircraft_filter}
-                                    onChange={(event) =>
-                                        set_aircraft_filter(
-                                            event.currentTarget.value,
-                                        )
-                                    }
-                                    className="min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm focus:outline-2 focus:outline-red-600"
-                                >
-                                    <option value="">All aircraft</option>
-                                    <option value="unassigned">
-                                        Unassigned
-                                    </option>
-                                    {aircraft_options.map((aircraft) => (
-                                        <option key={aircraft} value={aircraft}>
-                                            {aircraft}
-                                        </option>
-                                    ))}
-                                </select>
-                            )}
-                        </FormField>
                     </div>
 
                     <div className="w-full sm:w-44">
@@ -172,29 +155,58 @@ export default function InventoryPage() {
                             )}
                         </FormField>
                     </div>
-                    {has_filters && (
-                        <Button
-                            variant="ghost"
-                            onClick={() => {
-                                clear_filters();
-                                set_stock_filter("");
-                            }}
-                        >
-                            Clear filters
-                        </Button>
-                    )}
                 </div>
+                {has_filters && (
+                        <div className="flex flex-wrap items-center gap-2 -mt-3">
+                            {stock_filter && (
+                                <FilterChip
+                                    label={`${stock_filter}`}
+                                    on_remove={() => set_stock_filter("")}
+                                />
+                            )}
+                            <Button
+                                variant="ghost"
+                                onClick={() => {
+                                    clear_filters();
+                                    set_stock_filter("");
+                                }}
+                            >
+                                Clear All Filters
+                            </Button>
+                        </div>
+                    )}
 
                 <p role="status" className="mb-3 text-sm text-slate-500">
                     {results.length === 0
                         ? "No items shown"
                         : `Showing ${(page - 1) * page_size + 1}–${Math.min(page * page_size, results.length)} of ${results.length} items`}
                 </p>
+                {is_loading ? (
+                    <p className="py-8 text-center text-sm text-slate-500">
+                        Loading inventory...
+                    </p>
+                ) : error ? (
+                    <div
+                        role="alert"
+                        className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+                    >
+                        <p>{error}</p>
 
-                <InventoryTable
-                    rows={visible_items}
-                    is_filtered={has_filters}
-                />
+                        <button
+                            type="button"
+                            onClick={reload}
+                            className="mt-2 font-medium underline underline-offset-4"
+                        >
+                            Try again
+                        </button>
+                    </div>
+                ) : (
+                    <InventoryTable
+                        rows={visible_items}
+                        is_filtered={has_filters}
+                        on_decommission={decommission_item}
+                    />
+                )}
                 <div className="mt-4">
                     <Pagination
                         page={page}
