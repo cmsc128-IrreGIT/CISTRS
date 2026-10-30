@@ -25,12 +25,12 @@ export default function DashboardPage() {
     } = useDashboardSummary();
 
     return (
-        <section aria-labelledby="page_title" className="space-y-3">
+        <section aria-labelledby="page_title" className="@container space-y-3">
             <PageHeader title="Dashboard" title_id="page_title" />
 
             <DashboardOverview summaries={summaries} />
 
-            <div className="grid items-stretch gap-4 lg:grid-cols-[1.1fr_0.9fr_1.2fr]">
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,18rem),1fr))] items-stretch gap-4">
                 <div className="min-w-0">
                     {inventory_loading ? (
                         <ScreenLoading compact label="Loading inventory…" />
@@ -57,7 +57,7 @@ export default function DashboardPage() {
                     <AircraftStatusCard data={aircraft_status_data} />
                 </div>
 
-                <div className="min-w-0">
+                <div className="min-w-0 lg:col-span-2 2xl:col-span-1">
                     <PendingMaintenanceCard maintenance={pending_maintenance} />
                 </div>
             </div>
@@ -97,3 +97,6 @@ export default function DashboardPage() {
         </section>
     );
 }
+
+
+

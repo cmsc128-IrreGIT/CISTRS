@@ -24,7 +24,7 @@ export default function DonutChart({
             aria-label={label}
             className={
                 compact
-                    ? "grid grid-cols-[96px_minmax(0,1fr)] items-center gap-3"
+                    ? "grid grid-cols-[repeat(auto-fit,minmax(10.5rem,1fr))] items-center gap-3"
                     : "space-y-4"
             }
         >
@@ -96,3 +96,4 @@ export default function DonutChart({
         </figure>
     );
 }
+

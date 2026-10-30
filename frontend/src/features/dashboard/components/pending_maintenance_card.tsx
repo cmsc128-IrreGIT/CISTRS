@@ -30,7 +30,7 @@ export default function PendingMaintenanceCard({
         >
             {visible.length > 0 ? (
                 <>
-                    <p className="mb-3 text-xs text-slate-500">
+                    <p className="mb-2 text-[11px] text-slate-500 sm:text-xs">
                         {maintenance.length} pending{" "}
                         {maintenance.length === 1 ? "task" : "tasks"}
                         {maintenance.length > visible.length
@@ -57,9 +57,9 @@ export default function PendingMaintenanceCard({
                             return (
                                 <li
                                     key={record.id}
-                                    className="rounded-lg border border-slate-200 bg-slate-50/60 p-3"
+                                    className="rounded-lg border border-slate-200 bg-slate-50/60 p-2.5 sm:p-3"
                                 >
-                                    <div className="flex flex-wrap items-start justify-between gap-2">
+                                    <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                                         <Link
                                             to={`/maintenance/${record.id}`}
                                             className="min-w-0 flex-1 break-words rounded-sm text-sm font-semibold text-[#0b2238] underline decoration-slate-300 underline-offset-4 hover:text-[#1d4ed8] focus-visible:outline-2 focus-visible:outline-[#1d4ed8]"
@@ -78,13 +78,13 @@ export default function PendingMaintenanceCard({
                                         </StatusBadge>
                                     </div>
 
-                                    <p className="mt-1 break-words text-xs text-slate-600">
+                                    <p className="mt-1 break-words text-[11px] text-slate-600 sm:text-xs">
                                         {record.aircraft ||
                                             "Unassigned aircraft"}
                                     </p>
 
                                     <div
-                                        className={`mt-3 flex items-center gap-2 border-t border-slate-200/80 pt-2 text-xs ${
+                                        className={`mt-2 flex items-center gap-2 border-t border-slate-200/80 pt-2 text-[11px] sm:text-xs ${
                                             overdue
                                                 ? "font-medium text-red-700"
                                                 : "text-slate-600"
@@ -136,3 +136,4 @@ export default function PendingMaintenanceCard({
         </Card>
     );
 }
+
