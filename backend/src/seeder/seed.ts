@@ -412,11 +412,6 @@ async function seedAll(tx: Prisma.TransactionClient) {
                 "mechanic_emp_UUID",
                 "AD_RECORD",
             ),
-            mechanic_license_number: requireString(
-                row, 
-                "mechanic_license_number", 
-                "AD_RECORD"
-            ),
             faa_ad_number: row.faa_ad_number,
             amendment_number: row.amendment_number ?? null,
             subject: row.subject,
