@@ -11,7 +11,7 @@ Your Laptop
 │
 ├── PostgreSQL 18
 │   └── cistrs database
-│       ├── 22 CISTRS tables   (created by Prisma migrations)
+│       ├── 37 CISTRS tables   (created by Prisma migrations)
 │       └── Seed data          (loaded by the Prisma seeder)
 │
 └── CISTRS Backend
@@ -249,12 +249,17 @@ Run this inside `CISTRS/backend`:
 
 ```bash
 npx prisma migrate dev
+npx prisma generate
 ```
 
-This applies every migration file from the repository. The repository already includes the first migration, `prisma/migrations/20261025150334_init/`. It creates:
+The repository contains the latest initial migration:
 
-- 22 CISTRS tables
-- 7 enum types
+prisma/migrations/20261106175237_init/
+
+This migration creates the updated CISTRS database structure, including:
+
+- 37 CISTRS tables
+- 6 enum types
 - All indexes and foreign keys
 - Prisma's own `_prisma_migrations` table, which tracks what has been applied
 
@@ -314,8 +319,26 @@ Prisma runs `tsx src/seeder/seed.ts`. You should see:
 Seeding CISTRS database...
   BASE                     +3
   EMPLOYMENT_STATUS        +5
-  ...
-  INVENTORY_TRANSACTION    +21
+  LICENSE_TYPE             +6
+  RENEWAL_STATUS           +5
+  POSITION                 +8
+  SYSTEM_FEATURE           +9
+  INVENTORY_LOCATION       +4
+  PART                     +8
+  CONTACT                  +22
+  ORGANIZATION             +6
+  SUPPLIER                 +4
+  MANUFACTURER             +4
+  ORGANIZATION_CONTACT     +6
+  PART_SUPPLIER            +9
+  PART_MANUFACTURER        +8
+  EMPLOYEE                 +8
+  EMPLOYEE_CONTACT         +16
+  EMPLOYEE_LICENSE         +10
+  USER_ACCOUNT             +8
+  POSITION_FEATURE_ACCESS  +33
+  INVENTORY_STATUS         +16
+  INVENTORY_TRANSACTION   +21
 Seed complete. Verification passed.
 ```
 
@@ -381,6 +404,11 @@ Use `daniel.mendoza` to test that your login rejects inactive accounts.
 # 11. Verify the Database with Prisma Studio
 
 Run:
+```bash
+npx prisma migrate status
+```
+
+The migration status should indicate that the database is up to date.
 
 ```bash
 npx prisma studio
@@ -400,9 +428,118 @@ You should be able to see the CISTRS database models/tables managed by Prisma, n
 
 1. Expand `cistrs → Schemas → public → Tables`.
 2. Right-click **Tables** and select **Refresh**.
-3. Confirm you see 22 CISTRS tables plus `_prisma_migrations`.
+3. Confirm you see37 CISTRS tables plus `_prisma_migrations`.
 
 Look at the tables, but **do not edit their structure in pgAdmin**.
+
+## Reset Your Local Database
+
+Use this procedure when updating from the previous CISTRS database structure or when you need to completely reload your local database.
+
+**WARNING: This operation deletes all existing data in your local `cistrs` database. Make sure you do not have records that need to be preserved.**
+
+### For developers with an existing CISTRS database
+
+First, pull the latest changes from GitHub:
+
+```bash
+git pull
+npm install
+```
+
+Then run:
+
+```bash
+npx prisma migrate reset
+```
+
+Confirm the reset when prompted.
+
+This command:
+
+1. Drops the existing database schema.
+2. Recreates the schema.
+3. Applies the migration files currently available in the repository.
+
+Next, generate Prisma Client:
+
+```bash
+npx prisma generate
+```
+
+Finally, load the updated seed data:
+
+```bash
+npx prisma db seed
+```
+
+Verify the migration status:
+
+```bash
+npx prisma migrate status
+```
+
+Your local database should now have the latest CISTRS structure and seed data.
+
+### For developers setting up a fresh database
+
+If you have just created your local `cistrs` database and it has no previous CISTRS tables, run:
+
+```bash
+npx prisma migrate dev
+npx prisma generate
+npx prisma db seed
+```
+
+**Important reminders:**
+
+- Do not manually delete the migration folders.
+- Do not create another `init` migration.
+- Do not run `npx prisma migrate dev --name init` when setting up your database as a teammate.
+- Always use the migration files committed to the repository.
+- Never run `migrate reset` on a shared or production database.
+
+---
+
+## Changing the Schema
+
+Follow this workflow whenever someone modifies `prisma/schema.prisma`.
+
+### Developer responsible for the schema changes
+
+1. Edit `prisma/schema.prisma`.
+2. Update `src/seeder/seed.json` and `src/seeder/seed.ts` if the changes affect seed data.
+3. Create a migration:
+
+   ```bash
+   npx prisma migrate dev --name describe_your_changes
+   ```
+
+4. Generate Prisma Client:
+
+   ```bash
+   npx prisma generate
+   ```
+
+5. Test the migration and seeder.
+6. Commit the following files:
+
+   - `prisma/schema.prisma`
+   - The new migration folder
+   - Updated seeder files, if applicable
+
+### Every teammate after pulling schema changes
+
+```bash
+git pull
+npm install
+npx prisma migrate dev
+npx prisma generate
+```
+
+If the changes require a complete database reset, follow the **Reset Your Local Database** instructions instead.
+
+**Never edit an already-applied migration file. Create a new migration for future schema changes.**
 
 ---
 
@@ -486,10 +623,10 @@ These are the database files in the repository:
 ```text
 backend/
 ├── prisma/
-│   ├── schema.prisma                    # All 22 models, enums, relations, indexes
+│   ├── schema.prisma                    # All 37 models, enums, relations, indexes
 │   ├── checks.sql                       # Optional CHECK constraints (see below)
 │   └── migrations/
-│       └── 20261025150334_init/         # Creates the 22 tables
+│       └── 20261025150334_init/         # Creates the 37 tables
 ├── src/
 │   ├── generated/prisma/                # Created by `npx prisma generate`
 │   ├── seeder/
@@ -530,6 +667,7 @@ Run:
 
 ```bash
 npx prisma migrate reset
+npx prisma migrate dev --name init
 npx prisma generate
 npx prisma db seed
 ```

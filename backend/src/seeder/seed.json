@@ -1447,7 +1447,7 @@
             "medical_UUID": "71000000-0000-4000-8000-000000000001",
             "emp_UUID": "20000000-0000-4000-8000-000000000001",
             "medical_class": "Class 1",
-            "clinic_hospital": "CAAP Medical Center",
+            "clinical_hospital":  "CAAP Medical Center",
             "date_issued": "2026-01-15",
             "expiry_date": "2027-01-15",
             "remarks": "Fit for full flying duties."
@@ -1456,7 +1456,7 @@
             "medical_UUID": "71000000-0000-4000-8000-000000000002",
             "emp_UUID": "20000000-0000-4000-8000-000000000004",
             "medical_class": "Class 1",
-            "clinic_hospital": "Air Force Medical Clinic",
+            "clinical_hospital":  "Air Force Medical Clinic",
             "date_issued": "2025-11-10",
             "expiry_date": "2026-11-10",
             "remarks": "Annual pilot medical clearance."
@@ -1477,13 +1477,11 @@
     "TRAINING_PROVIDER": [
         {
             "training_provider_UUID": "73000000-0000-4000-8000-000000000001",
-            "provider_name": "CAAP Training Academy",
-            "remarks": "Official Civil Aviation Authority training center."
+            "provider_name": "CAAP Training Academy"
         },
         {
             "training_provider_UUID": "73000000-0000-4000-8000-000000000002",
-            "provider_name": "FlightSafety International",
-            "remarks": "Approved simulator provider."
+            "provider_name": "FlightSafety International"
         }
     ],
     "TRAINING_RECORD": [
@@ -1534,11 +1532,7 @@
             "aircraft_type_UUID": "90000000-0000-4000-8000-000000000001",
             "aircraft_status_UUID": "91000000-0000-4000-8000-000000000001",
             "current_hours": 3450.5,
-            "hours_updated_at": "2026-10-31T18:00:00Z",
-            "mechanic_emp_UUID": "20000000-0000-4000-8000-000000000003",
-            "mechanic_license_number": "DEMO-AMT-003",
-            "base_UUID": "10000000-0000-4000-8000-000000000001",
-            "remarks": "Operational aircraft assigned to Cebu Base."
+            "hours_updated_at": "2026-10-31T18:00:00Z"
         },
         {
             "aircraft_UUID": "92000000-0000-4000-8000-000000000002",
@@ -1546,11 +1540,7 @@
             "aircraft_type_UUID": "90000000-0000-4000-8000-000000000002",
             "aircraft_status_UUID": "91000000-0000-4000-8000-000000000001",
             "current_hours": 5210.0,
-            "hours_updated_at": "2026-10-31T18:00:00Z",
-            "mechanic_emp_UUID": "20000000-0000-4000-8000-000000000003",
-            "mechanic_license_number": "DEMO-AMT-003",
-            "base_UUID": "10000000-0000-4000-8000-000000000002",
-            "remarks": "Assigned to Cebu Base."
+            "hours_updated_at": "2026-10-31T18:00:00Z"
         }
     ],
     "AD_RECORD": [
@@ -1568,7 +1558,8 @@
             "next_due_date": "2027-02-10",
             "due_hours": 3950.5,
             "next_due_hours": 3950.5,
-            "assigned_to": "20000000-0000-4000-8000-000000000003",
+            "mechanic_emp_UUID": "20000000-0000-4000-8000-000000000002",
+            "mechanic_license_number": "ACTUAL-LICENSE-NUMBER",
             "pdf_link": null,
             "remarks": "Complied with during 3000-hr overhaul."
         }
@@ -1580,6 +1571,7 @@
             "task_reference": "CPCP-TASK-53-10-01",
             "description": "Corrosion Inspection - Lower Fuselage Bilge Area",
             "last_accomplished_date": "2025-10-12",
+            "assigned_to": "20000000-0000-4000-8000-000000000002",
             "due_date": "2026-10-12",
             "remarks": "Level 1 corrosion found and treated."
         }
@@ -1649,8 +1641,7 @@
             "delay_category_UUID": null,
             "delay_cause": null,
             "entry_by": "20000000-0000-4000-8000-000000000002",
-            "qa_check_status": "Approved",
-            "remarks": "Smooth flight, no discrepancies."
+            "qa_check_status": "Approved"
         }
     ],
     "FUEL_TRANSACTION": [
