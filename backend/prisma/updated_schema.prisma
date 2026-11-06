@@ -1,0 +1,688 @@
+// =============================================================================
+// CISTRS - Prisma schema (PostgreSQL 18, Prisma 7.10.0)
+//
+// Conventions
+//  - Model names are PascalCase; tables are snake_case via @@map.
+//  - Field names match the column names in the ERD exactly,
+//    so seed.json rows map 1:1 onto the models.
+//  - Every key column is a native Postgres `uuid`.
+//  - The connection URL lives in prisma.config.ts, NOT in this file (Prisma 7).
+//
+// Access control: EMPLOYEE -> POSITION -> POSITION_FEATURE_ACCESS -> SYSTEM_FEATURE
+// (There are no roles. One employee holds exactly one position.)
+// =============================================================================
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// -----------------------------------------------------------------------------
+// ENUMS
+// -----------------------------------------------------------------------------
+
+enum RecordStatus {
+  Active
+  Inactive
+
+  @@map("record_status")
+}
+
+enum BaseStatus {
+  Active
+  Inactive
+
+  @@map("base_status")
+}
+
+enum AccountStatus {
+  Active
+  Inactive
+  Locked
+
+  @@map("account_status")
+}
+
+enum Sex {
+  Male
+  Female
+
+  @@map("sex")
+}
+
+enum ContactType {
+  Email
+  Phone
+
+  @@map("contact_type")
+}
+
+enum TransactionType {
+  RECEIPT
+  ISSUE
+  ADJUSTMENT
+  RETURN
+  TRANSFER
+
+  @@map("transaction_type")
+}
+
+// =============================================================================
+// PARTS / INVENTORY
+// =============================================================================
+
+model Part {
+  part_UUID       String  @id @default(uuid()) @db.Uuid
+  part_number     String  @unique
+  part_name       String
+  unit_of_measure String
+  min_stock_level Int     @default(0)
+  description     String?
+
+  suppliers        PartSupplier[]
+  manufacturers    PartManufacturer[]
+  inventory_status InventoryStatus[]
+
+  @@map("part")
+}
+
+model InventoryLocation {
+  location_UUID String @id @default(uuid()) @db.Uuid
+  location_name String
+  storage_area  String
+
+  inventory_status InventoryStatus[]
+
+  @@map("inventory_location")
+}
+
+// One row per (part, location). Holds the current on-hand quantity.
+model InventoryStatus {
+  status_UUID      String @id @default(uuid()) @db.Uuid
+  part_UUID        String @db.Uuid
+  location_UUID    String @db.Uuid
+  current_quantity Int    @default(0)
+
+  part         Part                   @relation(fields: [part_UUID], references: [part_UUID], onDelete: Restrict)
+  location     InventoryLocation      @relation(fields: [location_UUID], references: [location_UUID], onDelete: Restrict)
+  transactions InventoryTransaction[]
+
+  @@unique([part_UUID, location_UUID])
+  @@index([location_UUID])
+  @@map("inventory_status")
+}
+
+// Append-only ledger of stock movements.
+model InventoryTransaction {
+  transaction_UUID String          @id @default(uuid()) @db.Uuid
+  status_UUID      String          @db.Uuid
+  transaction_type TransactionType
+  quantity_change  Int
+  updated_by       String          @db.Uuid
+  created_at       DateTime        @default(now()) @db.Timestamptz(6)
+  remarks          String?
+
+  status  InventoryStatus @relation(fields: [status_UUID], references: [status_UUID], onDelete: Restrict)
+  updater Employee        @relation("TransactionUpdatedBy", fields: [updated_by], references: [emp_UUID], onDelete: Restrict)
+
+  @@index([status_UUID])
+  @@index([updated_by])
+  @@index([created_at])
+  @@map("inventory_transaction")
+}
+
+// =============================================================================
+// ORGANIZATIONS  (ISA: ORGANIZATION -> SUPPLIER / MANUFACTURER, overlapping)
+// =============================================================================
+
+model Organization {
+  organization_UUID     String @id @default(uuid()) @db.Uuid
+  organization_name     String
+  organization_location String
+
+  supplier     Supplier?
+  manufacturer Manufacturer?
+  contacts     OrganizationContact[]
+
+  @@map("organization")
+}
+
+model Supplier {
+  organization_UUID String @id @db.Uuid
+
+  organization Organization   @relation(fields: [organization_UUID], references: [organization_UUID], onDelete: Cascade)
+  parts        PartSupplier[]
+
+  @@map("supplier")
+}
+
+model Manufacturer {
+  organization_UUID String @id @db.Uuid
+
+  organization Organization       @relation(fields: [organization_UUID], references: [organization_UUID], onDelete: Cascade)
+  parts        PartManufacturer[]
+
+  @@map("manufacturer")
+}
+
+// PART x SUPPLIER (many-to-many)
+model PartSupplier {
+  part_UUID     String @db.Uuid
+  supplier_UUID String @db.Uuid
+
+  part     Part     @relation(fields: [part_UUID], references: [part_UUID], onDelete: Cascade)
+  supplier Supplier @relation(fields: [supplier_UUID], references: [organization_UUID], onDelete: Cascade)
+
+  @@id([part_UUID, supplier_UUID])
+  @@index([supplier_UUID])
+  @@map("part_supplier")
+}
+
+// PART x MANUFACTURER (many-to-many)
+model PartManufacturer {
+  part_UUID         String @db.Uuid
+  manufacturer_UUID String @db.Uuid
+
+  part         Part         @relation(fields: [part_UUID], references: [part_UUID], onDelete: Cascade)
+  manufacturer Manufacturer @relation(fields: [manufacturer_UUID], references: [organization_UUID], onDelete: Cascade)
+
+  @@id([part_UUID, manufacturer_UUID])
+  @@index([manufacturer_UUID])
+  @@map("part_manufacturer")
+}
+
+// =============================================================================
+// CONTACTS
+// =============================================================================
+
+model Contact {
+  contact_UUID  String      @id @default(uuid()) @db.Uuid
+  contact_type  ContactType
+  contact_value String
+
+  organizations      OrganizationContact[]
+  employees          EmployeeContact[]
+  emergency_contacts EmergencyContact[]
+
+  @@map("contact")
+}
+
+model OrganizationContact {
+  organization_UUID String @db.Uuid
+  contact_UUID      String @db.Uuid
+
+  organization Organization @relation(fields: [organization_UUID], references: [organization_UUID], onDelete: Cascade)
+  contact      Contact      @relation(fields: [contact_UUID], references: [contact_UUID], onDelete: Cascade)
+
+  @@id([organization_UUID, contact_UUID])
+  @@index([contact_UUID])
+  @@map("organization_contact")
+}
+
+model EmployeeContact {
+  employee_UUID String @db.Uuid
+  contact_UUID  String @db.Uuid
+
+  employee Employee @relation(fields: [employee_UUID], references: [emp_UUID], onDelete: Cascade)
+  contact  Contact  @relation(fields: [contact_UUID], references: [contact_UUID], onDelete: Cascade)
+
+  @@id([employee_UUID, contact_UUID])
+  @@index([contact_UUID])
+  @@map("employee_contact")
+}
+
+// NEW: who to call in an emergency, and which contact reaches them.
+model EmergencyContact {
+  employee_UUID       String @db.Uuid
+  contact_UUID        String @db.Uuid
+  contact_person_name String
+
+  employee Employee @relation(fields: [employee_UUID], references: [emp_UUID], onDelete: Cascade)
+  contact  Contact  @relation(fields: [contact_UUID], references: [contact_UUID], onDelete: Cascade)
+
+  @@id([employee_UUID, contact_UUID])
+  @@index([contact_UUID])
+  @@map("emergency_contact")
+}
+
+// =============================================================================
+// PERSONNEL
+// =============================================================================
+
+model Base {
+  base_UUID     String     @id @default(uuid()) @db.Uuid
+  base_name     String     @unique
+  base_location String
+  base_status   BaseStatus @default(Active)
+
+  employees Employee[]
+
+  @@map("base")
+}
+
+model EmploymentStatus {
+  emp_status_UUID String @id @default(uuid()) @db.Uuid
+  status_name     String @unique
+  description     String
+
+  employees Employee[]
+
+  @@map("employment_status")
+}
+
+model Employee {
+  emp_UUID            String       @id @default(uuid()) @db.Uuid
+  emp_number          String       @unique
+  f_name              String
+  m_name              String?
+  l_name              String
+  suffix              String?
+  date_of_birth       DateTime     @db.Date
+  sex                 Sex
+  blood_type          String?
+  photo               String?
+  date_hired          DateTime     @db.Date
+  department          String
+  personnel_category  String
+  record_status       RecordStatus @default(Active)
+  supervisor_emp_UUID String?      @db.Uuid
+  base_UUID           String       @db.Uuid
+  emp_status_UUID     String       @db.Uuid
+  position_UUID       String       @db.Uuid
+
+  supervisor        Employee?        @relation("EmployeeSupervisor", fields: [supervisor_emp_UUID], references: [emp_UUID], onDelete: SetNull)
+  subordinates      Employee[]       @relation("EmployeeSupervisor")
+  base              Base             @relation(fields: [base_UUID], references: [base_UUID], onDelete: Restrict)
+  employment_status EmploymentStatus @relation(fields: [emp_status_UUID], references: [emp_status_UUID], onDelete: Restrict)
+  position          Position         @relation(fields: [position_UUID], references: [position_UUID], onDelete: Restrict)
+
+  user_account           UserAccount?
+  contacts               EmployeeContact[]
+  emergency_contacts     EmergencyContact[]
+  licenses               EmployeeLicense[]
+  medical_certificates   MedicalCertificate[]
+  training_records       TrainingRecord[]
+  inventory_transactions InventoryTransaction[] @relation("TransactionUpdatedBy")
+  ad_records             AdRecord[]
+  cpcp_tasks             CpcpTask[]
+  fuel_recorded          FuelTransaction[]      @relation("FuelRecordedBy")
+  fuel_issued            FuelTransaction[]      @relation("FuelIssuedTo")
+  sectors_as_pic         FlightSector[]         @relation("SectorPic")
+  sectors_as_sic         FlightSector[]         @relation("SectorSic")
+  sectors_as_observer    FlightSector[]         @relation("SectorObserver")
+  sectors_entered        FlightSector[]         @relation("SectorEntryBy")
+
+  @@index([supervisor_emp_UUID])
+  @@index([base_UUID])
+  @@index([emp_status_UUID])
+  @@index([position_UUID])
+  @@map("employee")
+}
+
+model LicenseType {
+  license_type_UUID String @id @default(uuid()) @db.Uuid
+  license_type_name String @unique
+  description       String
+
+  employee_licenses EmployeeLicense[]
+
+  @@map("license_type")
+}
+
+// NEW: replaces the old expiry_type enum on EmployeeLicense.
+model RenewalStatus {
+  renewal_status_UUID String @id @default(uuid()) @db.Uuid
+  status_name         String @unique
+  description         String
+
+  employee_licenses EmployeeLicense[]
+
+  @@map("renewal_status")
+}
+
+model EmployeeLicense {
+  emp_license_UUID    String    @id @default(uuid()) @db.Uuid
+  emp_UUID            String    @db.Uuid
+  license_type_UUID   String    @db.Uuid
+  renewal_status_UUID String    @db.Uuid
+  license_number      String
+  issuing_authority   String
+  date_issued         DateTime  @db.Date
+  expiry_date         DateTime? @db.Date
+  remarks             String?
+
+  employee       Employee      @relation(fields: [emp_UUID], references: [emp_UUID], onDelete: Cascade)
+  license_type   LicenseType   @relation(fields: [license_type_UUID], references: [license_type_UUID], onDelete: Restrict)
+  renewal_status RenewalStatus @relation(fields: [renewal_status_UUID], references: [renewal_status_UUID], onDelete: Restrict)
+
+  @@index([emp_UUID])
+  @@index([license_type_UUID])
+  @@index([renewal_status_UUID])
+  @@index([expiry_date])
+  @@map("employee_license")
+}
+
+model MedicalCertificate {
+  medical_UUID      String    @id @default(uuid()) @db.Uuid
+  emp_UUID          String    @db.Uuid
+  medical_class     String
+  date_issued       DateTime  @db.Date
+  expiry_date       DateTime  @db.Date
+  clinical_hospital String
+  remarks           String?
+
+  employee Employee @relation(fields: [emp_UUID], references: [emp_UUID], onDelete: Cascade)
+
+  @@index([emp_UUID])
+  @@index([expiry_date])
+  @@map("medical_certificate")
+}
+
+// =============================================================================
+// TRAINING
+// =============================================================================
+
+model TrainingType {
+  training_type_UUID String  @id @default(uuid()) @db.Uuid
+  training_name      String  @unique
+  description        String?
+
+  records TrainingRecord[]
+
+  @@map("training_type")
+}
+
+model TrainingProvider {
+  training_provider_UUID String @id @default(uuid()) @db.Uuid
+  provider_name          String @unique
+
+  records TrainingRecord[]
+
+  @@map("training_provider")
+}
+
+model TrainingRecord {
+  training_UUID          String    @id @default(uuid()) @db.Uuid
+  emp_UUID               String    @db.Uuid
+  training_type_UUID     String    @db.Uuid
+  training_provider_UUID String    @db.Uuid
+  certificate_number     String
+  date_completed         DateTime  @db.Date
+  expiry_date            DateTime? @db.Date
+  remarks                String?
+
+  employee          Employee         @relation(fields: [emp_UUID], references: [emp_UUID], onDelete: Cascade)
+  training_type     TrainingType     @relation(fields: [training_type_UUID], references: [training_type_UUID], onDelete: Restrict)
+  training_provider TrainingProvider @relation(fields: [training_provider_UUID], references: [training_provider_UUID], onDelete: Restrict)
+
+  @@index([emp_UUID])
+  @@index([training_type_UUID])
+  @@index([training_provider_UUID])
+  @@index([expiry_date])
+  @@map("training_record")
+}
+
+// =============================================================================
+// ACCESS CONTROL  (position-based)
+// =============================================================================
+
+model UserAccount {
+  account_UUID   String        @id @default(uuid()) @db.Uuid
+  emp_UUID       String        @unique @db.Uuid
+  username       String        @unique
+  password_hash  String
+  account_status AccountStatus @default(Active)
+  created_at     DateTime      @default(now()) @db.Timestamptz(6)
+  updated_at     DateTime      @updatedAt @db.Timestamptz(6)
+  last_login_at  DateTime?     @db.Timestamptz(6)
+
+  employee Employee @relation(fields: [emp_UUID], references: [emp_UUID], onDelete: Restrict)
+
+  @@map("user_account")
+}
+
+model Position {
+  position_UUID String @id @default(uuid()) @db.Uuid
+  position_name String  @unique
+  description   String
+  is_active     Boolean @default(true)
+
+  employees Employee[]
+  features  PositionFeatureAccess[]
+
+  @@map("position")
+}
+
+model SystemFeature {
+  feature_UUID String @id @default(uuid()) @db.Uuid
+  feature_name String  @unique
+  description  String
+  is_active    Boolean @default(true)
+
+  positions PositionFeatureAccess[]
+
+  @@map("system_feature")
+}
+
+// POSITION x SYSTEM_FEATURE (many-to-many)
+model PositionFeatureAccess {
+  position_UUID String   @db.Uuid
+  feature_UUID  String   @db.Uuid
+  created_at    DateTime @default(now()) @db.Timestamptz(6)
+
+  position Position      @relation(fields: [position_UUID], references: [position_UUID], onDelete: Cascade)
+  feature  SystemFeature @relation(fields: [feature_UUID], references: [feature_UUID], onDelete: Cascade)
+
+  @@id([position_UUID, feature_UUID])
+  @@index([feature_UUID])
+  @@map("position_feature_access")
+}
+
+// =============================================================================
+// AIRCRAFT
+// =============================================================================
+
+model AircraftStatus {
+  aircraft_status_UUID String @id @default(uuid()) @db.Uuid
+  status_name          String @unique
+  description          String
+
+  aircraft Aircraft[]
+
+  @@map("aircraft_status")
+}
+
+model AircraftType {
+  aircraft_type_UUID String @id @default(uuid()) @db.Uuid
+  type_name          String @unique
+  description        String
+
+  aircraft Aircraft[]
+
+  @@map("aircraft_type")
+}
+
+model Aircraft {
+  aircraft_UUID        String   @id @default(uuid()) @db.Uuid
+  registration         String   @unique
+  aircraft_status_UUID String   @db.Uuid
+  aircraft_type_UUID   String   @db.Uuid
+  current_hours        Decimal  @default(0) @db.Decimal(10, 2)
+  hours_updated_at     DateTime @default(now()) @db.Timestamptz(6)
+
+  status AircraftStatus @relation(fields: [aircraft_status_UUID], references: [aircraft_status_UUID], onDelete: Restrict)
+  type   AircraftType   @relation(fields: [aircraft_type_UUID], references: [aircraft_type_UUID], onDelete: Restrict)
+
+  ad_records        AdRecord[]
+  cpcp_tasks        CpcpTask[]
+  fuel_transactions FuelTransaction[]
+  flight_sectors    FlightSector[]
+
+  @@index([aircraft_status_UUID])
+  @@index([aircraft_type_UUID])
+  @@map("aircraft")
+}
+
+// =============================================================================
+// MAINTENANCE
+// =============================================================================
+
+// Airworthiness Directive record. Signed off by a mechanic (employee).
+model AdRecord {
+  ad_UUID                 String    @id @default(uuid()) @db.Uuid
+  aircraft_UUID           String    @db.Uuid
+  mechanic_emp_UUID       String    @db.Uuid
+  faa_ad_number           String
+  amendment_number        String?
+  subject                 String
+  ad_category             String
+  effective_date          DateTime  @db.Date
+  compliance_method       String
+  frequency               String?
+  date_of_compliance      DateTime? @db.Date
+  next_due_date           DateTime? @db.Date
+  next_due_hours          Decimal?  @db.Decimal(10, 2)
+  mechanic_license_number String
+  remarks                 String?
+  pdf_link                String?
+
+  aircraft Aircraft @relation(fields: [aircraft_UUID], references: [aircraft_UUID], onDelete: Restrict)
+  mechanic Employee @relation(fields: [mechanic_emp_UUID], references: [emp_UUID], onDelete: Restrict)
+
+  @@index([aircraft_UUID])
+  @@index([mechanic_emp_UUID])
+  @@index([next_due_date])
+  @@map("ad_record")
+}
+
+// Corrosion Prevention and Control Program task.
+model CpcpTask {
+  cpcp_UUID              String    @id @default(uuid()) @db.Uuid
+  aircraft_UUID          String    @db.Uuid
+  assigned_to            String    @db.Uuid
+  task_reference         String
+  description            String?
+  due_hours              Decimal?  @db.Decimal(10, 2)
+  due_date               DateTime? @db.Date
+  last_accomplished_date DateTime? @db.Date
+  last_updated           DateTime  @updatedAt @db.Timestamptz(6)
+  remarks                String?
+
+  aircraft Aircraft @relation(fields: [aircraft_UUID], references: [aircraft_UUID], onDelete: Restrict)
+  assignee Employee @relation(fields: [assigned_to], references: [emp_UUID], onDelete: Restrict)
+
+  @@index([aircraft_UUID])
+  @@index([assigned_to])
+  @@index([due_date])
+  @@map("cpcp_task")
+}
+
+// =============================================================================
+// LOGBOOK  (flight sectors, fuel)
+// =============================================================================
+
+model FlightStatus {
+  flight_status_UUID String @id @default(uuid()) @db.Uuid
+  status_name        String @unique
+  description        String
+
+  flight_sectors FlightSector[]
+
+  @@map("flight_status")
+}
+
+model FlightType {
+  flight_type_UUID String @id @default(uuid()) @db.Uuid
+  type_name        String @unique
+  description      String
+
+  flight_sectors FlightSector[]
+
+  @@map("flight_type")
+}
+
+model DelayCategory {
+  delay_category_UUID String @id @default(uuid()) @db.Uuid
+  category_name       String @unique
+  description         String
+
+  flight_sectors FlightSector[]
+
+  @@map("delay_category")
+}
+
+// One table. The ERD splits it into three boxes only because it has many columns.
+model FlightSector {
+  sector_UUID         String    @id @default(uuid()) @db.Uuid
+  aircraft_UUID       String    @db.Uuid
+  flight_status_UUID  String    @db.Uuid
+  flight_type_UUID    String    @db.Uuid
+  delay_category_UUID String?   @db.Uuid
+  pic_emp_UUID        String    @db.Uuid
+  sic_emp_UUID        String?   @db.Uuid
+  observer_emp_UUID   String?   @db.Uuid
+  entry_by            String    @db.Uuid
+  flight_date         DateTime  @db.Date
+  route               String
+  std                 DateTime? @db.Timestamptz(6)
+  sta                 DateTime? @db.Timestamptz(6)
+  off_block           DateTime? @db.Timestamptz(6)
+  on_block            DateTime? @db.Timestamptz(6)
+  airborne            DateTime? @db.Timestamptz(6)
+  touchdown           DateTime? @db.Timestamptz(6)
+  flight_time         Decimal?  @db.Decimal(6, 2)
+  day_night           String?
+  pax_count           Int       @default(0)
+  fuel_departure      Decimal?  @db.Decimal(10, 2)
+  fuel_arrival        Decimal?  @db.Decimal(10, 2)
+  fuel_used           Decimal?  @db.Decimal(10, 2)
+  fuel_unit           String?
+  delay_cause         String?
+  qa_check_status     String?
+
+  aircraft       Aircraft       @relation(fields: [aircraft_UUID], references: [aircraft_UUID], onDelete: Restrict)
+  flight_status  FlightStatus   @relation(fields: [flight_status_UUID], references: [flight_status_UUID], onDelete: Restrict)
+  flight_type    FlightType     @relation(fields: [flight_type_UUID], references: [flight_type_UUID], onDelete: Restrict)
+  delay_category DelayCategory? @relation(fields: [delay_category_UUID], references: [delay_category_UUID], onDelete: SetNull)
+  pic            Employee       @relation("SectorPic", fields: [pic_emp_UUID], references: [emp_UUID], onDelete: Restrict)
+  sic            Employee?      @relation("SectorSic", fields: [sic_emp_UUID], references: [emp_UUID], onDelete: SetNull)
+  observer       Employee?      @relation("SectorObserver", fields: [observer_emp_UUID], references: [emp_UUID], onDelete: SetNull)
+  entered_by     Employee       @relation("SectorEntryBy", fields: [entry_by], references: [emp_UUID], onDelete: Restrict)
+
+  fuel_transactions FuelTransaction[]
+
+  @@index([aircraft_UUID])
+  @@index([flight_date])
+  @@index([pic_emp_UUID])
+  @@index([flight_status_UUID])
+  @@index([flight_type_UUID])
+  @@map("flight_sector")
+}
+
+model FuelTransaction {
+  fuel_transaction_UUID String   @id @default(uuid()) @db.Uuid
+  aircraft_UUID         String   @db.Uuid
+  sector_UUID           String?  @db.Uuid
+  recorded_by           String   @db.Uuid
+  issued_to             String   @db.Uuid
+  transaction_date      DateTime @db.Date
+  transaction_type      String
+  quantity_gal          Decimal  @db.Decimal(10, 2)
+  remarks               String?
+
+  aircraft Aircraft      @relation(fields: [aircraft_UUID], references: [aircraft_UUID], onDelete: Restrict)
+  sector   FlightSector? @relation(fields: [sector_UUID], references: [sector_UUID], onDelete: SetNull)
+  recorder Employee      @relation("FuelRecordedBy", fields: [recorded_by], references: [emp_UUID], onDelete: Restrict)
+  receiver Employee      @relation("FuelIssuedTo", fields: [issued_to], references: [emp_UUID], onDelete: Restrict)
+
+  @@index([aircraft_UUID])
+  @@index([sector_UUID])
+  @@index([recorded_by])
+  @@index([issued_to])
+  @@index([transaction_date])
+  @@map("fuel_transaction")
+}
