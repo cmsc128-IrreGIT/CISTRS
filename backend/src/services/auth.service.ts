@@ -21,13 +21,27 @@ const accountWithAccess = {
     username: true,
     password_hash: true,
     account_status: true,
-    roles: {
+    employee: {
         select: {
-            role: {
+            record_status: true,
+            position: {
                 select: {
-                    role_name: true,
+                    position_UUID: true,
+                    position_name: true,
+                    is_active: true,
                     features: {
-                        select: { feature: { select: { feature_name: true } } },
+                        where: {
+                            feature: {
+                                is_active: true,
+                            },
+                        },
+                        select: {
+                            feature: {
+                                select: {
+                                    feature_name: true,
+                                },
+                            },
+                        },
                     },
                 },
             },
@@ -58,21 +72,15 @@ export function verifyToken(token: string): TokenPayload {
 
 // Roles and features the account holds, with duplicates removed.
 export function collectAccess(
-    roles: {
-        role: {
-            role_name: string;
-            features: { feature: { feature_name: string } }[];
+    features: {
+        feature: {
+            feature_name: string;
         };
     }[],
 ) {
     return {
-        roles: [...new Set(roles.map((r) => r.role.role_name))],
         features: [
-            ...new Set(
-                roles.flatMap((r) =>
-                    r.role.features.map((f) => f.feature.feature_name),
-                ),
-            ),
+            ...new Set(features.map((f) => f.feature.feature_name)),
         ],
     };
 }
@@ -102,11 +110,23 @@ export async function login(username: string, password: string) {
         );
     }
 
-    const access = collectAccess(account.roles);
-    if (access.roles.length === 0) {
+    const position = account.employee.position;
+
+    // Check whether the employee's position is active.
+    if (!position.is_active) {
         throw new HttpError(
             403,
-            "No role is assigned to this account. Contact an administrator.",
+            "Your assigned position is inactive. Contact an administrator.",
+        );
+    }
+
+    const access = collectAccess(position.features);
+
+    // The position must have at least one active system feature.
+    if (access.features.length === 0) {
+        throw new HttpError(
+            403,
+            "No system features are assigned to your position. Contact an administrator.",
         );
     }
 
@@ -121,6 +141,10 @@ export async function login(username: string, password: string) {
             account_UUID: account.account_UUID,
             emp_UUID: account.emp_UUID,
             username: account.username,
+            position: {
+                position_UUID: position.position_UUID,
+                position_name: position.position_name,
+            },
             ...access,
         },
     };
