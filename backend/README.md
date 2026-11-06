@@ -341,34 +341,36 @@ To reload edited values or start clean, reset the database (see "Reset Your Loca
 
 ### Seeded data
 
-| Table               | Rows | Table                   | Rows |
-| ------------------- | ---: | ----------------------- | ---: |
-| `base`              |    3 | `part`                  |    8 |
-| `employment_status` |    5 | `inventory_location`    |    4 |
-| `employee`          |    8 | `part_supplier`         |    9 |
-| `contact`           |   22 | `part_manufacturer`     |    8 |
-| `employee_contact`  |   16 | `inventory_status`      |   16 |
-| `license_type`      |    6 | `inventory_transaction` |   21 |
-| `employee_license`  |   10 | `organization_contact`  |    6 |
-| `organization`      |    6 | `user_account`          |    8 |
-| `supplier`          |    4 | `system_role`           |    7 |
-| `manufacturer`      |    4 | `account_role`          |    9 |
-| `system_feature`    |    9 | `role_feature_access`   |   29 |
+| Table                     | Rows | Table                     | Rows |
+| ------------------------- | ---: | ------------------------- | ---: |
+| `base`                    |    3 | `part`                    |    8 |
+| `employment_status`       |    5 | `inventory_location`      |    4 |
+| `employee`                |    8 | `part_supplier`           |    9 |
+| `contact`                 |   22 | `part_manufacturer`       |    8 |
+| `employee_contact`        |   16 | `inventory_status`        |   16 |
+| `license_type`            |    6 | `inventory_transaction`   |   21 |
+| `renewal_status`          |    5 | `organization_contact`    |    6 |
+| `employee_license`        |   10 | `user_account`            |    8 |
+| `organization`            |    6 | `position`                |    8 |
+| `supplier`                |    4 | `system_feature`          |    9 |
+| `manufacturer`            |    4 | `position_feature_access` |   33 |
+
+Tables added by the updated schema (`emergency_contact`, `medical_certificate`, `training_*`, `aircraft*`, `ad_record`, `cpcp_task`, `flight_*`, `delay_category`, `fuel_transaction`) are present in `seed.json` as empty arrays. The seeder skips empty tables, so add rows there when demo data is needed.
 
 ### Seeded user accounts
 
-Every account uses the password from `SEED_DEFAULT_PASSWORD` in your `.env`.
+Access is **position-based**: an employee holds one position, and the position grants features. Every account uses the password from `SEED_DEFAULT_PASSWORD` in your `.env`.
 
-| Username           | Role(s)                          | Account status |
-| ------------------ | -------------------------------- | -------------- |
-| `adrian.reyes`     | Administrator                    | Active         |
-| `marissa.santos`   | Operations User                  | Active         |
-| `ramon.villanueva` | Maintenance User, Inventory User | Active         |
-| `angela.cruz`      | Pilot User                       | Active         |
-| `patricia.flores`  | Personnel Manager                | Active         |
-| `joshua.garcia`    | Inventory User                   | Active         |
-| `nicole.bautista`  | Pilot User                       | Active         |
-| `daniel.mendoza`   | Read-only User                   | **Inactive**   |
+| Username           | Position                 | Account status |
+| ------------------ | ------------------------ | -------------- |
+| `adrian.reyes`     | President / CEO          | Active         |
+| `marissa.santos`   | Accountable Manager      | Active         |
+| `ramon.villanueva` | Chief Aircraft Mechanic  | Active         |
+| `angela.cruz`      | First Officer            | Active         |
+| `patricia.flores`  | Quality Manager          | Active         |
+| `joshua.garcia`    | Inventory Officer        | Active         |
+| `nicole.bautista`  | Captain                  | Active         |
+| `daniel.mendoza`   | Assistant Safety Manager | **Inactive**   |
 
 Use `daniel.mendoza` to test that your login rejects inactive accounts.
 

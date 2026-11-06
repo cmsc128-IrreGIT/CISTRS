@@ -92,9 +92,15 @@ async function seedAll(tx: Prisma.TransactionClient) {
             skipDuplicates: true,
         }),
     );
-    await insert("SYSTEM_ROLE", (data) =>
-        tx.systemRole.createMany({
-            data: data as Prisma.SystemRoleCreateManyInput[],
+    await insert("RENEWAL_STATUS", (data) =>
+        tx.renewalStatus.createMany({
+            data: data as Prisma.RenewalStatusCreateManyInput[],
+            skipDuplicates: true,
+        }),
+    );
+    await insert("POSITION", (data) =>
+        tx.position.createMany({
+            data: data as Prisma.PositionCreateManyInput[],
             skipDuplicates: true,
         }),
     );
@@ -162,6 +168,7 @@ async function seedAll(tx: Prisma.TransactionClient) {
     );
 
     // --- Personnel --------------------------------------------------------------
+    // employee references position, base, employment_status, and (optionally) itself.
     await insert(
         "EMPLOYEE",
         (data) =>
@@ -169,7 +176,11 @@ async function seedAll(tx: Prisma.TransactionClient) {
                 data: data as Prisma.EmployeeCreateManyInput[],
                 skipDuplicates: true,
             }),
-        (row) => ({ ...row, date_of_birth: toDate(row.date_of_birth) }),
+        (row) => ({
+            ...row,
+            date_of_birth: toDate(row.date_of_birth),
+            date_hired: toDate(row.date_hired),
+        }),
     );
     await insert("EMPLOYEE_CONTACT", (data) =>
         tx.employeeContact.createMany({
@@ -210,17 +221,14 @@ async function seedAll(tx: Prisma.TransactionClient) {
     });
     counts["USER_ACCOUNT"] = accountResult.count;
 
-    await insert("ACCOUNT_ROLE", (data) =>
-        tx.accountRole.createMany({
-            data: data as Prisma.AccountRoleCreateManyInput[],
-            skipDuplicates: true,
-        }),
-    );
-    await insert("ROLE_FEATURE_ACCESS", (data) =>
-        tx.roleFeatureAccess.createMany({
-            data: data as Prisma.RoleFeatureAccessCreateManyInput[],
-            skipDuplicates: true,
-        }),
+    await insert(
+        "POSITION_FEATURE_ACCESS",
+        (data) =>
+            tx.positionFeatureAccess.createMany({
+                data: data as Prisma.PositionFeatureAccessCreateManyInput[],
+                skipDuplicates: true,
+            }),
+        (row) => ({ ...row, created_at: toDate(row.created_at) }),
     );
 
     // --- Inventory (depends on parts, locations, employees) ---------------------
@@ -258,6 +266,7 @@ async function verify() {
         CONTACT: () => prisma.contact.count(),
         EMPLOYEE_CONTACT: () => prisma.employeeContact.count(),
         LICENSE_TYPE: () => prisma.licenseType.count(),
+        RENEWAL_STATUS: () => prisma.renewalStatus.count(),
         EMPLOYEE_LICENSE: () => prisma.employeeLicense.count(),
         ORGANIZATION: () => prisma.organization.count(),
         SUPPLIER: () => prisma.supplier.count(),
@@ -270,10 +279,9 @@ async function verify() {
         INVENTORY_TRANSACTION: () => prisma.inventoryTransaction.count(),
         ORGANIZATION_CONTACT: () => prisma.organizationContact.count(),
         USER_ACCOUNT: () => prisma.userAccount.count(),
-        SYSTEM_ROLE: () => prisma.systemRole.count(),
-        ACCOUNT_ROLE: () => prisma.accountRole.count(),
+        POSITION: () => prisma.position.count(),
         SYSTEM_FEATURE: () => prisma.systemFeature.count(),
-        ROLE_FEATURE_ACCESS: () => prisma.roleFeatureAccess.count(),
+        POSITION_FEATURE_ACCESS: () => prisma.positionFeatureAccess.count(),
     };
     for (const [table, count] of Object.entries(expected)) {
         const actual = await count();
@@ -283,6 +291,17 @@ async function verify() {
                 `${table}: expected >= ${wanted} rows, found ${actual}`,
             );
         }
+    }
+
+    // 1b. Every employee must reference a position that exists in seed.json.
+    const positionUUIDs = new Set(rows("POSITION").map((p) => p.position_UUID));
+    const employeesWithoutPosition = rows("EMPLOYEE").filter(
+        (e) => !positionUUIDs.has(e.position_UUID),
+    ).length;
+    if (employeesWithoutPosition > 0) {
+        problems.push(
+            `${employeesWithoutPosition} EMPLOYEE row(s) reference a missing POSITION`,
+        );
     }
 
     // 2. Ledger check: each stock row must equal the sum of its transactions.
