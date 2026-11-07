@@ -8,7 +8,10 @@ export interface AuthUser {
     account_UUID: string;
     emp_UUID: string;
     username: string;
-    roles: string[];
+    position: {
+        position_UUID: string;
+        position_name: string;
+    };
     features: string[];
     token_jti: string;
     token_exp: number;
@@ -62,15 +65,25 @@ export async function requireAuth(
                 emp_UUID: true,
                 username: true,
                 account_status: true,
-                roles: {
+                employee: {
                     select: {
-                        role: {
+                        record_status: true,
+                        position: {
                             select: {
-                                role_name: true,
+                                position_UUID: true,
+                                position_name: true,
+                                is_active: true,
                                 features: {
+                                    where: {
+                                        feature: {
+                                            is_active: true,
+                                        },
+                                    },
                                     select: {
                                         feature: {
-                                            select: { feature_name: true },
+                                            select: {
+                                                feature_name: true,
+                                            },
                                         },
                                     },
                                 },
@@ -86,12 +99,28 @@ export async function requireAuth(
             return;
         }
 
-        const access = collectAccess(account.roles);
-
-        // Every account must hold at least one role.
-        if (access.roles.length === 0) {
+        if (account.employee.record_status !== "Active") {
             res.status(403).json({
-                message: "No role is assigned to this account",
+                message: "Employee record is inactive",
+            });
+            return;
+        }
+
+        const position = account.employee.position;
+
+        if (!position.is_active) {
+            res.status(403).json({
+                message: "Assigned position is inactive",
+            });
+            return;
+        }
+
+        const access = collectAccess(position.features);
+
+        // Every account must have at least one active system feature.
+        if (access.features.length === 0) {
+            res.status(403).json({
+                message: "No system features are assigned to this position",
             });
             return;
         }
@@ -100,10 +129,15 @@ export async function requireAuth(
             account_UUID: account.account_UUID,
             emp_UUID: account.emp_UUID,
             username: account.username,
+            position: {
+                position_UUID: position.position_UUID,
+                position_name: position.position_name,
+            },
             ...access,
             token_jti: payload.jti,
             token_exp: payload.exp,
         };
+
         next();
     } catch (error) {
         next(error);

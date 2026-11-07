@@ -24,8 +24,8 @@ authRouter.post("/login", async (req, res, next) => {
 
 // GET /api/auth/me   header: Authorization: Bearer <token>
 authRouter.get("/me", requireAuth, (req, res) => {
-    const { account_UUID, emp_UUID, username, roles, features } = req.user!;
-    res.json({ account_UUID, emp_UUID, username, roles, features });
+    const { account_UUID, emp_UUID, username, position, features } = req.user!;
+    res.json({ account_UUID, emp_UUID, username, position, features });
 });
 
 // POST /api/auth/logout   header: Authorization: Bearer <token>

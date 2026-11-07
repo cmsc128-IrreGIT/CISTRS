@@ -51,113 +51,161 @@
             "emp_UUID": "20000000-0000-4000-8000-000000000001",
             "emp_number": "SA-0001",
             "f_name": "Adrian",
-            "m_initial": "M",
+            "m_name": "Miguel",
             "l_name": "Reyes",
+            "suffix": null,
             "date_of_birth": "1975-04-18",
             "sex": "Male",
-            "position": "President / CEO",
+            "blood_type": null,
+            "photo": null,
+            "date_hired": "2005-01-10",
+            "department": "Pilot",
             "personnel_category": "Pilot",
-            "emp_status_UUID": "11000000-0000-4000-8000-000000000005",
+            "record_status": "Active",
+            "supervisor_emp_UUID": null,
             "base_UUID": "10000000-0000-4000-8000-000000000001",
-            "record_status": "Active"
+            "emp_status_UUID": "11000000-0000-4000-8000-000000000005",
+            "position_UUID": "83000000-0000-4000-8000-000000000001"
         },
         {
             "emp_UUID": "20000000-0000-4000-8000-000000000002",
             "emp_number": "SA-0002",
             "f_name": "Marissa",
-            "m_initial": "L",
+            "m_name": "Lucia",
             "l_name": "Santos",
+            "suffix": null,
             "date_of_birth": "1983-09-12",
             "sex": "Female",
-            "position": "Accountable Manager",
+            "blood_type": null,
+            "photo": null,
+            "date_hired": "2010-03-01",
+            "department": "Operations Personnel",
             "personnel_category": "Operations Personnel",
-            "emp_status_UUID": "11000000-0000-4000-8000-000000000001",
+            "record_status": "Active",
+            "supervisor_emp_UUID": "20000000-0000-4000-8000-000000000001",
             "base_UUID": "10000000-0000-4000-8000-000000000001",
-            "record_status": "Active"
+            "emp_status_UUID": "11000000-0000-4000-8000-000000000001",
+            "position_UUID": "83000000-0000-4000-8000-000000000002"
         },
         {
             "emp_UUID": "20000000-0000-4000-8000-000000000003",
             "emp_number": "SA-0003",
             "f_name": "Ramon",
-            "m_initial": "C",
+            "m_name": "Cruz",
             "l_name": "Villanueva",
+            "suffix": null,
             "date_of_birth": "1979-02-23",
             "sex": "Male",
-            "position": "Chief Aircraft Mechanic",
+            "blood_type": null,
+            "photo": null,
+            "date_hired": "2012-06-18",
+            "department": "Aircraft Maintenance Technician",
             "personnel_category": "Aircraft Maintenance Technician",
-            "emp_status_UUID": "11000000-0000-4000-8000-000000000001",
+            "record_status": "Active",
+            "supervisor_emp_UUID": "20000000-0000-4000-8000-000000000002",
             "base_UUID": "10000000-0000-4000-8000-000000000001",
-            "record_status": "Active"
+            "emp_status_UUID": "11000000-0000-4000-8000-000000000001",
+            "position_UUID": "83000000-0000-4000-8000-000000000003"
         },
         {
             "emp_UUID": "20000000-0000-4000-8000-000000000004",
             "emp_number": "SA-0004",
             "f_name": "Angela",
-            "m_initial": "R",
+            "m_name": "Reyes",
             "l_name": "Cruz",
+            "suffix": null,
             "date_of_birth": "1991-07-06",
             "sex": "Female",
-            "position": "First Officer",
+            "blood_type": null,
+            "photo": null,
+            "date_hired": "2019-02-04",
+            "department": "Pilot",
             "personnel_category": "Pilot",
-            "emp_status_UUID": "11000000-0000-4000-8000-000000000001",
+            "record_status": "Active",
+            "supervisor_emp_UUID": "20000000-0000-4000-8000-000000000007",
             "base_UUID": "10000000-0000-4000-8000-000000000002",
-            "record_status": "Active"
+            "emp_status_UUID": "11000000-0000-4000-8000-000000000001",
+            "position_UUID": "83000000-0000-4000-8000-000000000004"
         },
         {
             "emp_UUID": "20000000-0000-4000-8000-000000000005",
             "emp_number": "SA-0005",
             "f_name": "Patricia",
-            "m_initial": "D",
+            "m_name": "Dizon",
             "l_name": "Flores",
+            "suffix": null,
             "date_of_birth": "1986-11-20",
             "sex": "Female",
-            "position": "Quality Manager",
+            "blood_type": null,
+            "photo": null,
+            "date_hired": "2016-09-12",
+            "department": "Quality / Safety Personnel",
             "personnel_category": "Quality / Safety Personnel",
-            "emp_status_UUID": "11000000-0000-4000-8000-000000000001",
+            "record_status": "Active",
+            "supervisor_emp_UUID": "20000000-0000-4000-8000-000000000002",
             "base_UUID": "10000000-0000-4000-8000-000000000002",
-            "record_status": "Active"
+            "emp_status_UUID": "11000000-0000-4000-8000-000000000001",
+            "position_UUID": "83000000-0000-4000-8000-000000000005"
         },
         {
             "emp_UUID": "20000000-0000-4000-8000-000000000006",
             "emp_number": "SA-0006",
             "f_name": "Joshua",
-            "m_initial": "P",
+            "m_name": "Pascual",
             "l_name": "Garcia",
+            "suffix": null,
             "date_of_birth": "1994-03-15",
             "sex": "Male",
-            "position": "Inventory Officer",
+            "blood_type": null,
+            "photo": null,
+            "date_hired": "2023-04-17",
+            "department": "Inventory Personnel",
             "personnel_category": "Inventory Personnel",
-            "emp_status_UUID": "11000000-0000-4000-8000-000000000002",
+            "record_status": "Active",
+            "supervisor_emp_UUID": "20000000-0000-4000-8000-000000000003",
             "base_UUID": "10000000-0000-4000-8000-000000000001",
-            "record_status": "Active"
+            "emp_status_UUID": "11000000-0000-4000-8000-000000000002",
+            "position_UUID": "83000000-0000-4000-8000-000000000006"
         },
         {
             "emp_UUID": "20000000-0000-4000-8000-000000000007",
             "emp_number": "SA-0007",
             "f_name": "Nicole",
-            "m_initial": "A",
+            "m_name": "Anne",
             "l_name": "Bautista",
+            "suffix": null,
             "date_of_birth": "1990-01-28",
             "sex": "Female",
-            "position": "Captain",
+            "blood_type": null,
+            "photo": null,
+            "date_hired": "2014-11-03",
+            "department": "Pilot",
             "personnel_category": "Pilot",
-            "emp_status_UUID": "11000000-0000-4000-8000-000000000001",
+            "record_status": "Active",
+            "supervisor_emp_UUID": "20000000-0000-4000-8000-000000000002",
             "base_UUID": "10000000-0000-4000-8000-000000000003",
-            "record_status": "Active"
+            "emp_status_UUID": "11000000-0000-4000-8000-000000000001",
+            "position_UUID": "83000000-0000-4000-8000-000000000007"
         },
         {
             "emp_UUID": "20000000-0000-4000-8000-000000000008",
             "emp_number": "SA-0008",
             "f_name": "Daniel",
-            "m_initial": "T",
+            "m_name": "Tomas",
             "l_name": "Mendoza",
+            "suffix": "Jr.",
             "date_of_birth": "1997-06-10",
             "sex": "Male",
-            "position": "Assistant Safety Manager",
+            "blood_type": null,
+            "photo": null,
+            "date_hired": "2024-08-05",
+            "department": "Quality / Safety Personnel",
             "personnel_category": "Quality / Safety Personnel",
-            "emp_status_UUID": "11000000-0000-4000-8000-000000000004",
+            "record_status": "Inactive",
+            "supervisor_emp_UUID": "20000000-0000-4000-8000-000000000005",
             "base_UUID": "10000000-0000-4000-8000-000000000002",
-            "record_status": "Inactive"
+            "emp_status_UUID": "11000000-0000-4000-8000-000000000004",
+            "position_UUID": "83000000-0000-4000-8000-000000000008"
         }
     ],
     "CONTACT": [
@@ -373,112 +421,112 @@
     "EMPLOYEE_LICENSE": [
         {
             "emp_license_UUID": "41000000-0000-4000-8000-000000000001",
-            "employee_UUID": "20000000-0000-4000-8000-000000000001",
+            "emp_UUID": "20000000-0000-4000-8000-000000000001",
             "license_type_UUID": "40000000-0000-4000-8000-000000000001",
+            "renewal_status_UUID": "42000000-0000-4000-8000-000000000001",
             "license_number": "DEMO-ATPL-001",
             "issuing_authority": "CAAP",
             "date_issued": "2010-06-15",
             "expiry_date": "2027-06-15",
-            "expiry_type": "EXPIRING",
             "remarks": "Fictional sample license record."
         },
         {
             "emp_license_UUID": "41000000-0000-4000-8000-000000000002",
-            "employee_UUID": "20000000-0000-4000-8000-000000000001",
+            "emp_UUID": "20000000-0000-4000-8000-000000000001",
             "license_type_UUID": "40000000-0000-4000-8000-000000000003",
+            "renewal_status_UUID": "42000000-0000-4000-8000-000000000001",
             "license_number": "DEMO-ELP-001",
             "issuing_authority": "CAAP",
             "date_issued": "2024-05-10",
             "expiry_date": "2027-05-10",
-            "expiry_type": "EXPIRING",
             "remarks": "Fictional sample license record."
         },
         {
             "emp_license_UUID": "41000000-0000-4000-8000-000000000003",
-            "employee_UUID": "20000000-0000-4000-8000-000000000004",
+            "emp_UUID": "20000000-0000-4000-8000-000000000004",
             "license_type_UUID": "40000000-0000-4000-8000-000000000002",
+            "renewal_status_UUID": "42000000-0000-4000-8000-000000000001",
             "license_number": "DEMO-CPL-004",
             "issuing_authority": "CAAP",
             "date_issued": "2018-08-20",
             "expiry_date": "2027-08-20",
-            "expiry_type": "EXPIRING",
             "remarks": "Fictional sample license record."
         },
         {
             "emp_license_UUID": "41000000-0000-4000-8000-000000000004",
-            "employee_UUID": "20000000-0000-4000-8000-000000000004",
+            "emp_UUID": "20000000-0000-4000-8000-000000000004",
             "license_type_UUID": "40000000-0000-4000-8000-000000000003",
+            "renewal_status_UUID": "42000000-0000-4000-8000-000000000002",
             "license_number": "DEMO-ELP-004",
             "issuing_authority": "CAAP",
             "date_issued": "2023-09-01",
             "expiry_date": "2026-12-01",
-            "expiry_type": "EXPIRING",
             "remarks": "Fictional sample license record."
         },
         {
             "emp_license_UUID": "41000000-0000-4000-8000-000000000005",
-            "employee_UUID": "20000000-0000-4000-8000-000000000003",
+            "emp_UUID": "20000000-0000-4000-8000-000000000003",
             "license_type_UUID": "40000000-0000-4000-8000-000000000004",
+            "renewal_status_UUID": "42000000-0000-4000-8000-000000000004",
             "license_number": "DEMO-AMT-003",
             "issuing_authority": "CAAP",
             "date_issued": "2012-02-10",
             "expiry_date": null,
-            "expiry_type": "NON_EXPIRING",
             "remarks": "Fictional sample license; no expiry date recorded."
         },
         {
             "emp_license_UUID": "41000000-0000-4000-8000-000000000006",
-            "employee_UUID": "20000000-0000-4000-8000-000000000007",
+            "emp_UUID": "20000000-0000-4000-8000-000000000007",
             "license_type_UUID": "40000000-0000-4000-8000-000000000001",
+            "renewal_status_UUID": "42000000-0000-4000-8000-000000000001",
             "license_number": "DEMO-ATPL-007",
             "issuing_authority": "CAAP",
             "date_issued": "2015-04-12",
             "expiry_date": "2027-04-12",
-            "expiry_type": "EXPIRING",
             "remarks": "Fictional sample license record."
         },
         {
             "emp_license_UUID": "41000000-0000-4000-8000-000000000007",
-            "employee_UUID": "20000000-0000-4000-8000-000000000007",
+            "emp_UUID": "20000000-0000-4000-8000-000000000007",
             "license_type_UUID": "40000000-0000-4000-8000-000000000003",
+            "renewal_status_UUID": "42000000-0000-4000-8000-000000000005",
             "license_number": "DEMO-ELP-007",
             "issuing_authority": "CAAP",
             "date_issued": "2022-01-15",
             "expiry_date": null,
-            "expiry_type": "UNKNOWN",
             "remarks": "Expiry information requires verification."
         },
         {
             "emp_license_UUID": "41000000-0000-4000-8000-000000000008",
-            "employee_UUID": "20000000-0000-4000-8000-000000000006",
+            "emp_UUID": "20000000-0000-4000-8000-000000000006",
             "license_type_UUID": "40000000-0000-4000-8000-000000000004",
+            "renewal_status_UUID": "42000000-0000-4000-8000-000000000004",
             "license_number": "DEMO-AMT-006",
             "issuing_authority": "CAAP",
             "date_issued": "2021-03-22",
             "expiry_date": null,
-            "expiry_type": "NON_EXPIRING",
             "remarks": "Fictional sample license record."
         },
         {
             "emp_license_UUID": "41000000-0000-4000-8000-000000000009",
-            "employee_UUID": "20000000-0000-4000-8000-000000000002",
+            "emp_UUID": "20000000-0000-4000-8000-000000000002",
             "license_type_UUID": "40000000-0000-4000-8000-000000000005",
+            "renewal_status_UUID": "42000000-0000-4000-8000-000000000005",
             "license_number": "DEMO-ROC-002",
             "issuing_authority": "CAAP",
             "date_issued": "2020-07-18",
             "expiry_date": null,
-            "expiry_type": "UNKNOWN",
             "remarks": "Sample record; expiry status to be verified."
         },
         {
             "emp_license_UUID": "41000000-0000-4000-8000-000000000010",
-            "employee_UUID": "20000000-0000-4000-8000-000000000008",
+            "emp_UUID": "20000000-0000-4000-8000-000000000008",
             "license_type_UUID": "40000000-0000-4000-8000-000000000003",
+            "renewal_status_UUID": "42000000-0000-4000-8000-000000000003",
             "license_number": "DEMO-ELP-008",
             "issuing_authority": "CAAP",
             "date_issued": "2021-10-01",
             "expiry_date": "2026-10-01",
-            "expiry_type": "EXPIRED",
             "remarks": "Fictional sample license record."
         }
     ],
@@ -882,7 +930,6 @@
             "created_at": "2026-10-01T08:00:00Z",
             "remarks": "Opening balance at system setup"
         },
-
         {
             "transaction_UUID": "490ec59b-b20d-449a-8b10-1a2b3c4d5e61",
             "status_UUID": "62000000-0000-4000-8000-000000000001",
@@ -992,7 +1039,6 @@
             "remarks": "Opening balance at system setup"
         }
     ],
-
     "ORGANIZATION_CONTACT": [
         {
             "organization_UUID": "50000000-0000-4000-8000-000000000001",
@@ -1093,81 +1139,6 @@
             "last_login_at": "2026-10-02T02:00:00Z"
         }
     ],
-    "SYSTEM_ROLE": [
-        {
-            "role_UUID": "81000000-0000-4000-8000-000000000001",
-            "role_name": "Administrator",
-            "description": "Full access to all system features and user access management."
-        },
-        {
-            "role_UUID": "81000000-0000-4000-8000-000000000002",
-            "role_name": "Inventory User",
-            "description": "Manages parts, inventory locations, stock levels, and transactions."
-        },
-        {
-            "role_UUID": "81000000-0000-4000-8000-000000000003",
-            "role_name": "Pilot User",
-            "description": "Role intended for pilot-facing system features."
-        },
-        {
-            "role_UUID": "81000000-0000-4000-8000-000000000004",
-            "role_name": "Maintenance User",
-            "description": "Manages maintenance-related features and inventory access as authorized."
-        },
-        {
-            "role_UUID": "81000000-0000-4000-8000-000000000005",
-            "role_name": "Personnel Manager",
-            "description": "Manages employee records, contacts, and licenses."
-        },
-        {
-            "role_UUID": "81000000-0000-4000-8000-000000000006",
-            "role_name": "Operations User",
-            "description": "Accesses operational features relevant to assigned duties."
-        },
-        {
-            "role_UUID": "81000000-0000-4000-8000-000000000007",
-            "role_name": "Read-only User",
-            "description": "View-only access to explicitly permitted features."
-        }
-    ],
-    "ACCOUNT_ROLE": [
-        {
-            "account_UUID": "80000000-0000-4000-8000-000000000001",
-            "role_UUID": "81000000-0000-4000-8000-000000000001"
-        },
-        {
-            "account_UUID": "80000000-0000-4000-8000-000000000002",
-            "role_UUID": "81000000-0000-4000-8000-000000000006"
-        },
-        {
-            "account_UUID": "80000000-0000-4000-8000-000000000003",
-            "role_UUID": "81000000-0000-4000-8000-000000000004"
-        },
-        {
-            "account_UUID": "80000000-0000-4000-8000-000000000003",
-            "role_UUID": "81000000-0000-4000-8000-000000000002"
-        },
-        {
-            "account_UUID": "80000000-0000-4000-8000-000000000004",
-            "role_UUID": "81000000-0000-4000-8000-000000000003"
-        },
-        {
-            "account_UUID": "80000000-0000-4000-8000-000000000005",
-            "role_UUID": "81000000-0000-4000-8000-000000000005"
-        },
-        {
-            "account_UUID": "80000000-0000-4000-8000-000000000006",
-            "role_UUID": "81000000-0000-4000-8000-000000000002"
-        },
-        {
-            "account_UUID": "80000000-0000-4000-8000-000000000007",
-            "role_UUID": "81000000-0000-4000-8000-000000000003"
-        },
-        {
-            "account_UUID": "80000000-0000-4000-8000-000000000008",
-            "role_UUID": "81000000-0000-4000-8000-000000000007"
-        }
-    ],
     "SYSTEM_FEATURE": [
         {
             "feature_UUID": "82000000-0000-4000-8000-000000000001",
@@ -1215,122 +1186,476 @@
             "description": "Account administration and access management."
         }
     ],
-    "ROLE_FEATURE_ACCESS": [
+    "RENEWAL_STATUS": [
         {
-            "role_UUID": "81000000-0000-4000-8000-000000000001",
-            "feature_UUID": "82000000-0000-4000-8000-000000000001"
+            "renewal_status_UUID": "42000000-0000-4000-8000-000000000001",
+            "status_name": "Current",
+            "description": "License is valid and not yet due for renewal."
         },
         {
-            "role_UUID": "81000000-0000-4000-8000-000000000001",
-            "feature_UUID": "82000000-0000-4000-8000-000000000002"
+            "renewal_status_UUID": "42000000-0000-4000-8000-000000000002",
+            "status_name": "Due for Renewal",
+            "description": "License is expiring and renewal has been initiated."
         },
         {
-            "role_UUID": "81000000-0000-4000-8000-000000000001",
-            "feature_UUID": "82000000-0000-4000-8000-000000000003"
+            "renewal_status_UUID": "42000000-0000-4000-8000-000000000003",
+            "status_name": "Expired",
+            "description": "License has passed its expiry date."
         },
         {
-            "role_UUID": "81000000-0000-4000-8000-000000000001",
-            "feature_UUID": "82000000-0000-4000-8000-000000000004"
+            "renewal_status_UUID": "42000000-0000-4000-8000-000000000004",
+            "status_name": "Non-expiring",
+            "description": "License does not expire and needs no renewal."
         },
         {
-            "role_UUID": "81000000-0000-4000-8000-000000000001",
-            "feature_UUID": "82000000-0000-4000-8000-000000000005"
+            "renewal_status_UUID": "42000000-0000-4000-8000-000000000005",
+            "status_name": "Pending Verification",
+            "description": "Renewal information has not yet been verified."
+        }
+    ],
+    "POSITION": [
+        {
+            "position_UUID": "83000000-0000-4000-8000-000000000001",
+            "position_name": "President / CEO",
+            "description": "Owner and executive head of the organization.",
+            "is_active": true
         },
         {
-            "role_UUID": "81000000-0000-4000-8000-000000000001",
-            "feature_UUID": "82000000-0000-4000-8000-000000000006"
+            "position_UUID": "83000000-0000-4000-8000-000000000002",
+            "position_name": "Accountable Manager",
+            "description": "Accountable for regulatory compliance and day-to-day operations.",
+            "is_active": true
         },
         {
-            "role_UUID": "81000000-0000-4000-8000-000000000001",
-            "feature_UUID": "82000000-0000-4000-8000-000000000007"
+            "position_UUID": "83000000-0000-4000-8000-000000000003",
+            "position_name": "Chief Aircraft Mechanic",
+            "description": "Leads aircraft maintenance and certifies maintenance work.",
+            "is_active": true
         },
         {
-            "role_UUID": "81000000-0000-4000-8000-000000000001",
-            "feature_UUID": "82000000-0000-4000-8000-000000000008"
+            "position_UUID": "83000000-0000-4000-8000-000000000004",
+            "position_name": "First Officer",
+            "description": "Second-in-command pilot on assigned flight sectors.",
+            "is_active": true
         },
         {
-            "role_UUID": "81000000-0000-4000-8000-000000000001",
-            "feature_UUID": "82000000-0000-4000-8000-000000000009"
+            "position_UUID": "83000000-0000-4000-8000-000000000005",
+            "position_name": "Quality Manager",
+            "description": "Manages the quality and safety management system.",
+            "is_active": true
         },
         {
-            "role_UUID": "81000000-0000-4000-8000-000000000002",
-            "feature_UUID": "82000000-0000-4000-8000-000000000001"
+            "position_UUID": "83000000-0000-4000-8000-000000000006",
+            "position_name": "Inventory Officer",
+            "description": "Manages parts, stock levels, and inventory transactions.",
+            "is_active": true
         },
         {
-            "role_UUID": "81000000-0000-4000-8000-000000000002",
-            "feature_UUID": "82000000-0000-4000-8000-000000000002"
+            "position_UUID": "83000000-0000-4000-8000-000000000007",
+            "position_name": "Captain",
+            "description": "Pilot-in-command on assigned flight sectors.",
+            "is_active": true
         },
         {
-            "role_UUID": "81000000-0000-4000-8000-000000000002",
-            "feature_UUID": "82000000-0000-4000-8000-000000000008"
+            "position_UUID": "83000000-0000-4000-8000-000000000008",
+            "position_name": "Assistant Safety Manager",
+            "description": "Supports the safety management system and safety reporting.",
+            "is_active": true
+        }
+    ],
+    "POSITION_FEATURE_ACCESS": [
+        {
+            "position_UUID": "83000000-0000-4000-8000-000000000001",
+            "feature_UUID": "82000000-0000-4000-8000-000000000001",
+            "created_at": "2026-09-01T08:00:00Z"
         },
         {
-            "role_UUID": "81000000-0000-4000-8000-000000000003",
-            "feature_UUID": "82000000-0000-4000-8000-000000000001"
+            "position_UUID": "83000000-0000-4000-8000-000000000001",
+            "feature_UUID": "82000000-0000-4000-8000-000000000002",
+            "created_at": "2026-09-01T08:00:00Z"
         },
         {
-            "role_UUID": "81000000-0000-4000-8000-000000000003",
-            "feature_UUID": "82000000-0000-4000-8000-000000000005"
+            "position_UUID": "83000000-0000-4000-8000-000000000001",
+            "feature_UUID": "82000000-0000-4000-8000-000000000003",
+            "created_at": "2026-09-01T08:00:00Z"
         },
         {
-            "role_UUID": "81000000-0000-4000-8000-000000000003",
-            "feature_UUID": "82000000-0000-4000-8000-000000000007"
+            "position_UUID": "83000000-0000-4000-8000-000000000001",
+            "feature_UUID": "82000000-0000-4000-8000-000000000004",
+            "created_at": "2026-09-01T08:00:00Z"
         },
         {
-            "role_UUID": "81000000-0000-4000-8000-000000000003",
-            "feature_UUID": "82000000-0000-4000-8000-000000000008"
+            "position_UUID": "83000000-0000-4000-8000-000000000001",
+            "feature_UUID": "82000000-0000-4000-8000-000000000005",
+            "created_at": "2026-09-01T08:00:00Z"
         },
         {
-            "role_UUID": "81000000-0000-4000-8000-000000000004",
-            "feature_UUID": "82000000-0000-4000-8000-000000000001"
+            "position_UUID": "83000000-0000-4000-8000-000000000001",
+            "feature_UUID": "82000000-0000-4000-8000-000000000006",
+            "created_at": "2026-09-01T08:00:00Z"
         },
         {
-            "role_UUID": "81000000-0000-4000-8000-000000000004",
-            "feature_UUID": "82000000-0000-4000-8000-000000000002"
+            "position_UUID": "83000000-0000-4000-8000-000000000001",
+            "feature_UUID": "82000000-0000-4000-8000-000000000007",
+            "created_at": "2026-09-01T08:00:00Z"
         },
         {
-            "role_UUID": "81000000-0000-4000-8000-000000000004",
-            "feature_UUID": "82000000-0000-4000-8000-000000000004"
+            "position_UUID": "83000000-0000-4000-8000-000000000001",
+            "feature_UUID": "82000000-0000-4000-8000-000000000008",
+            "created_at": "2026-09-01T08:00:00Z"
         },
         {
-            "role_UUID": "81000000-0000-4000-8000-000000000004",
-            "feature_UUID": "82000000-0000-4000-8000-000000000008"
+            "position_UUID": "83000000-0000-4000-8000-000000000001",
+            "feature_UUID": "82000000-0000-4000-8000-000000000009",
+            "created_at": "2026-09-01T08:00:00Z"
         },
         {
-            "role_UUID": "81000000-0000-4000-8000-000000000005",
-            "feature_UUID": "82000000-0000-4000-8000-000000000001"
+            "position_UUID": "83000000-0000-4000-8000-000000000006",
+            "feature_UUID": "82000000-0000-4000-8000-000000000001",
+            "created_at": "2026-09-01T08:00:00Z"
         },
         {
-            "role_UUID": "81000000-0000-4000-8000-000000000005",
-            "feature_UUID": "82000000-0000-4000-8000-000000000006"
+            "position_UUID": "83000000-0000-4000-8000-000000000006",
+            "feature_UUID": "82000000-0000-4000-8000-000000000002",
+            "created_at": "2026-09-01T08:00:00Z"
         },
         {
-            "role_UUID": "81000000-0000-4000-8000-000000000005",
-            "feature_UUID": "82000000-0000-4000-8000-000000000008"
+            "position_UUID": "83000000-0000-4000-8000-000000000006",
+            "feature_UUID": "82000000-0000-4000-8000-000000000008",
+            "created_at": "2026-09-01T08:00:00Z"
         },
         {
-            "role_UUID": "81000000-0000-4000-8000-000000000006",
-            "feature_UUID": "82000000-0000-4000-8000-000000000001"
+            "position_UUID": "83000000-0000-4000-8000-000000000004",
+            "feature_UUID": "82000000-0000-4000-8000-000000000001",
+            "created_at": "2026-09-01T08:00:00Z"
         },
         {
-            "role_UUID": "81000000-0000-4000-8000-000000000006",
-            "feature_UUID": "82000000-0000-4000-8000-000000000003"
+            "position_UUID": "83000000-0000-4000-8000-000000000007",
+            "feature_UUID": "82000000-0000-4000-8000-000000000001",
+            "created_at": "2026-09-01T08:00:00Z"
         },
         {
-            "role_UUID": "81000000-0000-4000-8000-000000000006",
-            "feature_UUID": "82000000-0000-4000-8000-000000000007"
+            "position_UUID": "83000000-0000-4000-8000-000000000004",
+            "feature_UUID": "82000000-0000-4000-8000-000000000005",
+            "created_at": "2026-09-01T08:00:00Z"
         },
         {
-            "role_UUID": "81000000-0000-4000-8000-000000000006",
-            "feature_UUID": "82000000-0000-4000-8000-000000000008"
+            "position_UUID": "83000000-0000-4000-8000-000000000007",
+            "feature_UUID": "82000000-0000-4000-8000-000000000005",
+            "created_at": "2026-09-01T08:00:00Z"
         },
         {
-            "role_UUID": "81000000-0000-4000-8000-000000000007",
-            "feature_UUID": "82000000-0000-4000-8000-000000000001"
+            "position_UUID": "83000000-0000-4000-8000-000000000004",
+            "feature_UUID": "82000000-0000-4000-8000-000000000007",
+            "created_at": "2026-09-01T08:00:00Z"
         },
         {
-            "role_UUID": "81000000-0000-4000-8000-000000000007",
-            "feature_UUID": "82000000-0000-4000-8000-000000000008"
+            "position_UUID": "83000000-0000-4000-8000-000000000007",
+            "feature_UUID": "82000000-0000-4000-8000-000000000007",
+            "created_at": "2026-09-01T08:00:00Z"
+        },
+        {
+            "position_UUID": "83000000-0000-4000-8000-000000000004",
+            "feature_UUID": "82000000-0000-4000-8000-000000000008",
+            "created_at": "2026-09-01T08:00:00Z"
+        },
+        {
+            "position_UUID": "83000000-0000-4000-8000-000000000007",
+            "feature_UUID": "82000000-0000-4000-8000-000000000008",
+            "created_at": "2026-09-01T08:00:00Z"
+        },
+        {
+            "position_UUID": "83000000-0000-4000-8000-000000000003",
+            "feature_UUID": "82000000-0000-4000-8000-000000000001",
+            "created_at": "2026-09-01T08:00:00Z"
+        },
+        {
+            "position_UUID": "83000000-0000-4000-8000-000000000003",
+            "feature_UUID": "82000000-0000-4000-8000-000000000002",
+            "created_at": "2026-09-01T08:00:00Z"
+        },
+        {
+            "position_UUID": "83000000-0000-4000-8000-000000000003",
+            "feature_UUID": "82000000-0000-4000-8000-000000000004",
+            "created_at": "2026-09-01T08:00:00Z"
+        },
+        {
+            "position_UUID": "83000000-0000-4000-8000-000000000003",
+            "feature_UUID": "82000000-0000-4000-8000-000000000008",
+            "created_at": "2026-09-01T08:00:00Z"
+        },
+        {
+            "position_UUID": "83000000-0000-4000-8000-000000000005",
+            "feature_UUID": "82000000-0000-4000-8000-000000000001",
+            "created_at": "2026-09-01T08:00:00Z"
+        },
+        {
+            "position_UUID": "83000000-0000-4000-8000-000000000005",
+            "feature_UUID": "82000000-0000-4000-8000-000000000006",
+            "created_at": "2026-09-01T08:00:00Z"
+        },
+        {
+            "position_UUID": "83000000-0000-4000-8000-000000000005",
+            "feature_UUID": "82000000-0000-4000-8000-000000000008",
+            "created_at": "2026-09-01T08:00:00Z"
+        },
+        {
+            "position_UUID": "83000000-0000-4000-8000-000000000002",
+            "feature_UUID": "82000000-0000-4000-8000-000000000001",
+            "created_at": "2026-09-01T08:00:00Z"
+        },
+        {
+            "position_UUID": "83000000-0000-4000-8000-000000000002",
+            "feature_UUID": "82000000-0000-4000-8000-000000000003",
+            "created_at": "2026-09-01T08:00:00Z"
+        },
+        {
+            "position_UUID": "83000000-0000-4000-8000-000000000002",
+            "feature_UUID": "82000000-0000-4000-8000-000000000007",
+            "created_at": "2026-09-01T08:00:00Z"
+        },
+        {
+            "position_UUID": "83000000-0000-4000-8000-000000000002",
+            "feature_UUID": "82000000-0000-4000-8000-000000000008",
+            "created_at": "2026-09-01T08:00:00Z"
+        },
+        {
+            "position_UUID": "83000000-0000-4000-8000-000000000008",
+            "feature_UUID": "82000000-0000-4000-8000-000000000001",
+            "created_at": "2026-09-01T08:00:00Z"
+        },
+        {
+            "position_UUID": "83000000-0000-4000-8000-000000000008",
+            "feature_UUID": "82000000-0000-4000-8000-000000000008",
+            "created_at": "2026-09-01T08:00:00Z"
+        }
+    ],
+    "EMERGENCY_CONTACT": [
+        {
+            "employee_UUID": "20000000-0000-4000-8000-000000000001",
+            "contact_person_name": "Elena Reyes",
+            "contact_UUID": "30000000-0000-4000-8000-000000000002"
+        },
+        {
+            "employee_UUID": "20000000-0000-4000-8000-000000000003",
+            "contact_person_name": "Maria Villanueva",
+            "contact_UUID": "30000000-0000-4000-8000-000000000006"
+        }
+    ],
+    "MEDICAL_CERTIFICATE": [
+        {
+            "medical_UUID": "71000000-0000-4000-8000-000000000001",
+            "emp_UUID": "20000000-0000-4000-8000-000000000001",
+            "medical_class": "Class 1",
+            "clinical_hospital":  "CAAP Medical Center",
+            "date_issued": "2026-01-15",
+            "expiry_date": "2027-01-15",
+            "remarks": "Fit for full flying duties."
+        },
+        {
+            "medical_UUID": "71000000-0000-4000-8000-000000000002",
+            "emp_UUID": "20000000-0000-4000-8000-000000000004",
+            "medical_class": "Class 1",
+            "clinical_hospital":  "Air Force Medical Clinic",
+            "date_issued": "2025-11-10",
+            "expiry_date": "2026-11-10",
+            "remarks": "Annual pilot medical clearance."
+        }
+    ],
+    "TRAINING_TYPE": [
+        {
+            "training_type_UUID": "72000000-0000-4000-8000-000000000001",
+            "training_name": "Recurrent Flight Simulator Training",
+            "description": "Annual simulator recurrent training for turbine aircraft."
+        },
+        {
+            "training_type_UUID": "72000000-0000-4000-8000-000000000002",
+            "training_name": "Aviation Safety Management Systems (SMS)",
+            "description": "Safety management systems training for operational staff."
+        }
+    ],
+    "TRAINING_PROVIDER": [
+        {
+            "training_provider_UUID": "73000000-0000-4000-8000-000000000001",
+            "provider_name": "CAAP Training Academy"
+        },
+        {
+            "training_provider_UUID": "73000000-0000-4000-8000-000000000002",
+            "provider_name": "FlightSafety International"
+        }
+    ],
+    "TRAINING_RECORD": [
+        {
+            "training_UUID": "74000000-0000-4000-8000-000000000001",
+            "emp_UUID": "20000000-0000-4000-8000-000000000001",
+            "training_type_UUID": "72000000-0000-4000-8000-000000000001",
+            "training_provider_UUID": "73000000-0000-4000-8000-000000000002",
+            "date_completed": "2026-03-20",
+            "expiry_date": "2027-03-20",
+            "certificate_number": "CERT-SIM-2026-01",
+            "remarks": "Passed recurrent check flight."
+        }
+    ],
+    "AIRCRAFT_TYPE": [
+        {
+            "aircraft_type_UUID": "90000000-0000-4000-8000-000000000001",
+            "type_name": "Cessna 208B Grand Caravan",
+            "description": "Single-engine turboprop passenger/cargo aircraft."
+        },
+        {
+            "aircraft_type_UUID": "90000000-0000-4000-8000-000000000002",
+            "type_name": "Beechcraft King Air B200",
+            "description": "Twin-engine turboprop executive transport aircraft."
+        }
+    ],
+    "AIRCRAFT_STATUS": [
+        {
+            "aircraft_status_UUID": "91000000-0000-4000-8000-000000000001",
+            "status_name": "Airworthy",
+            "description": "Cleared for flight operations."
+        },
+        {
+            "aircraft_status_UUID": "91000000-0000-4000-8000-000000000002",
+            "status_name": "In Maintenance",
+            "description": "Undergoing scheduled or unscheduled maintenance."
+        },
+        {
+            "aircraft_status_UUID": "91000000-0000-4000-8000-000000000003",
+            "status_name": "AOG",
+            "description": "Aircraft On Ground awaiting critical parts."
+        }
+    ],
+    "AIRCRAFT": [
+        {
+            "aircraft_UUID": "92000000-0000-4000-8000-000000000001",
+            "registration": "RP-C208",
+            "aircraft_type_UUID": "90000000-0000-4000-8000-000000000001",
+            "aircraft_status_UUID": "91000000-0000-4000-8000-000000000001",
+            "current_hours": 3450.5,
+            "hours_updated_at": "2026-10-31T18:00:00Z"
+        },
+        {
+            "aircraft_UUID": "92000000-0000-4000-8000-000000000002",
+            "registration": "RP-C200B",
+            "aircraft_type_UUID": "90000000-0000-4000-8000-000000000002",
+            "aircraft_status_UUID": "91000000-0000-4000-8000-000000000001",
+            "current_hours": 5210.0,
+            "hours_updated_at": "2026-10-31T18:00:00Z"
+        }
+    ],
+    "AD_RECORD": [
+        {
+            "ad_UUID": "93000000-0000-4000-8000-000000000001",
+            "aircraft_UUID": "92000000-0000-4000-8000-000000000001",
+            "ad_category": "Emergency AD",
+            "faa_ad_number": "2023-14-05",
+            "amendment_number": "39-22490",
+            "effective_date": "2023-08-15",
+            "subject": "Wing Flap Actuator Wire Inspection",
+            "compliance_method": "Visual inspection and torque check per SB-2023-01",
+            "frequency": "500 Hours",
+            "last_accomplished_date": "2026-02-10",
+            "next_due_date": "2027-02-10",
+            "due_hours": 3950.5,
+            "next_due_hours": 3950.5,
+            "mechanic_emp_UUID": "20000000-0000-4000-8000-000000000002",
+            "mechanic_license_number": "ACTUAL-LICENSE-NUMBER",
+            "pdf_link": null,
+            "remarks": "Complied with during 3000-hr overhaul."
+        }
+    ],
+    "CPCP_TASK": [
+        {
+            "cpcp_UUID": "94000000-0000-4000-8000-000000000001",
+            "aircraft_UUID": "92000000-0000-4000-8000-000000000001",
+            "task_reference": "CPCP-TASK-53-10-01",
+            "description": "Corrosion Inspection - Lower Fuselage Bilge Area",
+            "last_accomplished_date": "2025-10-12",
+            "assigned_to": "20000000-0000-4000-8000-000000000002",
+            "due_date": "2026-10-12",
+            "remarks": "Level 1 corrosion found and treated."
+        }
+    ],
+    "FLIGHT_TYPE": [
+        {
+            "flight_type_UUID": "95000000-0000-4000-8000-000000000001",
+            "type_name": "Charter",
+            "description": "Commercial passenger charter operations."
+        },
+        {
+            "flight_type_UUID": "95000000-0000-4000-8000-000000000002",
+            "type_name": "Cargo",
+            "description": "Freight and logistics transport."
+        },
+        {
+            "flight_type_UUID": "95000000-0000-4000-8000-000000000003",
+            "type_name": "Positioning",
+            "description": "Ferry flight for maintenance or schedule repositioning."
+        }
+    ],
+    "FLIGHT_STATUS": [
+        {
+            "flight_status_UUID": "96000000-0000-4000-8000-000000000001",
+            "status_name": "Completed",
+            "description": "Sector completed with closed flight log."
+        },
+        {
+            "flight_status_UUID": "96000000-0000-4000-8000-000000000002",
+            "status_name": "Delayed",
+            "description": "Sector delayed due to operational constraints."
+        }
+    ],
+    "DELAY_CATEGORY": [
+        {
+            "delay_category_UUID": "97000000-0000-4000-8000-000000000001",
+            "category_name": "Weather",
+            "description": "Weather conditions below operating minima."
+        },
+        {
+            "delay_category_UUID": "97000000-0000-4000-8000-000000000002",
+            "category_name": "Maintenance",
+            "description": "Unscheduled technical defect resolution."
+        }
+    ],
+    "FLIGHT_SECTOR": [
+        {
+            "sector_UUID": "98000000-0000-4000-8000-000000000001",
+            "flight_date": "2026-10-15",
+            "aircraft_UUID": "92000000-0000-4000-8000-000000000001",
+            "flight_type_UUID": "95000000-0000-4000-8000-000000000001",
+            "flight_status_UUID": "96000000-0000-4000-8000-000000000001",
+            "route": "CEB-MPH",
+            "day_night": "Day",
+            "pic_emp_UUID": "20000000-0000-4000-8000-000000000007",
+            "sic_emp_UUID": "20000000-0000-4000-8000-000000000004",
+            "observer_emp_UUID": null,
+            "off_block": "2026-10-15T01:00:00Z",
+            "airborne": "2026-10-15T01:15:00Z",
+            "touchdown": "2026-10-15T02:10:00Z",
+            "on_block": "2026-10-15T02:20:00Z",
+            "pax_count": 9,
+            "fuel_departure": 120.0,
+            "fuel_arrival": 70.0,
+            "fuel_used": 50.0,
+            "fuel_unit": "gals",
+            "delay_category_UUID": null,
+            "delay_cause": null,
+            "entry_by": "20000000-0000-4000-8000-000000000002",
+            "qa_check_status": "Approved"
+        }
+    ],
+    "FUEL_TRANSACTION": [
+        {
+            "fuel_transaction_UUID": "99000000-0000-4000-8000-000000000001",
+            "transaction_date": "2026-10-14T10:00:00Z",
+            "transaction_type": "Uptake",
+            "sector_UUID": "98000000-0000-4000-8000-000000000001",
+            "aircraft_UUID": "92000000-0000-4000-8000-000000000001",
+            "issued_to": "20000000-0000-4000-8000-000000000007",
+            "quantity_gals": 100.0,
+            "recorded_by": "20000000-0000-4000-8000-000000000006",
+            "remarks": "Refueled Jet A-1 at Mactan-Cebu Depot."
         }
     ]
+
 }
