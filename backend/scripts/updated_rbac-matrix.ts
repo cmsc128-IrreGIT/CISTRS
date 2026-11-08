@@ -115,6 +115,38 @@ const ROUTES: RouteCase[] = [
         body: {},
         permittedStatus: 400,
     },
+    {
+        method: "GET",
+        path: "/api/aircraft",
+        feature: "Aircraft",
+        permittedStatus: 200,
+    },
+    {
+        method: "GET",
+        path: "/api/aircraft/statuses",
+        feature: "Aircraft",
+        permittedStatus: 200,
+    },
+    {
+        method: "GET",
+        path: "/api/aircraft/92000000-0000-4000-8000-000000000001/status",
+        feature: "Aircraft",
+        permittedStatus: 200,
+    },
+    {
+        method: "POST",
+        path: "/api/aircraft/92000000-0000-4000-8000-000000000001/status",
+        feature: "Aircraft",
+        body: {},
+        permittedStatus: 400,
+    },
+    {
+        method: "PATCH",
+        path: "/api/aircraft/92000000-0000-4000-8000-000000000001/status",
+        feature: "Aircraft",
+        body: {},
+        permittedStatus: 400,
+    },
 ];
 
 let checks = 0;
