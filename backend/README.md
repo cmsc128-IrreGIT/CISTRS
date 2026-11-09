@@ -22,6 +22,11 @@ All team members use their **own local PostgreSQL server**. Prisma migrations ke
 
 ---
 
+# Schema / ERD
+![CISTRS Schema/ERD](schema.svg)
+
+---
+
 # 1. Install PostgreSQL
 
 Download and install PostgreSQL from the official PostgreSQL website.
