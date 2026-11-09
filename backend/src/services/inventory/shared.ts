@@ -4,6 +4,23 @@ import { prisma } from "../../lib/prisma.js";
 
 // =============================================================================
 // Inventory: shared building blocks (no routes, no business flows)
+//   Used by parts, stock, aircraft-links and history. This file imports from
+//   none of them, so the dependency direction is always  shared -> the rest.
+//
+// The stock ledger (inventory_transaction) is the single source of truth:
+//   - quantity     = inventory_status.current_quantity (always == sum of ledger)
+//   - availability = derived from quantity (and the part's min_stock_level)
+//   - history      = the ledger itself (append-only, no write endpoints)
+//   - aircraft     = an ISSUE / RETURN ledger entry whose remarks start with
+//                    "[aircraft:<aircraft_UUID>]" (see aircraft-links.service.ts)
+// =============================================================================
+
+// -----------------------------------------------------------------------------
+// Availability
+
+// Availability is DERIVED from quantity, so it can never disagree with it.
+//   Part level     : "In Stock" | "Low Stock" (below min_stock_level) | "Out of Stock"
+//   Location level : "Available" | "Out of Stock"
 export const AVAILABILITY = {
     InStock: "In Stock",
     LowStock: "Low Stock",

@@ -2,6 +2,7 @@ import { z } from "zod";
 import type { Prisma } from "../../generated/prisma/client.js";
 import { HttpError } from "../../lib/httpError.js";
 import { prisma } from "../../lib/prisma.js";
+import { locationAvailability, partAvailability } from "./shared.js";
 
 // =============================================================================
 // Inventory parts service
@@ -68,12 +69,14 @@ function toPartResponse(part: PartWithRelations) {
         description: part.description,
         total_quantity,
         is_low_stock: total_quantity < part.min_stock_level,
+        availability: partAvailability(total_quantity, part.min_stock_level),
         locations: part.inventory_status.map((row) => ({
             status_UUID: row.status_UUID,
             location_UUID: row.location_UUID,
             location_name: row.location.location_name,
             storage_area: row.location.storage_area,
             current_quantity: row.current_quantity,
+            availability: locationAvailability(row.current_quantity),
         })),
         suppliers: part.suppliers.map(
             (link) => link.supplier.organization.organization_name,
