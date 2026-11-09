@@ -1,6 +1,14 @@
 import { Router } from "express";
 import { parseOrThrow, parseUuid } from "../lib/validate.js";
 import {
+    assignPartToAircraft,
+    assignToAircraftSchema,
+    listAircraftForPart,
+    listPartsForAircraft,
+    returnFromAircraftSchema,
+    returnPartFromAircraft,
+} from "../services/inventory/aircraft-links.service.js";
+import {
     createPart,
     createPartSchema,
     getPart,
@@ -77,6 +85,51 @@ inventoryRouter.put("/parts/:part_UUID/stock/:location_UUID", async (req, res) =
     const location_UUID = parseUuid(req.params.location_UUID, "location ID");
     const input = parseOrThrow(setStockSchema, req.body);
     res.json(await setStock(part_UUID, location_UUID, input, req.user!.emp_UUID));
+});
+
+// -----------------------------------------------------------------------------
+// BE-05: aircraft <-> inventory
+
+// POST /api/inventory/parts/:part_UUID/aircraft
+// body: { aircraft_UUID, location_UUID, quantity (1+), remarks? }
+// Assigns stock of the part to an aircraft (400/404 for invalid aircraft).
+inventoryRouter.post("/parts/:part_UUID/aircraft", async (req, res) => {
+    const part_UUID = parseUuid(req.params.part_UUID, "part ID");
+    const input = parseOrThrow(assignToAircraftSchema, req.body);
+    res.status(201).json(
+        await assignPartToAircraft(part_UUID, input, req.user!.emp_UUID),
+    );
+});
+
+// POST /api/inventory/parts/:part_UUID/aircraft/:aircraft_UUID/return
+// body: { location_UUID, quantity (1+), remarks? }
+inventoryRouter.post(
+    "/parts/:part_UUID/aircraft/:aircraft_UUID/return",
+    async (req, res) => {
+        const part_UUID = parseUuid(req.params.part_UUID, "part ID");
+        const aircraft_UUID = parseUuid(req.params.aircraft_UUID, "aircraft ID");
+        const input = parseOrThrow(returnFromAircraftSchema, req.body);
+        res.json(
+            await returnPartFromAircraft(
+                part_UUID,
+                aircraft_UUID,
+                input,
+                req.user!.emp_UUID,
+            ),
+        );
+    },
+);
+
+// GET /api/inventory/parts/:part_UUID/aircraft  -> aircraft this part is on
+inventoryRouter.get("/parts/:part_UUID/aircraft", async (req, res) => {
+    const part_UUID = parseUuid(req.params.part_UUID, "part ID");
+    res.json(await listAircraftForPart(part_UUID));
+});
+
+// GET /api/inventory/aircraft/:aircraft_UUID/parts  -> inventory on an aircraft
+inventoryRouter.get("/aircraft/:aircraft_UUID/parts", async (req, res) => {
+    const aircraft_UUID = parseUuid(req.params.aircraft_UUID, "aircraft ID");
+    res.json(await listPartsForAircraft(aircraft_UUID));
 });
 
 

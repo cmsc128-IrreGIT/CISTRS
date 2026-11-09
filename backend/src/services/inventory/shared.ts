@@ -34,6 +34,9 @@ export const quantityField = (label: string) =>
         .int(`${label} must be a whole number`)
         .max(INT_MAX, `${label} is too large`);
 
+// Free-text remarks sent by a client. A client may NOT start its remarks with
+// the aircraft tag: only the BE-05 endpoints are allowed to write that tag.
+export const AIRCRAFT_TAG_PREFIX = "[aircraft:";
 export const remarksField = z
     .string()
     .trim()
@@ -42,6 +45,30 @@ export const remarksField = z
         (value) => !value.toLowerCase().startsWith(AIRCRAFT_TAG_PREFIX),
         `Remarks cannot start with "${AIRCRAFT_TAG_PREFIX}"`,
     );
+
+const AIRCRAFT_TAG_PATTERN =
+    /^\[aircraft:([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\] ?/;
+
+export function aircraftTag(aircraft_UUID: string) {
+    return `${AIRCRAFT_TAG_PREFIX}${aircraft_UUID.toLowerCase()}]`;
+}
+
+export function withAircraftTag(aircraft_UUID: string, remarks?: string) {
+    return remarks
+        ? `${aircraftTag(aircraft_UUID)} ${remarks}`
+        : aircraftTag(aircraft_UUID);
+}
+
+// Splits stored remarks into the aircraft they refer to (if any) and the
+// human-readable text.
+export function splitRemarks(stored: string | null) {
+    const match = stored ? AIRCRAFT_TAG_PATTERN.exec(stored) : null;
+    if (!stored || !match) {
+        return { aircraft_UUID: null, remarks: stored };
+    }
+    const text = stored.slice(match[0].length).trim();
+    return { aircraft_UUID: match[1], remarks: text === "" ? null : text };
+}
 
 export async function assertPartExists(part_UUID: string) {
     const part = await prisma.part.findUnique({
