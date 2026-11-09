@@ -6,10 +6,9 @@ import {
     getPart,
     listParts,
     listPartsQuerySchema,
-    listTransactions,
     updatePart,
     updatePartSchema,
-} from "../services/inventory.service.js";
+} from "../services/inventory/parts.service.js";
 
 // Mounted in server.ts behind requireAuth + requireFeature(FEATURE.Inventory).
 export const inventoryRouter = Router();
@@ -55,9 +54,5 @@ inventoryRouter.patch("/parts/:part_UUID", async (req, res) => {
 });
 
 // -----------------------------------------------------------------------------
-// Supporting: transaction history
 
-// GET /api/inventory/transactions  -> latest 50 stock movements
-inventoryRouter.get("/transactions", async (_req, res) => {
-    res.json(await listTransactions());
 });
