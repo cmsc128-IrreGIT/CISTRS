@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router, type NextFunction, type Request, type Response } from "express";
 import { parseOrThrow, parseUuid } from "../lib/validate.js";
 import {
     assignPartToAircraft,
@@ -8,6 +8,12 @@ import {
     returnFromAircraftSchema,
     returnPartFromAircraft,
 } from "../services/inventory/aircraft-links.service.js";
+import {
+    getHistoryRecord,
+    historyQuerySchema,
+    listHistory,
+    listPartHistory,
+} from "../services/inventory/history.service.js";
 import {
     createPart,
     createPartSchema,
@@ -132,5 +138,43 @@ inventoryRouter.get("/aircraft/:aircraft_UUID/parts", async (req, res) => {
     res.json(await listPartsForAircraft(aircraft_UUID));
 });
 
+// -----------------------------------------------------------------------------
+// BE-07: change / history records (read-only)
 
+// History is append-only: only GET/HEAD reach the handlers below. Anything
+// else (PUT, PATCH, DELETE, POST) is refused for every user.
+function historyReadOnly(req: Request, res: Response, next: NextFunction) {
+    if (req.method === "GET" || req.method === "HEAD") {
+        next();
+        return;
+    }
+    res.set("Allow", "GET, HEAD").status(405).json({
+        message: "History records are read-only and cannot be modified",
+    });
+}
+inventoryRouter.use("/transactions", historyReadOnly);
+inventoryRouter.use("/parts/:part_UUID/history", historyReadOnly);
+
+// GET /api/inventory/transactions
+// query (all optional): part_UUID, status_UUID, location_UUID, aircraft_UUID,
+//   transaction_type, from, to, limit (default 50, max 200), offset
+// -> newest first; the X-Total-Count header holds the total match count
+inventoryRouter.get("/transactions", async (req, res) => {
+    const filters = parseOrThrow(historyQuerySchema, req.query);
+    const { total, records } = await listHistory(filters);
+    res.set("X-Total-Count", String(total)).json(records);
+});
+
+// GET /api/inventory/transactions/:transaction_UUID  -> one record (404 if missing)
+inventoryRouter.get("/transactions/:transaction_UUID", async (req, res) => {
+    const id = parseUuid(req.params.transaction_UUID, "transaction ID");
+    res.json(await getHistoryRecord(id));
+});
+
+// GET /api/inventory/parts/:part_UUID/history  (same query options as above)
+inventoryRouter.get("/parts/:part_UUID/history", async (req, res) => {
+    const part_UUID = parseUuid(req.params.part_UUID, "part ID");
+    const filters = parseOrThrow(historyQuerySchema, req.query);
+    const { total, records } = await listPartHistory(part_UUID, filters);
+    res.set("X-Total-Count", String(total)).json(records);
 });
