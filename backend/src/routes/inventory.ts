@@ -9,6 +9,11 @@ import {
     updatePart,
     updatePartSchema,
 } from "../services/inventory/parts.service.js";
+import {
+    getStock,
+    setStock,
+    setStockSchema,
+} from "../services/inventory/stock.service.js";
 
 // Mounted in server.ts behind requireAuth + requireFeature(FEATURE.Inventory).
 export const inventoryRouter = Router();
@@ -54,5 +59,25 @@ inventoryRouter.patch("/parts/:part_UUID", async (req, res) => {
 });
 
 // -----------------------------------------------------------------------------
+// BE-06: quantity and availability
+
+// GET /api/inventory/parts/:part_UUID/stock
+// -> total + per-location quantity, with availability
+inventoryRouter.get("/parts/:part_UUID/stock", async (req, res) => {
+    const part_UUID = parseUuid(req.params.part_UUID, "part ID");
+    res.json(await getStock(part_UUID));
+});
+
+// PUT /api/inventory/parts/:part_UUID/stock/:location_UUID
+// body: { quantity (whole number, 0 or more), remarks? }
+// Sets the quantity at that location (creates the stock row if needed) and
+// records the change in the history. Availability follows the new quantity.
+inventoryRouter.put("/parts/:part_UUID/stock/:location_UUID", async (req, res) => {
+    const part_UUID = parseUuid(req.params.part_UUID, "part ID");
+    const location_UUID = parseUuid(req.params.location_UUID, "location ID");
+    const input = parseOrThrow(setStockSchema, req.body);
+    res.json(await setStock(part_UUID, location_UUID, input, req.user!.emp_UUID));
+});
+
 
 });
