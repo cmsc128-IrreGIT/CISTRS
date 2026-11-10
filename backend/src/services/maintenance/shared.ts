@@ -3,6 +3,19 @@ import type { Prisma } from "../../generated/prisma/client.js";
 import { HttpError } from "../../lib/httpError.js";
 import { prisma } from "../../lib/prisma.js";
 
+// =============================================================================
+// Maintenance: shared building blocks (no routes, no business flows)
+//   Used by ad-records, cpcp-tasks and aircraft-summary. This file imports
+//   from none of them.
+//
+// The schema's MAINTENANCE section has two record types, both tied to ONE
+// aircraft and ONE employee:
+//   ad_record  : Airworthiness Directive compliance (signed off by a mechanic)
+//   cpcp_task  : Corrosion Prevention and Control Program task (assigned)
+// There is no link from a maintenance record to a part, so records belong to
+// aircraft only.
+// =============================================================================
+
 // -----------------------------------------------------------------------------
 // Field rules
 
@@ -40,6 +53,7 @@ export const urlField = (label: string) =>
         })
         .max(500, `${label} must be at most 500 characters`);
 
+// Query shape shared by the list endpoints.
 export const listQuerySchema = z.object({
     aircraft_UUID: uuidField("aircraft_UUID").optional(),
     limit: z.coerce
@@ -149,6 +163,14 @@ export async function assertActiveEmployee(emp_UUID: string, label: string) {
 // -----------------------------------------------------------------------------
 // Condition / availability information
 
+// Turns due dates and hours into what a reader needs to know:
+//   overdue          true when the due date has passed or the aircraft has
+//                    flown past the due hours (due exactly today / at exactly
+//                    the due hours is "due", not "overdue")
+//   days_until_due   negative when past; null when no due date is recorded
+//   hours_until_due  negative when past; null when no due hours are recorded
+//   due_status       "Overdue" | "Current" | "Not Scheduled"
+// Nothing here changes the aircraft's status: it only reports.
 export function dueInfo(
     currentHours: number,
     dueDate: string | null,

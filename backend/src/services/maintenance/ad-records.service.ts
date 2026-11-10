@@ -21,6 +21,19 @@ import {
     type ListQuery,
     type RuleIssue,
 } from "./shared.js";
+
+// =============================================================================
+// Airworthiness Directive (AD) records
+//   Shared : field rules, cross-field rules, response mapper
+//   BE-09  : create     POST  /api/maintenance/ad-records
+//   BE-10  : retrieve   GET   /api/maintenance/ad-records
+//                       GET   /api/maintenance/ad-records/:ad_UUID
+//   BE-11  : update     PATCH /api/maintenance/ad-records/:ad_UUID
+// =============================================================================
+
+// -----------------------------------------------------------------------------
+// SHARED
+
 const optional = {
     amendment_number: textField("Amendment number", 50),
     frequency: textField("Frequency", 100),
@@ -41,6 +54,10 @@ const adFields = z.object({
     mechanic_license_number: textField("Mechanic license number", 50),
     ...optional,
 });
+
+// Rules that look at more than one field. Run on the FINAL values (the input
+// for a create, the stored record merged with the changes for an update), so
+// an update cannot sneak in a combination that a create would refuse.
 interface AdValues {
     effective_date: string;
     date_of_compliance: string | null;
@@ -79,6 +96,8 @@ const adInclude = {
 
 type AdRow = Prisma.AdRecordGetPayload<{ include: typeof adInclude }>;
 
+// One mapper for create, list, detail and update, so every endpoint returns
+// the same shape. Dates are "YYYY-MM-DD" strings, decimals are plain numbers.
 function toAdResponse(row: AdRow) {
     const next_due_date = fromDbDate(row.next_due_date);
     const next_due_hours = row.next_due_hours?.toNumber() ?? null;

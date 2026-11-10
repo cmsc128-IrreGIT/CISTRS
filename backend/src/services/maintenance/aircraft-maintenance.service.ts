@@ -2,6 +2,14 @@ import { listAdRecords } from "./ad-records.service.js";
 import { listCpcpTasks } from "./cpcp-tasks.service.js";
 import { findAircraftOr404, toAircraftSummary } from "./shared.js";
 
+// =============================================================================
+// Everything maintenance-related about ONE aircraft, in one response (BE-10)
+//   GET /api/maintenance/aircraft/:aircraft_UUID
+//
+// Answers "can this aircraft be used?": its status and hours, every AD record
+// and CPCP task, and how many of them are overdue.
+// =============================================================================
+
 export async function getAircraftMaintenance(aircraft_UUID: string) {
     const aircraft = await findAircraftOr404(aircraft_UUID);
 

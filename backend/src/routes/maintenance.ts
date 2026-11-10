@@ -19,7 +19,12 @@ import {
 } from "../services/maintenance/cpcp-tasks.service.js";
 import { listQuerySchema } from "../services/maintenance/shared.js";
 
+// Mounted in server.ts behind requireAuth + requireFeature(FEATURE.Maintenance).
 export const maintenanceRouter = Router();
+
+// =============================================================================
+// AD records (Airworthiness Directives)
+
 // BE-09  POST /api/maintenance/ad-records
 // body: { aircraft_UUID, mechanic_emp_UUID, faa_ad_number, subject, ad_category,
 //         effective_date, compliance_method, mechanic_license_number,
@@ -52,6 +57,9 @@ maintenanceRouter.patch("/ad-records/:ad_UUID", async (req, res) => {
     res.json(await updateAdRecord(ad_UUID, input));
 });
 
+// =============================================================================
+// CPCP tasks (Corrosion Prevention and Control Program)
+
 // BE-09  POST /api/maintenance/cpcp-tasks
 // body: { aircraft_UUID, assigned_to, task_reference, description?, due_hours?,
 //         due_date?, last_accomplished_date?, remarks? }
@@ -79,6 +87,9 @@ maintenanceRouter.patch("/cpcp-tasks/:cpcp_UUID", async (req, res) => {
     const input = parseOrThrow(updateCpcpSchema, req.body);
     res.json(await updateCpcpTask(cpcp_UUID, input));
 });
+
+// =============================================================================
+// One aircraft: status + every maintenance record + overdue count
 
 // BE-10  GET /api/maintenance/aircraft/:aircraft_UUID
 maintenanceRouter.get("/aircraft/:aircraft_UUID", async (req, res) => {

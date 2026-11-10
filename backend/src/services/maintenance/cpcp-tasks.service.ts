@@ -20,6 +20,19 @@ import {
     type ListQuery,
     type RuleIssue,
 } from "./shared.js";
+
+// =============================================================================
+// CPCP (Corrosion Prevention and Control Program) tasks
+//   Shared : field rules, cross-field rules, response mapper
+//   BE-09  : create     POST  /api/maintenance/cpcp-tasks
+//   BE-10  : retrieve   GET   /api/maintenance/cpcp-tasks
+//                       GET   /api/maintenance/cpcp-tasks/:cpcp_UUID
+//   BE-11  : update     PATCH /api/maintenance/cpcp-tasks/:cpcp_UUID
+// =============================================================================
+
+// -----------------------------------------------------------------------------
+// SHARED
+
 const optional = {
     description: textField("Description", 1000),
     due_hours: hoursField("Due hours"),
