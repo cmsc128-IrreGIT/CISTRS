@@ -3,4 +3,126 @@ import type { Prisma } from "../../generated/prisma/client.js";
 import { HttpError } from "../../lib/httpError.js";
 import { prisma } from "../../lib/prisma.js";
 import {
+    aircraftSummarySelect,
+    assertActiveEmployee,
+    dateData,
+    dateField,
+    dueInfo,
+    employeeSummarySelect,
+    findAircraftOr404,
+    fromDbDate,
+    hoursField,
+    textField,
+    throwIfIssues,
+    todayUtc,
+    toAircraftSummary,
+    uuidField,
+    type RuleIssue,
 } from "./shared.js";
+const optional = {
+    description: textField("Description", 1000),
+    due_hours: hoursField("Due hours"),
+    due_date: dateField("Due date"),
+    last_accomplished_date: dateField("Last accomplished date"),
+    remarks: textField("Remarks", 1000),
+};
+
+const cpcpFields = z.object({
+    assigned_to: uuidField("assigned_to"),
+    task_reference: textField("Task reference", 100),
+    ...optional,
+});
+
+// Cross-field rules, run on the FINAL values (see ad-records.service.ts).
+interface CpcpValues {
+    last_accomplished_date: string | null;
+    due_date: string | null;
+}
+
+function cpcpRuleIssues(v: CpcpValues): RuleIssue[] {
+    const issues: RuleIssue[] = [];
+    const done = v.last_accomplished_date;
+
+    if (done && done > todayUtc()) {
+        issues.push({
+            field: "last_accomplished_date",
+            message: "Last accomplished date cannot be in the future",
+        });
+    }
+    if (done && v.due_date && v.due_date <= done) {
+        issues.push({
+            field: "due_date",
+            message: "Due date must be after the last accomplished date",
+        });
+    }
+    return issues;
+}
+
+const cpcpInclude = {
+    aircraft: { select: aircraftSummarySelect },
+    assignee: { select: employeeSummarySelect },
+} satisfies Prisma.CpcpTaskInclude;
+
+type CpcpRow = Prisma.CpcpTaskGetPayload<{ include: typeof cpcpInclude }>;
+
+function toCpcpResponse(row: CpcpRow) {
+    const due_date = fromDbDate(row.due_date);
+    const due_hours = row.due_hours?.toNumber() ?? null;
+    const aircraft = toAircraftSummary(row.aircraft);
+
+    return {
+        cpcp_UUID: row.cpcp_UUID,
+        aircraft,
+        assignee: row.assignee,
+        task_reference: row.task_reference,
+        description: row.description,
+        due_hours,
+        due_date,
+        last_accomplished_date: fromDbDate(row.last_accomplished_date),
+        last_updated: row.last_updated,
+        remarks: row.remarks,
+        // Condition / availability information (see dueInfo in shared.ts)
+        ...dueInfo(aircraft.current_hours, due_date, due_hours),
+    };
+}
+
+// Required: aircraft_UUID, assigned_to, task_reference.
+// Everything else is optional (null is treated as "not given").
+export const createCpcpSchema = cpcpFields
+    .extend({
+        aircraft_UUID: uuidField("aircraft_UUID"),
+        description: optional.description.nullish(),
+        due_hours: optional.due_hours.nullish(),
+        due_date: optional.due_date.nullish(),
+        last_accomplished_date: optional.last_accomplished_date.nullish(),
+        remarks: optional.remarks.nullish(),
+    })
+    .strict();
+export type CreateCpcpInput = z.infer<typeof createCpcpSchema>;
+
+export async function createCpcpTask(input: CreateCpcpInput) {
+    throwIfIssues(
+        cpcpRuleIssues({
+            last_accomplished_date: input.last_accomplished_date ?? null,
+            due_date: input.due_date ?? null,
+        }),
+    );
+    await findAircraftOr404(input.aircraft_UUID);
+    await assertActiveEmployee(input.assigned_to, "Assignee");
+
+    const created = await prisma.cpcpTask.create({
+        data: {
+            aircraft_UUID: input.aircraft_UUID,
+            assigned_to: input.assigned_to,
+            task_reference: input.task_reference,
+            description: input.description,
+            due_hours: input.due_hours,
+            due_date: dateData(input.due_date),
+            last_accomplished_date: dateData(input.last_accomplished_date),
+            remarks: input.remarks,
+        },
+        select: { cpcp_UUID: true },
+    });
+    return getCpcpTask(created.cpcp_UUID);
+}
+
