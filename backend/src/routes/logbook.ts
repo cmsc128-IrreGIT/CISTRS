@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { parseOrThrow, parseUuid } from "../lib/validate.js";
-import { } from "../services/logbook/export.service.js";
+import { exportLogbook, exportSchema } from "../services/logbook/export.service.js";
 import {
     addFuelTransaction,
     fuelInputSchema,
@@ -88,3 +88,23 @@ logbookRouter.patch("/fuel-transactions/:fuel_UUID", async (req, res) => {
     res.json(await updateFuelTransaction(fuel_UUID, input));
 });
 
+// =============================================================================
+// Export
+
+// BE-19  POST /api/logbook/export
+// body: { aircraft_UUID?, from?, to?, sector_UUIDs? }  (at least one)
+// -> a CSV file download (one SECTOR row per entry, each followed by its FUEL
+//    rows). 400 for a bad request, 404 when nothing matches. The whole file is
+//    built before anything is sent, so a failure never produces a partial file.
+logbookRouter.post("/export", async (req, res) => {
+    const input = parseOrThrow(exportSchema, req.body);
+    const { csv, total, filename } = await exportLogbook(input);
+    res
+        .status(200)
+        .set({
+            "Content-Type": "text/csv; charset=utf-8",
+            "Content-Disposition": `attachment; filename="${filename}"`,
+            "X-Total-Count": String(total),
+        })
+        .send(csv);
+});

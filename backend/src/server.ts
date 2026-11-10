@@ -20,7 +20,9 @@ import { usersRouter } from "./routes/users.js";
 const app = express();
 const port = Number(process.env.PORT ?? 5000);
 
-app.use(cors());
+// exposedHeaders lets browser code read the headers the API sets on lists and
+// exports (total count, download filename).
+app.use(cors({ exposedHeaders: ["X-Total-Count", "Content-Disposition"] }));
 app.use(express.json());
 
 // ---------------------------------------------------------------------------
