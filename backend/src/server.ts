@@ -12,6 +12,7 @@ import { errorHandler } from "./middleware/errorHandler.js";
 import { aircraftRouter } from "./routes/aircraft.js";
 import { authRouter } from "./routes/auth.js";
 import { inventoryRouter } from "./routes/inventory.js";
+import { maintenanceRouter } from "./routes/maintenance.js";
 import { personnelRouter } from "./routes/personnel.js";
 import { usersRouter } from "./routes/users.js";
 
@@ -39,6 +40,7 @@ app.use("/api", requireAuth);
 app.use("/api/users", requireFeature(FEATURE.UserAccounts), usersRouter);
 app.use("/api/inventory", requireFeature(FEATURE.Inventory), inventoryRouter);
 app.use("/api/aircraft", requireFeature(FEATURE.Aircraft), aircraftRouter);
+app.use("/api/maintenance", requireFeature(FEATURE.Maintenance), maintenanceRouter);
 app.use("/api/personnel", requireFeature(FEATURE.Personnel), personnelRouter);
 
 // Unknown /api paths answer with JSON instead of Express's HTML 404 page.

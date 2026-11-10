@@ -11,7 +11,8 @@
         "typecheck": "tsc --noEmit",
         "postinstall": "prisma skills sync || exit 0",
         "test:rbac": "tsx scripts/updated_rbac-matrix.ts",
-        "test:inventory": "tsx scripts/inventory-test.ts"
+        "test:inventory": "tsx scripts/inventory-test.ts",
+        "test:maintenance": "tsx scripts/maintenance-test.ts"
     },
     "keywords": [],
     "author": "",
