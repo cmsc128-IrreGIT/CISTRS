@@ -15,6 +15,22 @@ import {
 import { assertActiveEmployee, employeeSummarySelect } from "../common/lookups.js";
 import { latestEntryDate } from "./shared.js";
 
+// =============================================================================
+// Fuel transactions linked to a logbook entry (flight sector)
+//   Shared : field rules, response mapper
+//   BE-16  : create    POST  /api/logbook/sectors/:sector_UUID/fuel-transactions
+//                      (or nested in the sector create: see sectors.service.ts)
+//   BE-17  : retrieve  GET   /api/logbook/fuel-transactions/:fuel_UUID
+//                      (also returned inside every sector)
+//   BE-18  : update    PATCH /api/logbook/fuel-transactions/:fuel_UUID
+//
+// The aircraft is always the sector's aircraft and the recorder is always the
+// logged-in employee, so neither is sent by the client.
+// =============================================================================
+
+// -----------------------------------------------------------------------------
+// SHARED
+
 const fields = z.object({
     issued_to: uuidField("issued_to"),
     transaction_date: dateField("Transaction date"),
@@ -125,3 +141,45 @@ export async function getFuelTransaction(fuel_transaction_UUID: string) {
     return toFuelResponse(row);
 }
 
+// -----------------------------------------------------------------------------
+// BE-18: UPDATE (always permitted; unsent fields are never touched)
+
+export const updateFuelSchema = fields
+    .extend({ remarks: fields.shape.remarks.nullable() })
+    .partial()
+    .strict()
+    .refine(
+        (data) => Object.keys(data).length > 0,
+        "Provide at least one field to update",
+    );
+export type UpdateFuelInput = z.infer<typeof updateFuelSchema>;
+
+export async function updateFuelTransaction(
+    fuel_transaction_UUID: string,
+    input: UpdateFuelInput,
+) {
+    const existing = await prisma.fuelTransaction.findUnique({
+        where: { fuel_transaction_UUID },
+    });
+    if (!existing) throw new HttpError(404, "Fuel transaction not found");
+
+    // Only a date that is being changed is checked against "not in the future".
+    if (input.transaction_date !== undefined) {
+        throwIfIssues(dateIssues(input.transaction_date));
+    }
+    if (input.issued_to && input.issued_to !== existing.issued_to) {
+        await assertActiveEmployee(input.issued_to, "Fuel recipient");
+    }
+
+    await prisma.fuelTransaction.update({
+        where: { fuel_transaction_UUID },
+        data: {
+            issued_to: input.issued_to,
+            transaction_date: dateData(input.transaction_date) ?? undefined,
+            transaction_type: input.transaction_type,
+            quantity_gal: input.quantity_gal,
+            remarks: input.remarks,
+        },
+    });
+    return getFuelTransaction(fuel_transaction_UUID);
+}

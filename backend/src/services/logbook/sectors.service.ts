@@ -3,6 +3,7 @@ import type { Prisma } from "../../generated/prisma/client.js";
 import { HttpError } from "../../lib/httpError.js";
 import { prisma } from "../../lib/prisma.js";
 import {
+    dateData,
     dateField,
     dateTimeField,
     decimalField,
@@ -29,6 +30,21 @@ import {
     validateFuelInput,
 } from "./fuel.service.js";
 import { latestEntryDate } from "./shared.js";
+
+// =============================================================================
+// Logbook entries (flight sectors, with their linked fuel transactions)
+//   Shared : field rules, cross-field rules, response mapper, list filters
+//   BE-16  : create    POST  /api/logbook/sectors
+//   BE-17  : retrieve  GET   /api/logbook/sectors
+//                      GET   /api/logbook/sectors/:sector_UUID
+//   BE-18  : update    PATCH /api/logbook/sectors/:sector_UUID
+//
+// Editing policy: entries stay editable (agreed). The entering employee
+// (entry_by) is set on create and never changes.
+// =============================================================================
+
+// -----------------------------------------------------------------------------
+// SHARED
 
 type TimeKey = "std" | "sta" | "off_block" | "airborne" | "touchdown" | "on_block";
 
@@ -468,3 +484,145 @@ export async function listSectors(query: ListSectorsQuery) {
     return { total, records: rows.map(toSectorResponse) };
 }
 
+// -----------------------------------------------------------------------------
+// BE-18: UPDATE
+
+// Any subset of the editable fields. Required fields cannot be blanked;
+// optional fields can be cleared with null; unsent fields are never touched.
+// The aircraft can be corrected (its fuel rows follow it). entry_by is fixed,
+// and fuel rows are edited through their own endpoints.
+export const updateSectorSchema = z
+    .object({
+        aircraft_UUID: uuidField("aircraft_UUID"),
+        ...required,
+        delay_category_UUID: optional.delay_category_UUID.nullable(),
+        sic_emp_UUID: optional.sic_emp_UUID.nullable(),
+        observer_emp_UUID: optional.observer_emp_UUID.nullable(),
+        std: optional.std.nullable(),
+        sta: optional.sta.nullable(),
+        off_block: optional.off_block.nullable(),
+        on_block: optional.on_block.nullable(),
+        airborne: optional.airborne.nullable(),
+        touchdown: optional.touchdown.nullable(),
+        flight_time: optional.flight_time.nullable(),
+        day_night: optional.day_night.nullable(),
+        pax_count: paxCount,
+        fuel_departure: optional.fuel_departure.nullable(),
+        fuel_arrival: optional.fuel_arrival.nullable(),
+        fuel_used: optional.fuel_used.nullable(),
+        fuel_unit: optional.fuel_unit.nullable(),
+        delay_cause: optional.delay_cause.nullable(),
+        qa_check_status: optional.qa_check_status.nullable(),
+    })
+    .partial()
+    .strict()
+    .refine(
+        (data) => Object.keys(data).length > 0,
+        "Provide at least one field to update",
+    );
+export type UpdateSectorInput = z.infer<typeof updateSectorSchema>;
+
+export async function updateSector(sector_UUID: string, input: UpdateSectorInput) {
+    const existing = await prisma.flightSector.findUnique({
+        where: { sector_UUID },
+    });
+    if (!existing) throw new HttpError(404, "Logbook entry not found");
+
+    // The record as it would look after the change.
+    const before = valuesOf(existing);
+    const pick = <T,>(sent: T | undefined, stored: T): T =>
+        sent !== undefined ? sent : stored;
+    const sentTime = (key: TimeKey) => {
+        const sent = input[key];
+        if (sent === undefined) return before.times[key];
+        return sent === null ? null : new Date(sent);
+    };
+    const after: SectorValues = {
+        flight_date: pick(input.flight_date, before.flight_date),
+        times: {
+            std: sentTime("std"),
+            sta: sentTime("sta"),
+            off_block: sentTime("off_block"),
+            airborne: sentTime("airborne"),
+            touchdown: sentTime("touchdown"),
+            on_block: sentTime("on_block"),
+        },
+        fuel_departure: pick(input.fuel_departure, before.fuel_departure),
+        fuel_arrival: pick(input.fuel_arrival, before.fuel_arrival),
+        fuel_used: pick(input.fuel_used, before.fuel_used),
+        fuel_unit: pick(input.fuel_unit, before.fuel_unit),
+        pic: pick(input.pic_emp_UUID, before.pic),
+        sic: pick(input.sic_emp_UUID, before.sic),
+        observer: pick(input.observer_emp_UUID, before.observer),
+    };
+
+    // Refuse only the problems this change would introduce, so an unrelated
+    // edit is never blocked by an old record that already broke a rule.
+    const existingIssues = sectorRuleIssues(before);
+    throwIfIssues(
+        sectorRuleIssues(after).filter(
+            (issue) =>
+                !existingIssues.some(
+                    (old) => old.field === issue.field && old.message === issue.message,
+                ),
+        ),
+    );
+
+    const aircraftChanged =
+        input.aircraft_UUID !== undefined &&
+        input.aircraft_UUID !== existing.aircraft_UUID;
+    if (aircraftChanged) await findAircraftOr404(input.aircraft_UUID!);
+    await assertReferences({
+        flight_status_UUID: input.flight_status_UUID,
+        flight_type_UUID: input.flight_type_UUID,
+        delay_category_UUID: input.delay_category_UUID,
+        pic_emp_UUID:
+            input.pic_emp_UUID !== existing.pic_emp_UUID ? input.pic_emp_UUID : undefined,
+        sic_emp_UUID:
+            input.sic_emp_UUID !== existing.sic_emp_UUID ? input.sic_emp_UUID : undefined,
+        observer_emp_UUID:
+            input.observer_emp_UUID !== existing.observer_emp_UUID
+                ? input.observer_emp_UUID
+                : undefined,
+    });
+
+    await prisma.$transaction(async (tx) => {
+        await tx.flightSector.update({
+            where: { sector_UUID },
+            data: {
+                aircraft_UUID: input.aircraft_UUID,
+                flight_status_UUID: input.flight_status_UUID,
+                flight_type_UUID: input.flight_type_UUID,
+                delay_category_UUID: input.delay_category_UUID,
+                pic_emp_UUID: input.pic_emp_UUID,
+                sic_emp_UUID: input.sic_emp_UUID,
+                observer_emp_UUID: input.observer_emp_UUID,
+                flight_date: dateData(input.flight_date) ?? undefined,
+                route: input.route,
+                std: timeData(input.std),
+                sta: timeData(input.sta),
+                off_block: timeData(input.off_block),
+                on_block: timeData(input.on_block),
+                airborne: timeData(input.airborne),
+                touchdown: timeData(input.touchdown),
+                flight_time: input.flight_time,
+                day_night: input.day_night,
+                pax_count: input.pax_count,
+                fuel_departure: input.fuel_departure,
+                fuel_arrival: input.fuel_arrival,
+                fuel_used: input.fuel_used,
+                fuel_unit: input.fuel_unit,
+                delay_cause: input.delay_cause,
+                qa_check_status: input.qa_check_status,
+            },
+        });
+        // Fuel rows always carry the sector's aircraft.
+        if (aircraftChanged) {
+            await tx.fuelTransaction.updateMany({
+                where: { sector_UUID },
+                data: { aircraft_UUID: input.aircraft_UUID! },
+            });
+        }
+    });
+    return getSector(sector_UUID);
+}

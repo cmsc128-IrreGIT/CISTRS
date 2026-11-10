@@ -4,6 +4,8 @@ import {
     addFuelTransaction,
     fuelInputSchema,
     getFuelTransaction,
+    updateFuelSchema,
+    updateFuelTransaction,
 } from "../services/logbook/fuel.service.js";
 import {
     createSector,
@@ -11,6 +13,8 @@ import {
     getSector,
     listSectors,
     listSectorsSchema,
+    updateSector,
+    updateSectorSchema,
 } from "../services/logbook/sectors.service.js";
 
 // Mounted in server.ts behind requireAuth + requireFeature(FEATURE.Logbook).
@@ -50,6 +54,14 @@ logbookRouter.get("/sectors/:sector_UUID", async (req, res) => {
     res.json(await getSector(sector_UUID));
 });
 
+// BE-18  PATCH /api/logbook/sectors/:sector_UUID
+// body: any subset of the editable fields (null clears an optional field)
+logbookRouter.patch("/sectors/:sector_UUID", async (req, res) => {
+    const sector_UUID = parseUuid(req.params.sector_UUID, "logbook entry ID");
+    const input = parseOrThrow(updateSectorSchema, req.body);
+    res.json(await updateSector(sector_UUID, input));
+});
+
 // =============================================================================
 // Fuel transactions linked to an entry
 
@@ -66,5 +78,12 @@ logbookRouter.post("/sectors/:sector_UUID/fuel-transactions", async (req, res) =
 logbookRouter.get("/fuel-transactions/:fuel_UUID", async (req, res) => {
     const fuel_UUID = parseUuid(req.params.fuel_UUID, "fuel transaction ID");
     res.json(await getFuelTransaction(fuel_UUID));
+});
+
+// BE-18  PATCH /api/logbook/fuel-transactions/:fuel_UUID
+logbookRouter.patch("/fuel-transactions/:fuel_UUID", async (req, res) => {
+    const fuel_UUID = parseUuid(req.params.fuel_UUID, "fuel transaction ID");
+    const input = parseOrThrow(updateFuelSchema, req.body);
+    res.json(await updateFuelTransaction(fuel_UUID, input));
 });
 
