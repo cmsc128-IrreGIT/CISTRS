@@ -167,3 +167,63 @@ export async function listCpcpTasks(filters: ListQuery) {
     return { total, records: rows.map(toCpcpResponse) };
 }
 
+// -----------------------------------------------------------------------------
+// BE-11: UPDATE
+
+// Same rules as the AD update: any subset, required fields cannot be blanked,
+// optional fields can be cleared with null, the aircraft cannot be changed,
+// unknown fields are rejected, unsent fields are never touched.
+export const updateCpcpSchema = cpcpFields
+    .extend({
+        description: optional.description.nullable(),
+        due_hours: optional.due_hours.nullable(),
+        due_date: optional.due_date.nullable(),
+        last_accomplished_date: optional.last_accomplished_date.nullable(),
+        remarks: optional.remarks.nullable(),
+    })
+    .partial()
+    .strict()
+    .refine(
+        (data) => Object.keys(data).length > 0,
+        "Provide at least one field to update",
+    );
+export type UpdateCpcpInput = z.infer<typeof updateCpcpSchema>;
+
+export async function updateCpcpTask(
+    cpcp_UUID: string,
+    input: UpdateCpcpInput,
+) {
+    const existing = await prisma.cpcpTask.findUnique({ where: { cpcp_UUID } });
+    if (!existing) throw new HttpError(404, "CPCP task not found");
+
+    throwIfIssues(
+        cpcpRuleIssues({
+            last_accomplished_date:
+                input.last_accomplished_date !== undefined
+                    ? input.last_accomplished_date
+                    : fromDbDate(existing.last_accomplished_date),
+            due_date:
+                input.due_date !== undefined
+                    ? input.due_date
+                    : fromDbDate(existing.due_date),
+        }),
+    );
+    if (input.assigned_to && input.assigned_to !== existing.assigned_to) {
+        await assertActiveEmployee(input.assigned_to, "Assignee");
+    }
+
+    // last_updated refreshes itself (@updatedAt).
+    await prisma.cpcpTask.update({
+        where: { cpcp_UUID },
+        data: {
+            assigned_to: input.assigned_to,
+            task_reference: input.task_reference,
+            description: input.description,
+            due_hours: input.due_hours,
+            due_date: dateData(input.due_date),
+            last_accomplished_date: dateData(input.last_accomplished_date),
+            remarks: input.remarks,
+        },
+    });
+    return getCpcpTask(cpcp_UUID);
+}

@@ -195,3 +195,75 @@ export async function listAdRecords(filters: ListQuery) {
     return { total, records: rows.map(toAdResponse) };
 }
 
+// -----------------------------------------------------------------------------
+// BE-11: UPDATE
+
+// Any subset of the editable fields. Required fields cannot be blanked;
+// optional fields can be cleared with null. The aircraft cannot be changed
+// (a record belongs to the aircraft it was made for) and unknown fields are
+// rejected. Fields that are not sent are never touched.
+export const updateAdSchema = adFields
+    .extend({
+        amendment_number: optional.amendment_number.nullable(),
+        frequency: optional.frequency.nullable(),
+        date_of_compliance: optional.date_of_compliance.nullable(),
+        next_due_date: optional.next_due_date.nullable(),
+        next_due_hours: optional.next_due_hours.nullable(),
+        remarks: optional.remarks.nullable(),
+        pdf_link: optional.pdf_link.nullable(),
+    })
+    .partial()
+    .strict()
+    .refine(
+        (data) => Object.keys(data).length > 0,
+        "Provide at least one field to update",
+    );
+export type UpdateAdInput = z.infer<typeof updateAdSchema>;
+
+export async function updateAdRecord(ad_UUID: string, input: UpdateAdInput) {
+    const existing = await prisma.adRecord.findUnique({ where: { ad_UUID } });
+    if (!existing) throw new HttpError(404, "AD record not found");
+
+    // The record as it would look after the change.
+    throwIfIssues(
+        adRuleIssues({
+            effective_date:
+                input.effective_date ?? fromDbDate(existing.effective_date)!,
+            date_of_compliance:
+                input.date_of_compliance !== undefined
+                    ? input.date_of_compliance
+                    : fromDbDate(existing.date_of_compliance),
+            next_due_date:
+                input.next_due_date !== undefined
+                    ? input.next_due_date
+                    : fromDbDate(existing.next_due_date),
+        }),
+    );
+    if (
+        input.mechanic_emp_UUID &&
+        input.mechanic_emp_UUID !== existing.mechanic_emp_UUID
+    ) {
+        await assertActiveEmployee(input.mechanic_emp_UUID, "Mechanic");
+    }
+
+    await prisma.adRecord.update({
+        where: { ad_UUID },
+        data: {
+            mechanic_emp_UUID: input.mechanic_emp_UUID,
+            faa_ad_number: input.faa_ad_number,
+            amendment_number: input.amendment_number,
+            subject: input.subject,
+            ad_category: input.ad_category,
+            effective_date: dateData(input.effective_date) ?? undefined,
+            compliance_method: input.compliance_method,
+            frequency: input.frequency,
+            date_of_compliance: dateData(input.date_of_compliance),
+            next_due_date: dateData(input.next_due_date),
+            next_due_hours: input.next_due_hours,
+            mechanic_license_number: input.mechanic_license_number,
+            remarks: input.remarks,
+            pdf_link: input.pdf_link,
+        },
+    });
+    return getAdRecord(ad_UUID);
+}

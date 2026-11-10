@@ -5,6 +5,8 @@ import {
     createAdSchema,
     getAdRecord,
     listAdRecords,
+    updateAdRecord,
+    updateAdSchema,
 } from "../services/maintenance/ad-records.service.js";
 import { getAircraftMaintenance } from "../services/maintenance/aircraft-maintenance.service.js";
 import {
@@ -12,6 +14,8 @@ import {
     createCpcpTask,
     getCpcpTask,
     listCpcpTasks,
+    updateCpcpSchema,
+    updateCpcpTask,
 } from "../services/maintenance/cpcp-tasks.service.js";
 import { listQuerySchema } from "../services/maintenance/shared.js";
 
@@ -40,6 +44,14 @@ maintenanceRouter.get("/ad-records/:ad_UUID", async (req, res) => {
     res.json(await getAdRecord(ad_UUID));
 });
 
+// BE-11  PATCH /api/maintenance/ad-records/:ad_UUID
+// body: any subset of the editable fields (null clears an optional field)
+maintenanceRouter.patch("/ad-records/:ad_UUID", async (req, res) => {
+    const ad_UUID = parseUuid(req.params.ad_UUID, "AD record ID");
+    const input = parseOrThrow(updateAdSchema, req.body);
+    res.json(await updateAdRecord(ad_UUID, input));
+});
+
 // BE-09  POST /api/maintenance/cpcp-tasks
 // body: { aircraft_UUID, assigned_to, task_reference, description?, due_hours?,
 //         due_date?, last_accomplished_date?, remarks? }
@@ -59,6 +71,13 @@ maintenanceRouter.get("/cpcp-tasks", async (req, res) => {
 maintenanceRouter.get("/cpcp-tasks/:cpcp_UUID", async (req, res) => {
     const cpcp_UUID = parseUuid(req.params.cpcp_UUID, "CPCP task ID");
     res.json(await getCpcpTask(cpcp_UUID));
+});
+
+// BE-11  PATCH /api/maintenance/cpcp-tasks/:cpcp_UUID
+maintenanceRouter.patch("/cpcp-tasks/:cpcp_UUID", async (req, res) => {
+    const cpcp_UUID = parseUuid(req.params.cpcp_UUID, "CPCP task ID");
+    const input = parseOrThrow(updateCpcpSchema, req.body);
+    res.json(await updateCpcpTask(cpcp_UUID, input));
 });
 
 // BE-10  GET /api/maintenance/aircraft/:aircraft_UUID
