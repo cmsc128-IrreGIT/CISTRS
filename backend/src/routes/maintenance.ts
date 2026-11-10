@@ -1,15 +1,19 @@
 import { Router } from "express";
-import { } from "../services/maintenance/aircraft-maintenance.service.js";
-import { } from "../services/maintenance/shared.js";
 import { parseOrThrow, parseUuid } from "../lib/validate.js";
 import {
     createAdRecord,
     createAdSchema,
+    getAdRecord,
+    listAdRecords,
 } from "../services/maintenance/ad-records.service.js";
+import { getAircraftMaintenance } from "../services/maintenance/aircraft-maintenance.service.js";
 import {
     createCpcpSchema,
     createCpcpTask,
+    getCpcpTask,
+    listCpcpTasks,
 } from "../services/maintenance/cpcp-tasks.service.js";
+import { listQuerySchema } from "../services/maintenance/shared.js";
 
 export const maintenanceRouter = Router();
 // BE-09  POST /api/maintenance/ad-records
@@ -22,6 +26,20 @@ maintenanceRouter.post("/ad-records", async (req, res) => {
     res.status(201).json(await createAdRecord(input));
 });
 
+// BE-10  GET /api/maintenance/ad-records?aircraft_UUID=&limit=&offset=
+// -> newest effective date first; X-Total-Count holds the total match count
+maintenanceRouter.get("/ad-records", async (req, res) => {
+    const filters = parseOrThrow(listQuerySchema, req.query);
+    const { total, records } = await listAdRecords(filters);
+    res.set("X-Total-Count", String(total)).json(records);
+});
+
+// BE-10  GET /api/maintenance/ad-records/:ad_UUID  (404 if it does not exist)
+maintenanceRouter.get("/ad-records/:ad_UUID", async (req, res) => {
+    const ad_UUID = parseUuid(req.params.ad_UUID, "AD record ID");
+    res.json(await getAdRecord(ad_UUID));
+});
+
 // BE-09  POST /api/maintenance/cpcp-tasks
 // body: { aircraft_UUID, assigned_to, task_reference, description?, due_hours?,
 //         due_date?, last_accomplished_date?, remarks? }
@@ -30,3 +48,21 @@ maintenanceRouter.post("/cpcp-tasks", async (req, res) => {
     res.status(201).json(await createCpcpTask(input));
 });
 
+// BE-10  GET /api/maintenance/cpcp-tasks?aircraft_UUID=&limit=&offset=
+maintenanceRouter.get("/cpcp-tasks", async (req, res) => {
+    const filters = parseOrThrow(listQuerySchema, req.query);
+    const { total, records } = await listCpcpTasks(filters);
+    res.set("X-Total-Count", String(total)).json(records);
+});
+
+// BE-10  GET /api/maintenance/cpcp-tasks/:cpcp_UUID
+maintenanceRouter.get("/cpcp-tasks/:cpcp_UUID", async (req, res) => {
+    const cpcp_UUID = parseUuid(req.params.cpcp_UUID, "CPCP task ID");
+    res.json(await getCpcpTask(cpcp_UUID));
+});
+
+// BE-10  GET /api/maintenance/aircraft/:aircraft_UUID
+maintenanceRouter.get("/aircraft/:aircraft_UUID", async (req, res) => {
+    const aircraft_UUID = parseUuid(req.params.aircraft_UUID, "aircraft ID");
+    res.json(await getAircraftMaintenance(aircraft_UUID));
+});

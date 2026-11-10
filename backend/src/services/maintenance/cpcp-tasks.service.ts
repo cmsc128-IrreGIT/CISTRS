@@ -17,6 +17,7 @@ import {
     todayUtc,
     toAircraftSummary,
     uuidField,
+    type ListQuery,
     type RuleIssue,
 } from "./shared.js";
 const optional = {
@@ -86,6 +87,9 @@ function toCpcpResponse(row: CpcpRow) {
     };
 }
 
+// -----------------------------------------------------------------------------
+// BE-09: CREATE
+
 // Required: aircraft_UUID, assigned_to, task_reference.
 // Everything else is optional (null is treated as "not given").
 export const createCpcpSchema = cpcpFields
@@ -124,5 +128,42 @@ export async function createCpcpTask(input: CreateCpcpInput) {
         select: { cpcp_UUID: true },
     });
     return getCpcpTask(created.cpcp_UUID);
+}
+
+// -----------------------------------------------------------------------------
+// BE-10: RETRIEVE
+
+// A nonexistent ID gives a 404, not a crash.
+export async function getCpcpTask(cpcp_UUID: string) {
+    const row = await prisma.cpcpTask.findUnique({
+        where: { cpcp_UUID },
+        include: cpcpInclude,
+    });
+    if (!row) throw new HttpError(404, "CPCP task not found");
+    return toCpcpResponse(row);
+}
+
+// Earliest due date first (tasks with no due date last). With aircraft_UUID:
+// that aircraft's tasks (404 if the aircraft does not exist).
+export async function listCpcpTasks(filters: ListQuery) {
+    if (filters.aircraft_UUID) await findAircraftOr404(filters.aircraft_UUID);
+
+    const where: Prisma.CpcpTaskWhereInput = filters.aircraft_UUID
+        ? { aircraft_UUID: filters.aircraft_UUID }
+        : {};
+    const [total, rows] = await Promise.all([
+        prisma.cpcpTask.count({ where }),
+        prisma.cpcpTask.findMany({
+            where,
+            orderBy: [
+                { due_date: { sort: "asc", nulls: "last" } },
+                { cpcp_UUID: "asc" },
+            ],
+            take: filters.limit,
+            skip: filters.offset,
+            include: cpcpInclude,
+        }),
+    ]);
+    return { total, records: rows.map(toCpcpResponse) };
 }
 

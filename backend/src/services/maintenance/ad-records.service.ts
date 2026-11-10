@@ -18,6 +18,7 @@ import {
     toAircraftSummary,
     urlField,
     uuidField,
+    type ListQuery,
     type RuleIssue,
 } from "./shared.js";
 const optional = {
@@ -105,6 +106,9 @@ function toAdResponse(row: AdRow) {
     };
 }
 
+// -----------------------------------------------------------------------------
+// BE-09: CREATE
+
 // Required: aircraft_UUID, mechanic_emp_UUID, faa_ad_number, subject,
 // ad_category, effective_date, compliance_method, mechanic_license_number.
 // Everything else is optional (null is treated as "not given").
@@ -155,5 +159,39 @@ export async function createAdRecord(input: CreateAdInput) {
         select: { ad_UUID: true },
     });
     return getAdRecord(created.ad_UUID);
+}
+
+// -----------------------------------------------------------------------------
+// BE-10: RETRIEVE
+
+// A nonexistent ID gives a 404, not a crash.
+export async function getAdRecord(ad_UUID: string) {
+    const row = await prisma.adRecord.findUnique({
+        where: { ad_UUID },
+        include: adInclude,
+    });
+    if (!row) throw new HttpError(404, "AD record not found");
+    return toAdResponse(row);
+}
+
+// Newest effective date first. With aircraft_UUID: that aircraft's records
+// (404 if the aircraft does not exist).
+export async function listAdRecords(filters: ListQuery) {
+    if (filters.aircraft_UUID) await findAircraftOr404(filters.aircraft_UUID);
+
+    const where: Prisma.AdRecordWhereInput = filters.aircraft_UUID
+        ? { aircraft_UUID: filters.aircraft_UUID }
+        : {};
+    const [total, rows] = await Promise.all([
+        prisma.adRecord.count({ where }),
+        prisma.adRecord.findMany({
+            where,
+            orderBy: [{ effective_date: "desc" }, { ad_UUID: "asc" }],
+            take: filters.limit,
+            skip: filters.offset,
+            include: adInclude,
+        }),
+    ]);
+    return { total, records: rows.map(toAdResponse) };
 }
 

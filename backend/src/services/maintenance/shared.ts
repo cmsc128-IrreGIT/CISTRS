@@ -40,6 +40,22 @@ export const urlField = (label: string) =>
         })
         .max(500, `${label} must be at most 500 characters`);
 
+export const listQuerySchema = z.object({
+    aircraft_UUID: uuidField("aircraft_UUID").optional(),
+    limit: z.coerce
+        .number("limit must be a number")
+        .int("limit must be a whole number")
+        .min(1, "limit must be at least 1")
+        .max(200, "limit must be at most 200")
+        .default(50),
+    offset: z.coerce
+        .number("offset must be a number")
+        .int("offset must be a whole number")
+        .min(0, "offset cannot be negative")
+        .default(0),
+});
+export type ListQuery = z.infer<typeof listQuerySchema>;
+
 // -----------------------------------------------------------------------------
 // Dates
 
