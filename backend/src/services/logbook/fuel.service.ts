@@ -26,6 +26,27 @@ const fields = z.object({
     remarks: textField("Remarks", 500),
 });
 
+export const fuelInclude = {
+    recorder: { select: employeeSummarySelect },
+    receiver: { select: employeeSummarySelect },
+} satisfies Prisma.FuelTransactionInclude;
+
+type FuelRow = Prisma.FuelTransactionGetPayload<{ include: typeof fuelInclude }>;
+
+export function toFuelResponse(row: FuelRow) {
+    return {
+        fuel_transaction_UUID: row.fuel_transaction_UUID,
+        sector_UUID: row.sector_UUID,
+        aircraft_UUID: row.aircraft_UUID,
+        transaction_date: fromDbDate(row.transaction_date),
+        transaction_type: row.transaction_type,
+        quantity_gal: row.quantity_gal.toNumber(),
+        issued_to: row.receiver,
+        recorded_by: row.recorder,
+        remarks: row.remarks,
+    };
+}
+
 function dateIssues(transaction_date: string): RuleIssue[] {
     return transaction_date > latestEntryDate()
         ? [
@@ -37,6 +58,7 @@ function dateIssues(transaction_date: string): RuleIssue[] {
         : [];
 }
 
+// -----------------------------------------------------------------------------
 // BE-16: CREATE
 
 // Required: issued_to, transaction_date, transaction_type, quantity_gal (> 0).
@@ -89,5 +111,17 @@ export async function addFuelTransaction(
         select: { fuel_transaction_UUID: true },
     });
     return getFuelTransaction(created.fuel_transaction_UUID);
+}
+
+// -----------------------------------------------------------------------------
+// BE-17: RETRIEVE
+
+export async function getFuelTransaction(fuel_transaction_UUID: string) {
+    const row = await prisma.fuelTransaction.findUnique({
+        where: { fuel_transaction_UUID },
+        include: fuelInclude,
+    });
+    if (!row) throw new HttpError(404, "Fuel transaction not found");
+    return toFuelResponse(row);
 }
 

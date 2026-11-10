@@ -6,6 +6,8 @@ import {
     dateField,
     dateTimeField,
     decimalField,
+    fromDbDate,
+    pagingFields,
     textField,
     throwIfIssues,
     toDbDate,
@@ -13,12 +15,17 @@ import {
     type RuleIssue,
 } from "../common/fields.js";
 import {
+    aircraftSummarySelect,
     assertActiveEmployee,
+    employeeSummarySelect,
     findAircraftOr404,
+    toAircraftSummary,
 } from "../common/lookups.js";
 import {
     fuelCreateData,
+    fuelInclude,
     fuelInputSchema,
+    toFuelResponse,
     validateFuelInput,
 } from "./fuel.service.js";
 import { latestEntryDate } from "./shared.js";
@@ -137,6 +144,98 @@ function sectorRuleIssues(v: SectorValues): RuleIssue[] {
     return issues;
 }
 
+const sectorInclude = {
+    aircraft: { select: aircraftSummarySelect },
+    flight_status: { select: { flight_status_UUID: true, status_name: true } },
+    flight_type: { select: { flight_type_UUID: true, type_name: true } },
+    delay_category: {
+        select: { delay_category_UUID: true, category_name: true },
+    },
+    pic: { select: employeeSummarySelect },
+    sic: { select: employeeSummarySelect },
+    observer: { select: employeeSummarySelect },
+    entered_by: { select: employeeSummarySelect },
+    fuel_transactions: {
+        include: fuelInclude,
+        orderBy: [
+            { transaction_date: "asc" },
+            { fuel_transaction_UUID: "asc" },
+        ],
+    },
+} satisfies Prisma.FlightSectorInclude;
+
+type SectorRow = Prisma.FlightSectorGetPayload<{ include: typeof sectorInclude }>;
+export type { SectorRow };
+export { sectorInclude };
+
+const iso = (value: Date | null) => (value ? value.toISOString() : null);
+const num = (value: { toNumber(): number } | null) => value?.toNumber() ?? null;
+
+// One mapper for create, list, detail, update and export, so every endpoint
+// returns exactly what is stored. Dates are "YYYY-MM-DD", timestamps are ISO
+// strings, decimals are plain numbers.
+export function toSectorResponse(row: SectorRow) {
+    return {
+        sector_UUID: row.sector_UUID,
+        aircraft: toAircraftSummary(row.aircraft),
+        flight_date: fromDbDate(row.flight_date),
+        route: row.route,
+        flight_status: row.flight_status,
+        flight_type: row.flight_type,
+        day_night: row.day_night,
+        pic: row.pic,
+        sic: row.sic,
+        observer: row.observer,
+        std: iso(row.std),
+        sta: iso(row.sta),
+        off_block: iso(row.off_block),
+        airborne: iso(row.airborne),
+        touchdown: iso(row.touchdown),
+        on_block: iso(row.on_block),
+        flight_time: num(row.flight_time),
+        pax_count: row.pax_count,
+        fuel_departure: num(row.fuel_departure),
+        fuel_arrival: num(row.fuel_arrival),
+        fuel_used: num(row.fuel_used),
+        fuel_unit: row.fuel_unit,
+        delay_category: row.delay_category,
+        delay_cause: row.delay_cause,
+        qa_check_status: row.qa_check_status,
+        entered_by: row.entered_by,
+        fuel_transactions: row.fuel_transactions.map(toFuelResponse),
+    };
+}
+
+function valuesOf(row: {
+    flight_date: Date;
+    fuel_departure: { toNumber(): number } | null;
+    fuel_arrival: { toNumber(): number } | null;
+    fuel_used: { toNumber(): number } | null;
+    fuel_unit: string | null;
+    pic_emp_UUID: string;
+    sic_emp_UUID: string | null;
+    observer_emp_UUID: string | null;
+} & Record<TimeKey, Date | null>): SectorValues {
+    return {
+        flight_date: fromDbDate(row.flight_date)!,
+        times: {
+            std: row.std,
+            sta: row.sta,
+            off_block: row.off_block,
+            airborne: row.airborne,
+            touchdown: row.touchdown,
+            on_block: row.on_block,
+        },
+        fuel_departure: num(row.fuel_departure),
+        fuel_arrival: num(row.fuel_arrival),
+        fuel_used: num(row.fuel_used),
+        fuel_unit: row.fuel_unit,
+        pic: row.pic_emp_UUID,
+        sic: row.sic_emp_UUID,
+        observer: row.observer_emp_UUID,
+    };
+}
+
 // The referenced records must exist (404) and the crew must be active (400).
 async function assertReferences(refs: {
     flight_status_UUID?: string;
@@ -181,6 +280,7 @@ async function assertReferences(refs: {
 const timeData = (value: string | null | undefined) =>
     value === undefined ? undefined : value === null ? null : new Date(value);
 
+// -----------------------------------------------------------------------------
 // BE-16: CREATE
 
 // Required: aircraft_UUID, flight_status_UUID, flight_type_UUID, pic_emp_UUID,
@@ -282,5 +382,89 @@ export async function createSector(input: CreateSectorInput, emp_UUID: string) {
         select: { sector_UUID: true },
     });
     return getSector(created.sector_UUID);
+}
+
+// -----------------------------------------------------------------------------
+// BE-17: RETRIEVE
+
+// A nonexistent ID gives a 404, not a crash.
+export async function getSector(sector_UUID: string) {
+    const row = await prisma.flightSector.findUnique({
+        where: { sector_UUID },
+        include: sectorInclude,
+    });
+    if (!row) throw new HttpError(404, "Logbook entry not found");
+    return toSectorResponse(row);
+}
+
+// Filters shared by the list and the export.
+export interface SectorFilter {
+    aircraft_UUID?: string;
+    from?: string;
+    to?: string;
+    sector_UUIDs?: string[];
+}
+
+export function sectorWhere(filter: SectorFilter): Prisma.FlightSectorWhereInput {
+    return {
+        ...(filter.aircraft_UUID ? { aircraft_UUID: filter.aircraft_UUID } : {}),
+        ...(filter.sector_UUIDs ? { sector_UUID: { in: filter.sector_UUIDs } } : {}),
+        ...(filter.from || filter.to
+            ? {
+                  flight_date: {
+                      ...(filter.from ? { gte: toDbDate(filter.from) } : {}),
+                      ...(filter.to ? { lte: toDbDate(filter.to) } : {}),
+                  },
+              }
+            : {}),
+    };
+}
+
+// Chronological: flight date, then off-block time (entries without one last),
+// then ID so the order is always the same.
+export function sectorOrderBy(
+    order: "asc" | "desc",
+): Prisma.FlightSectorOrderByWithRelationInput[] {
+    return [
+        { flight_date: order },
+        { off_block: { sort: order, nulls: "last" } },
+        { sector_UUID: order },
+    ];
+}
+
+export function dateRangeIssues(from?: string, to?: string): RuleIssue[] {
+    return from && to && from > to
+        ? [{ field: "from", message: "from cannot be after to" }]
+        : [];
+}
+
+export const listSectorsSchema = z.object({
+    aircraft_UUID: uuidField("aircraft_UUID").optional(),
+    from: dateField("from").optional(),
+    to: dateField("to").optional(),
+    order: z.enum(["asc", "desc"], "order must be asc or desc").default("asc"),
+    ...pagingFields,
+});
+export type ListSectorsQuery = z.infer<typeof listSectorsSchema>;
+
+// Oldest first by default (?order=desc for newest first). With aircraft_UUID:
+// that aircraft's entries (404 if the aircraft does not exist; an aircraft
+// with no entries simply returns an empty list).
+export async function listSectors(query: ListSectorsQuery) {
+    throwIfIssues(dateRangeIssues(query.from, query.to));
+    if (query.aircraft_UUID) await findAircraftOr404(query.aircraft_UUID);
+
+    const where = sectorWhere(query);
+    const [total, rows] = await Promise.all([
+        prisma.flightSector.count({ where }),
+        prisma.flightSector.findMany({
+            where,
+            orderBy: sectorOrderBy(query.order),
+            take: query.limit,
+            skip: query.offset,
+            include: sectorInclude,
+        }),
+    ]);
+    return { total, records: rows.map(toSectorResponse) };
 }
 
