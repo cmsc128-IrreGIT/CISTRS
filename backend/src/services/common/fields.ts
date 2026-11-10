@@ -18,6 +18,13 @@ export const textField = (label: string, max: number) =>
 export const dateField = (label: string) =>
     z.iso.date(`${label} must be a valid date (YYYY-MM-DD)`);
 
+// Timestamp with an explicit zone, e.g. 2026-10-15T01:00:00Z or ...+08:00.
+export const dateTimeField = (label: string) =>
+    z.iso.datetime({
+        offset: true,
+        error: `${label} must be a valid timestamp with a time zone (e.g. 2026-10-15T01:00:00Z)`,
+    });
+
 // Non-negative DECIMAL with at most 2 decimal places and an upper bound
 // (DECIMAL(10,2) -> 99_999_999.99, DECIMAL(6,2) -> 9_999.99).
 export const decimalField = (label: string, max = 99_999_999.99) =>
