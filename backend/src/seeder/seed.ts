@@ -110,6 +110,13 @@ async function seedAll(tx: Prisma.TransactionClient) {
         }),
     );
 
+    await insert("PERSONNEL_CATEGORY", (data) =>
+        tx.personnelCategory.createMany({
+            data: data as Prisma.PersonnelCategoryCreateManyInput[],
+            skipDuplicates: true,
+        }),
+    );
+
     await insert("LICENSE_TYPE", (data) =>
         tx.licenseType.createMany({
             data: data as Prisma.LicenseTypeCreateManyInput[],
@@ -505,10 +512,11 @@ async function seedAll(tx: Prisma.TransactionClient) {
 async function verify() {
     const problems: string[] = [];
 
-    // 1. Verify row counts for all 37 models.
+    // 1. Verify row counts for all 38 models.
     const expected: Record<string, () => Promise<number>> = {
         BASE: () => prisma.base.count(),
         EMPLOYMENT_STATUS: () => prisma.employmentStatus.count(),
+        PERSONNEL_CATEGORY: () => prisma.personnelCategory.count(),
         LICENSE_TYPE: () => prisma.licenseType.count(),
         RENEWAL_STATUS: () => prisma.renewalStatus.count(),
         POSITION: () => prisma.position.count(),

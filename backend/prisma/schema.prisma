@@ -7,6 +7,10 @@
 //    so seed.json rows map 1:1 onto the models.
 //  - Every key column is a native Postgres `uuid`.
 //  - The connection URL lives in prisma.config.ts, NOT in this file (Prisma 7).
+//  - Mutable business tables carry created_at / updated_at (set by the database
+//    and by Prisma's @updatedAt). Employee also records created_by / updated_by.
+//  - Rules Prisma cannot express (CHECK constraints) live in the migration
+//    20261111120000_integrity_audit_hardening. They are listed in README.md.
 //
 // Access control: EMPLOYEE -> POSITION -> POSITION_FEATURE_ACCESS -> SYSTEM_FEATURE
 // (There are no roles. One employee holds exactly one position.)
@@ -76,12 +80,14 @@ enum TransactionType {
 // =============================================================================
 
 model Part {
-  part_UUID       String  @id @default(uuid()) @db.Uuid
-  part_number     String  @unique
+  part_UUID       String   @id @default(uuid()) @db.Uuid
+  part_number     String   @unique
   part_name       String
   unit_of_measure String
-  min_stock_level Int     @default(0)
+  min_stock_level Int      @default(0)
   description     String?
+  created_at      DateTime @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime @default(now()) @updatedAt @db.Timestamptz(6)
 
   suppliers        PartSupplier[]
   manufacturers    PartManufacturer[]
@@ -97,15 +103,18 @@ model InventoryLocation {
 
   inventory_status InventoryStatus[]
 
+  @@unique([location_name, storage_area])
   @@map("inventory_location")
 }
 
 // One row per (part, location). Holds the current on-hand quantity.
 model InventoryStatus {
-  status_UUID      String @id @default(uuid()) @db.Uuid
-  part_UUID        String @db.Uuid
-  location_UUID    String @db.Uuid
-  current_quantity Int    @default(0)
+  status_UUID      String   @id @default(uuid()) @db.Uuid
+  part_UUID        String   @db.Uuid
+  location_UUID    String   @db.Uuid
+  current_quantity Int      @default(0)
+  created_at       DateTime @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime @default(now()) @updatedAt @db.Timestamptz(6)
 
   part         Part                   @relation(fields: [part_UUID], references: [part_UUID], onDelete: Restrict)
   location     InventoryLocation      @relation(fields: [location_UUID], references: [location_UUID], onDelete: Restrict)
@@ -148,6 +157,7 @@ model Organization {
   manufacturer Manufacturer?
   contacts     OrganizationContact[]
 
+  @@unique([organization_name, organization_location])
   @@map("organization")
 }
 
@@ -208,6 +218,7 @@ model Contact {
   employees          EmployeeContact[]
   emergency_contacts EmergencyContact[]
 
+  @@unique([contact_type, contact_value])
   @@map("contact")
 }
 
@@ -235,7 +246,7 @@ model EmployeeContact {
   @@map("employee_contact")
 }
 
-// NEW: who to call in an emergency, and which contact reaches them.
+// Who to call in an emergency, and which contact reaches them.
 model EmergencyContact {
   employee_UUID       String @db.Uuid
   contact_UUID        String @db.Uuid
@@ -274,31 +285,51 @@ model EmploymentStatus {
   @@map("employment_status")
 }
 
-model Employee {
-  emp_UUID            String       @id @default(uuid()) @db.Uuid
-  emp_number          String       @unique
-  f_name              String
-  m_name              String?
-  l_name              String
-  suffix              String?
-  date_of_birth       DateTime     @db.Date
-  sex                 Sex
-  blood_type          String?
-  photo               String?
-  date_hired          DateTime     @db.Date
-  department          String
-  personnel_category  String
-  record_status       RecordStatus @default(Active)
-  supervisor_emp_UUID String?      @db.Uuid
-  base_UUID           String       @db.Uuid
-  emp_status_UUID     String       @db.Uuid
-  position_UUID       String       @db.Uuid
+// Lookup for Employee.personnel_category (Pilot, Operations Personnel, ...).
+model PersonnelCategory {
+  personnel_category_UUID String @id @default(uuid()) @db.Uuid
+  category_name           String @unique
+  description             String
 
-  supervisor        Employee?        @relation("EmployeeSupervisor", fields: [supervisor_emp_UUID], references: [emp_UUID], onDelete: SetNull)
-  subordinates      Employee[]       @relation("EmployeeSupervisor")
-  base              Base             @relation(fields: [base_UUID], references: [base_UUID], onDelete: Restrict)
-  employment_status EmploymentStatus @relation(fields: [emp_status_UUID], references: [emp_status_UUID], onDelete: Restrict)
-  position          Position         @relation(fields: [position_UUID], references: [position_UUID], onDelete: Restrict)
+  employees Employee[]
+
+  @@map("personnel_category")
+}
+
+model Employee {
+  emp_UUID                String       @id @default(uuid()) @db.Uuid
+  emp_number              String       @unique
+  f_name                  String
+  m_name                  String?
+  l_name                  String
+  suffix                  String?
+  date_of_birth           DateTime     @db.Date
+  sex                     Sex
+  blood_type              String?
+  photo                   String?
+  date_hired              DateTime     @db.Date
+  department              String
+  record_status           RecordStatus @default(Active)
+  supervisor_emp_UUID     String?      @db.Uuid
+  base_UUID               String       @db.Uuid
+  emp_status_UUID         String       @db.Uuid
+  position_UUID           String       @db.Uuid
+  personnel_category_UUID String       @db.Uuid
+  created_at              DateTime     @default(now()) @db.Timestamptz(6)
+  updated_at              DateTime     @default(now()) @updatedAt @db.Timestamptz(6)
+  created_by              String?      @db.Uuid
+  updated_by              String?      @db.Uuid
+
+  supervisor         Employee?         @relation("EmployeeSupervisor", fields: [supervisor_emp_UUID], references: [emp_UUID], onDelete: SetNull)
+  subordinates       Employee[]        @relation("EmployeeSupervisor")
+  creator            Employee?         @relation("EmployeeCreatedBy", fields: [created_by], references: [emp_UUID], onDelete: SetNull)
+  employees_created  Employee[]        @relation("EmployeeCreatedBy")
+  updater            Employee?         @relation("EmployeeUpdatedBy", fields: [updated_by], references: [emp_UUID], onDelete: SetNull)
+  employees_updated  Employee[]        @relation("EmployeeUpdatedBy")
+  personnel_category PersonnelCategory @relation(fields: [personnel_category_UUID], references: [personnel_category_UUID], onDelete: Restrict)
+  base               Base              @relation(fields: [base_UUID], references: [base_UUID], onDelete: Restrict)
+  employment_status  EmploymentStatus  @relation(fields: [emp_status_UUID], references: [emp_status_UUID], onDelete: Restrict)
+  position           Position          @relation(fields: [position_UUID], references: [position_UUID], onDelete: Restrict)
 
   user_account           UserAccount?
   contacts               EmployeeContact[]
@@ -320,6 +351,11 @@ model Employee {
   @@index([base_UUID])
   @@index([emp_status_UUID])
   @@index([position_UUID])
+  @@index([personnel_category_UUID])
+  @@index([record_status])
+  @@index([l_name, f_name])
+  @@index([created_by])
+  @@index([updated_by])
   @@map("employee")
 }
 
@@ -333,7 +369,7 @@ model LicenseType {
   @@map("license_type")
 }
 
-// NEW: replaces the old expiry_type enum on EmployeeLicense.
+// Renewal state of a license (replaces the old expiry_type enum).
 model RenewalStatus {
   renewal_status_UUID String @id @default(uuid()) @db.Uuid
   status_name         String @unique
@@ -354,12 +390,14 @@ model EmployeeLicense {
   date_issued         DateTime  @db.Date
   expiry_date         DateTime? @db.Date
   remarks             String?
+  created_at          DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at          DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
 
   employee       Employee      @relation(fields: [emp_UUID], references: [emp_UUID], onDelete: Cascade)
   license_type   LicenseType   @relation(fields: [license_type_UUID], references: [license_type_UUID], onDelete: Restrict)
   renewal_status RenewalStatus @relation(fields: [renewal_status_UUID], references: [renewal_status_UUID], onDelete: Restrict)
 
-  @@index([emp_UUID])
+  @@unique([emp_UUID, license_type_UUID, license_number])
   @@index([license_type_UUID])
   @@index([renewal_status_UUID])
   @@index([expiry_date])
@@ -367,13 +405,15 @@ model EmployeeLicense {
 }
 
 model MedicalCertificate {
-  medical_UUID      String    @id @default(uuid()) @db.Uuid
-  emp_UUID          String    @db.Uuid
+  medical_UUID      String   @id @default(uuid()) @db.Uuid
+  emp_UUID          String   @db.Uuid
   medical_class     String
-  date_issued       DateTime  @db.Date
-  expiry_date       DateTime  @db.Date
+  date_issued       DateTime @db.Date
+  expiry_date       DateTime @db.Date
   clinical_hospital String
   remarks           String?
+  created_at        DateTime @default(now()) @db.Timestamptz(6)
+  updated_at        DateTime @default(now()) @updatedAt @db.Timestamptz(6)
 
   employee Employee @relation(fields: [emp_UUID], references: [emp_UUID], onDelete: Cascade)
 
@@ -414,6 +454,8 @@ model TrainingRecord {
   date_completed         DateTime  @db.Date
   expiry_date            DateTime? @db.Date
   remarks                String?
+  created_at             DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at             DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
 
   employee          Employee         @relation(fields: [emp_UUID], references: [emp_UUID], onDelete: Cascade)
   training_type     TrainingType     @relation(fields: [training_type_UUID], references: [training_type_UUID], onDelete: Restrict)
@@ -446,7 +488,7 @@ model UserAccount {
 }
 
 model Position {
-  position_UUID String @id @default(uuid()) @db.Uuid
+  position_UUID String  @id @default(uuid()) @db.Uuid
   position_name String  @unique
   description   String
   is_active     Boolean @default(true)
@@ -458,7 +500,7 @@ model Position {
 }
 
 model SystemFeature {
-  feature_UUID String @id @default(uuid()) @db.Uuid
+  feature_UUID String  @id @default(uuid()) @db.Uuid
   feature_name String  @unique
   description  String
   is_active    Boolean @default(true)
@@ -513,6 +555,8 @@ model Aircraft {
   aircraft_type_UUID   String   @db.Uuid
   current_hours        Decimal  @default(0) @db.Decimal(10, 2)
   hours_updated_at     DateTime @default(now()) @db.Timestamptz(6)
+  created_at           DateTime @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime @default(now()) @updatedAt @db.Timestamptz(6)
 
   status AircraftStatus @relation(fields: [aircraft_status_UUID], references: [aircraft_status_UUID], onDelete: Restrict)
   type   AircraftType   @relation(fields: [aircraft_type_UUID], references: [aircraft_type_UUID], onDelete: Restrict)
@@ -549,6 +593,8 @@ model AdRecord {
   mechanic_license_number String
   remarks                 String?
   pdf_link                String?
+  created_at              DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at              DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
 
   aircraft Aircraft @relation(fields: [aircraft_UUID], references: [aircraft_UUID], onDelete: Restrict)
   mechanic Employee @relation(fields: [mechanic_emp_UUID], references: [emp_UUID], onDelete: Restrict)
@@ -571,11 +617,12 @@ model CpcpTask {
   last_accomplished_date DateTime? @db.Date
   last_updated           DateTime  @updatedAt @db.Timestamptz(6)
   remarks                String?
+  created_at             DateTime  @default(now()) @db.Timestamptz(6)
 
   aircraft Aircraft @relation(fields: [aircraft_UUID], references: [aircraft_UUID], onDelete: Restrict)
   assignee Employee @relation(fields: [assigned_to], references: [emp_UUID], onDelete: Restrict)
 
-  @@index([aircraft_UUID])
+  @@unique([aircraft_UUID, task_reference])
   @@index([assigned_to])
   @@index([due_date])
   @@map("cpcp_task")
@@ -643,6 +690,8 @@ model FlightSector {
   fuel_unit           String?
   delay_cause         String?
   qa_check_status     String?
+  created_at          DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at          DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
 
   aircraft       Aircraft       @relation(fields: [aircraft_UUID], references: [aircraft_UUID], onDelete: Restrict)
   flight_status  FlightStatus   @relation(fields: [flight_status_UUID], references: [flight_status_UUID], onDelete: Restrict)
@@ -660,6 +709,10 @@ model FlightSector {
   @@index([pic_emp_UUID])
   @@index([flight_status_UUID])
   @@index([flight_type_UUID])
+  @@index([sic_emp_UUID])
+  @@index([observer_emp_UUID])
+  @@index([entry_by])
+  @@index([delay_category_UUID])
   @@map("flight_sector")
 }
 
@@ -673,6 +726,8 @@ model FuelTransaction {
   transaction_type      String
   quantity_gal          Decimal  @db.Decimal(10, 2)
   remarks               String?
+  created_at            DateTime @default(now()) @db.Timestamptz(6)
+  updated_at            DateTime @default(now()) @updatedAt @db.Timestamptz(6)
 
   aircraft Aircraft      @relation(fields: [aircraft_UUID], references: [aircraft_UUID], onDelete: Restrict)
   sector   FlightSector? @relation(fields: [sector_UUID], references: [sector_UUID], onDelete: SetNull)
