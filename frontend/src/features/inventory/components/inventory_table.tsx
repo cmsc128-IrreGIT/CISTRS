@@ -15,7 +15,7 @@ import { format_inventory_expiry } from "../utils/inventory_dates";
 
 const location: TableColumn<InventoryItem> = {
     id: "location",
-    header: "Location",
+    header: "Location / Storage Area",
     render: ({ locations }) =>
         locations?.length ? (
             <ul role="list" className="space-y-1.5">

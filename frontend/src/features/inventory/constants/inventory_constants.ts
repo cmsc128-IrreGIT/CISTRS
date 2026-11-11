@@ -36,12 +36,6 @@ export const STOCK_FILTER_LABELS = {
 export const STOCK_FILTER_PARAM = "stock";
 export const DECOMMISSIONED_PAGE_SIZE = 10;
 
-export const INVENTORY_TEXT_FIELDS = [
-    { name: "part_name", label: "Item Name", required: true },
-    { name: "part_number", label: "Part Number", required: true },
-    { name: "unit_of_measure", label: "Unit of Measure", required: true },
-] as const;
-
 export const DECOMMISSIONED_STORAGE_KEY = "decommissioned_inventory_ids";
 export const DECOMMISSIONED_CHANGE_EVENT = "decommissioned_inventory_changed";
 
@@ -61,9 +55,6 @@ export const STOCK_STATUS_STYLES: Record<
     low_stock: "bg-amber-100 text-amber-900",
     out_of_stock: "bg-red-100 text-red-800",
 };
-
-export const INVENTORY_FORM_INPUT =
-    "min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-2 focus:outline-red-500";
 
 export const INVENTORY_FILTER_SELECT =
     "min-h-11 w-full rounded-lg border border-slate-200 bg-white px-2.5 text-sm font-normal text-slate-700 focus-visible:outline-2 focus-visible:outline-[#1d4ed8]";
