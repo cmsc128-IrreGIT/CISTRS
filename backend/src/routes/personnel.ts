@@ -7,6 +7,8 @@ import {
     listEmployees,
     listEmployeesQuerySchema,
     listExpiringLicenses,
+    updateEmployee,
+    updateEmployeeSchema,
 } from "../services/personnel.service.js";
 
 // Mounted in server.ts behind requireAuth + requireFeature(FEATURE.Personnel).
@@ -43,6 +45,20 @@ personnelRouter.get("/employees/:emp_UUID", async (req, res) => {
     const emp_UUID = parseUuid(req.params.emp_UUID, "employee ID");
     res.json(await getEmployee(emp_UUID));
 });
+
+// -----------------------------------------------------------------------------
+// BE-28: update
+
+// PATCH /api/personnel/employees/:emp_UUID
+// body: any subset of the create fields (null clears m_name, suffix, blood_type,
+//       photo and supervisor_emp_UUID)
+personnelRouter.patch("/employees/:emp_UUID", async (req, res) => {
+    const emp_UUID = parseUuid(req.params.emp_UUID, "employee ID");
+    const input = parseOrThrow(updateEmployeeSchema, req.body);
+    res.json(await updateEmployee(emp_UUID, input, req.user!.emp_UUID));
+});
+
+// -----------------------------------------------------------------------------
 
 // GET /api/personnel/licenses/expiring?days=60 -> licenses expiring soon
 personnelRouter.get("/licenses/expiring", async (req, res) => {

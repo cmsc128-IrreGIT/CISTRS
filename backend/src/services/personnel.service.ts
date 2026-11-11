@@ -379,6 +379,122 @@ export async function getEmployee(emp_UUID: string) {
     return toEmployeeResponse(await findEmployeeOr404(emp_UUID));
 }
 
+// -----------------------------------------------------------------------------
+// BE-28: UPDATE
+//   PATCH /api/personnel/employees/:emp_UUID
+//   Any subset of the fields. Unsent fields stay as they are; null clears the
+//   optional ones (middle name, suffix, blood type, photo, supervisor).
+
+export const updateEmployeeSchema = z
+    .object({
+        emp_number: employeeFields.emp_number,
+        f_name: employeeFields.f_name,
+        m_name: employeeFields.m_name.nullable(),
+        l_name: employeeFields.l_name,
+        suffix: employeeFields.suffix.nullable(),
+        date_of_birth: employeeFields.date_of_birth,
+        sex: employeeFields.sex,
+        blood_type: employeeFields.blood_type.nullable(),
+        photo: employeeFields.photo.nullable(),
+        date_hired: employeeFields.date_hired,
+        department: employeeFields.department,
+        record_status: employeeFields.record_status,
+        supervisor_emp_UUID: employeeFields.supervisor_emp_UUID.nullable(),
+        base_UUID: employeeFields.base_UUID,
+        emp_status_UUID: employeeFields.emp_status_UUID,
+        position_UUID: employeeFields.position_UUID,
+        personnel_category_UUID: employeeFields.personnel_category_UUID,
+    })
+    .partial()
+    .strict()
+    .refine(
+        (input) => Object.values(input).some((value) => value !== undefined),
+        "At least one field must be provided",
+    );
+export type UpdateEmployeeInput = z.infer<typeof updateEmployeeSchema>;
+
+const DATE_KEYS = ["date_of_birth", "date_hired"] as const;
+
+export async function updateEmployee(
+    emp_UUID: string,
+    input: UpdateEmployeeInput,
+    actor_emp_UUID: string,
+) {
+    const existing = await findEmployeeOr404(emp_UUID);
+
+    // The current values in the same form the API accepts them in.
+    const current: Record<string, unknown> = {
+        ...existing,
+        date_of_birth: day(existing.date_of_birth),
+        date_hired: day(existing.date_hired),
+    };
+
+    // Only fields that were sent AND differ from what is stored.
+    const changes: UpdateEmployeeInput = {};
+    for (const key of Object.keys(input) as (keyof UpdateEmployeeInput)[]) {
+        if (input[key] !== undefined && input[key] !== current[key]) {
+            Object.assign(changes, { [key]: input[key] });
+        }
+    }
+
+    // Nothing to change: leave the record, and its audit columns, untouched.
+    if (Object.keys(changes).length === 0) {
+        return toEmployeeResponse(existing);
+    }
+
+    // The final dates (changed or not) must still make sense together.
+    throwIfIssues(
+        dateIssues(
+            changes.date_of_birth ?? day(existing.date_of_birth),
+            changes.date_hired ?? day(existing.date_hired),
+        ),
+    );
+
+    // Deactivating yourself would lock you out of the system.
+    if (
+        changes.record_status === "Inactive" &&
+        emp_UUID === actor_emp_UUID
+    ) {
+        throw new HttpError(400, "You cannot deactivate your own record");
+    }
+
+    // Duplicate checks run on the final name and birth date when any of them changes.
+    const identityChanged =
+        changes.f_name !== undefined ||
+        changes.l_name !== undefined ||
+        changes.date_of_birth !== undefined;
+    await assertNoDuplicate(
+        {
+            emp_number: changes.emp_number,
+            ...(identityChanged
+                ? {
+                      f_name: changes.f_name ?? existing.f_name,
+                      l_name: changes.l_name ?? existing.l_name,
+                      date_of_birth:
+                          changes.date_of_birth ??
+                          day(existing.date_of_birth),
+                  }
+                : {}),
+        },
+        emp_UUID,
+    );
+
+    await assertReferences(changes, emp_UUID);
+
+    const data: Prisma.EmployeeUncheckedUpdateInput = {
+        ...changes,
+        updated_by: actor_emp_UUID,
+    };
+    for (const key of DATE_KEYS) {
+        const value = changes[key];
+        if (value !== undefined) data[key] = toDbDate(value);
+    }
+
+    await prisma.employee.update({ where: { emp_UUID }, data });
+
+    return toEmployeeResponse(await findEmployeeOr404(emp_UUID));
+}
+
 
 export async function listExpiringLicenses(days: number) {
     const limit = new Date(Date.now() + days * 24 * 60 * 60 * 1000);

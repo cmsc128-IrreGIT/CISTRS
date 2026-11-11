@@ -96,6 +96,13 @@ const ROUTES: RouteCase[] = [
         permittedStatus: 400,
     },
     {
+        method: "PATCH",
+        path: "/api/personnel/employees/20000000-0000-4000-8000-000000000001",
+        feature: "Personnel",
+        body: {},
+        permittedStatus: 400,
+    },
+    {
         method: "GET",
         path: "/api/users",
         feature: "User Accounts",
