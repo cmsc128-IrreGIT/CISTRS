@@ -11,7 +11,7 @@ Your Laptop
 │
 ├── PostgreSQL 18
 │   └── cistrs database
-│       ├── 37 CISTRS tables   (created by Prisma migrations)
+│       ├── 38 CISTRS tables   (created by Prisma migrations)
 │       └── Seed data          (loaded by the Prisma seeder)
 │
 └── CISTRS Backend
@@ -257,13 +257,14 @@ npx prisma migrate dev
 npx prisma generate
 ```
 
-The repository contains the latest initial migration:
+The repository contains two migrations, applied in this order:
 
-prisma/migrations/20261106175237_init/
+1. `prisma/migrations/20261106175237_init/` creates the CISTRS database structure.
+2. `prisma/migrations/20261111120000_integrity_audit_hardening/` adds data-integrity rules, audit columns and the `personnel_category` lookup table (see "Database Rules and Audit Columns" below).
 
-This migration creates the updated CISTRS database structure, including:
+Together they create:
 
-- 37 CISTRS tables
+- 38 CISTRS tables
 - 6 enum types
 - All indexes and foreign keys
 - Prisma's own `_prisma_migrations` table, which tracks what has been applied
@@ -373,15 +374,16 @@ To reload edited values or start clean, reset the database (see "Reset Your Loca
 | ------------------------- | ---: | ------------------------- | ---: |
 | `base`                    |    3 | `part`                    |    8 |
 | `employment_status`       |    5 | `inventory_location`      |    4 |
-| `employee`                |    8 | `part_supplier`           |    9 |
-| `contact`                 |   22 | `part_manufacturer`       |    8 |
-| `employee_contact`        |   16 | `inventory_status`        |   16 |
-| `license_type`            |    6 | `inventory_transaction`   |   21 |
-| `renewal_status`          |    5 | `organization_contact`    |    6 |
-| `employee_license`        |   10 | `user_account`            |    8 |
-| `organization`            |    6 | `position`                |    8 |
-| `supplier`                |    4 | `system_feature`          |    9 |
-| `manufacturer`            |    4 | `position_feature_access` |   33 |
+| `personnel_category`      |    5 | `part_supplier`           |    9 |
+| `employee`                |    8 | `part_manufacturer`       |    8 |
+| `contact`                 |   24 | `inventory_status`        |   16 |
+| `employee_contact`        |   16 | `inventory_transaction`   |   21 |
+| `license_type`            |    6 | `organization_contact`    |    6 |
+| `renewal_status`          |    5 | `user_account`            |    8 |
+| `employee_license`        |   10 | `position`                |    8 |
+| `organization`            |    6 | `system_feature`          |    9 |
+| `supplier`                |    4 | `position_feature_access` |   33 |
+| `manufacturer`            |    4 |                           |      |
 
 Tables added by the updated schema (`emergency_contact`, `medical_certificate`, `training_*`, `aircraft*`, `ad_record`, `cpcp_task`, `flight_*`, `delay_category`, `fuel_transaction`) are present in `seed.json` as empty arrays. The seeder skips empty tables, so add rows there when demo data is needed.
 
@@ -433,7 +435,7 @@ You should be able to see the CISTRS database models/tables managed by Prisma, n
 
 1. Expand `cistrs → Schemas → public → Tables`.
 2. Right-click **Tables** and select **Refresh**.
-3. Confirm you see37 CISTRS tables plus `_prisma_migrations`.
+3. Confirm you see 38 CISTRS tables plus `_prisma_migrations`.
 
 Look at the tables, but **do not edit their structure in pgAdmin**.
 
@@ -628,10 +630,11 @@ These are the database files in the repository:
 ```text
 backend/
 ├── prisma/
-│   ├── schema.prisma                    # All 37 models, enums, relations, indexes
-│   ├── checks.sql                       # Optional CHECK constraints (see below)
+│   ├── schema.prisma                    # All 38 models, enums, relations, indexes
+│   ├── checks.sql                       # Pointer only: the CHECK rules are now in a migration
 │   └── migrations/
-│       └── 20261025150334_init/         # Creates the 37 tables
+│       ├── 20261106175237_init/         # Creates the tables
+│       └── 20261111120000_integrity_audit_hardening/  # Rules, audit columns, personnel_category
 ├── src/
 │   ├── generated/prisma/                # Created by `npx prisma generate`
 │   ├── seeder/
@@ -718,34 +721,36 @@ Run `npx prisma migrate reset` followed by `npx prisma db seed` if the seed data
 
 ---
 
-# Optional: Add CHECK Constraints
+# Database Rules and Audit Columns
 
-The `init` migration does **not** include CHECK constraints. `prisma/checks.sql` holds them. Add them only if the team agrees.
+The migration `20261111120000_integrity_audit_hardening` is applied by `npx prisma migrate dev` like any other. It does not change any API.
 
-The constraints enforce these rules:
+**Audit columns.** `created_at` and `updated_at` exist on `employee`, `part`, `inventory_status`, `employee_license`, `medical_certificate`, `training_record`, `aircraft`, `ad_record`, `flight_sector` and `fuel_transaction` (`cpcp_task` gets `created_at` beside its existing `last_updated`). `employee` also has `created_by` and `updated_by` (nullable employee IDs).
+For rows that existed before the migration, the timestamps hold the migration time and `created_by` / `updated_by` are empty.
 
-- `min_stock_level` is never negative.
-- `current_quantity` is never negative.
-- `quantity_change` is never zero.
-- `expiry_date` is never earlier than `date_issued`.
+**`personnel_category`** is now a lookup table. `employee.personnel_category_UUID` points to it, and `GET /api/personnel/employees` still returns `personnel_category` as the category name.
 
-**One person** adds them as a **new** migration. Do not edit the `init` migration.
+**Uniqueness**
 
-1. Create an empty migration:
+- `contact`: one row per `(contact_type, contact_value)`.
+- `organization`: one row per `(organization_name, organization_location)`.
+- `inventory_location`: one row per `(location_name, storage_area)`.
+- `employee_license`: one row per `(emp_UUID, license_type_UUID, license_number)`.
+- `cpcp_task`: one row per `(aircraft_UUID, task_reference)`.
 
-    ```bash
-    npx prisma migrate dev --name add_check_constraints --create-only
-    ```
+A duplicate insert is answered with `409`.
 
-2. Open `prisma/migrations/<timestamp>_add_check_constraints/migration.sql`.
-3. Paste the contents of `prisma/checks.sql` into it.
-4. Apply the migration:
+**CHECK constraints** (Prisma cannot express these in `schema.prisma`):
 
-    ```bash
-    npx prisma migrate dev
-    ```
+- `part.min_stock_level`, `inventory_status.current_quantity` and `aircraft.current_hours` are never negative; `inventory_transaction.quantity_change` is never zero.
+- `employee_license`, `medical_certificate` and `training_record`: expiry is never before issue/completion.
+- `employee`: hired on or after the date of birth; never their own supervisor; `blood_type` is one of A+, A-, B+, B-, AB+, AB-, O+, O-.
+- `flight_sector`: passengers, flight time and fuel are never negative; `day_night` is `Day` or `Night`.
+- `fuel_transaction.quantity_gal` is greater than zero.
 
-5. Commit the new migration folder. Teammates get it when they run `npx prisma migrate dev`.
+If you change a rule, add a **new** migration. Never edit a migration that has been applied.
+
+**Existing database?** Run `npx prisma migrate dev`. The migration fails (and changes nothing) if existing rows already break a new rule; the error names the row. To also pick up the corrected seed data, run `npx prisma migrate reset` and then `npx prisma db seed`.
 
 ---
 
