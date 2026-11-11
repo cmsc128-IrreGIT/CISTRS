@@ -1,15 +1,11 @@
 import { Router } from "express";
+import { parseOrThrow, parseUuid } from "../lib/validate.js";
 import {
-    listEmployees,
     listExpiringLicenses,
 } from "../services/personnel.service.js";
 
+// Mounted in server.ts behind requireAuth + requireFeature(FEATURE.Personnel).
 export const personnelRouter = Router();
-
-// GET /api/personnel/employees -> employees with base, status, contacts, licenses
-personnelRouter.get("/employees", async (_req, res) => {
-    res.json(await listEmployees());
-});
 
 // GET /api/personnel/licenses/expiring?days=60 -> licenses expiring soon
 personnelRouter.get("/licenses/expiring", async (req, res) => {
