@@ -1,139 +1,83 @@
-import { CalendarDays, Wrench } from "lucide-react";
 import { Link } from "react-router";
-import Card from "../../../shared/components/ui/card";
 import StatusBadge from "../../../shared/components/ui/status_badge";
 import type { PreviewRecord } from "../../../shared/types/record_types";
 import { dashboard_list_limit } from "../config/dashboard_config";
-
-type PendingMaintenanceCardProps = {
-    maintenance: PreviewRecord[];
-};
-
-const link_style =
-    "rounded-sm text-sm font-medium text-slate-600 underline underline-offset-4 decoration-slate-300 hover:text-[#0b2238] hover:decoration-slate-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-600";
+import DashboardDate from "./dashboard_date";
+import DashboardPanel from "./dashboard_panel";
 
 export default function PendingMaintenanceCard({
-    maintenance,
-}: PendingMaintenanceCardProps) {
-    const visible = maintenance.slice(0, Math.min(2, dashboard_list_limit));
-
-    return (
-        <Card
-            compact
-            className="h-full"
-            title="Pending Maintenance"
-            action={
-                <Link to="/maintenance?status=pending" className={link_style}>
-                    View records
-                </Link>
-            }
-        >
-            {visible.length > 0 ? (
-                <>
-                    <p className="mb-2 text-[11px] text-slate-500 sm:text-xs">
-                        {maintenance.length} pending{" "}
-                        {maintenance.length === 1 ? "task" : "tasks"}
-                        {maintenance.length > visible.length
-                            ? ` · Showing ${visible.length}`
-                            : ""}
-                    </p>
-
-                    <ul className="space-y-2">
-                        {visible.map((record) => {
-                            const date = record.due_date
-                                ? new Date(`${record.due_date}T00:00:00`)
-                                : null;
-
-                            const valid_date =
-                                date && !Number.isNaN(date.getTime())
-                                    ? date
-                                    : null;
-
-                            const today = new Date();
-                            today.setHours(0, 0, 0, 0);
-
-                            const overdue = valid_date && valid_date < today;
-
-                            return (
-                                <li
-                                    key={record.id}
-                                    className="rounded-lg border border-slate-200 bg-slate-50/60 p-2.5 sm:p-3"
-                                >
-                                    <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                                        <Link
-                                            to={`/maintenance/${record.id}`}
-                                            className="min-w-0 flex-1 break-words rounded-sm text-sm font-semibold text-[#0b2238] underline decoration-slate-300 underline-offset-4 hover:text-[#1d4ed8] focus-visible:outline-2 focus-visible:outline-[#1d4ed8]"
-                                        >
-                                            {record.title}
-                                        </Link>
-
-                                        <StatusBadge
-                                            tone={
-                                                record.status === "In Progress"
-                                                    ? "info"
-                                                    : "neutral"
-                                            }
-                                        >
-                                            {record.status || "Not recorded"}
-                                        </StatusBadge>
-                                    </div>
-
-                                    <p className="mt-1 break-words text-[11px] text-slate-600 sm:text-xs">
-                                        {record.aircraft ||
-                                            "Unassigned aircraft"}
-                                    </p>
-
-                                    <div
-                                        className={`mt-2 flex items-center gap-2 border-t border-slate-200/80 pt-2 text-[11px] sm:text-xs ${
-                                            overdue
-                                                ? "font-medium text-red-700"
-                                                : "text-slate-600"
-                                        }`}
-                                    >
-                                        <CalendarDays
-                                            size={14}
-                                            className="shrink-0"
-                                            aria-hidden="true"
-                                        />
-
-                                        {valid_date ? (
-                                            <span>
-                                                {overdue ? "Overdue" : "Due"} ·{" "}
-                                                <time
-                                                    dateTime={record.due_date}
-                                                >
-                                                    {valid_date.toLocaleDateString(
-                                                        "en-PH",
-                                                        {
-                                                            month: "short",
-                                                            day: "numeric",
-                                                            year: "numeric",
-                                                        },
-                                                    )}
-                                                </time>
-                                            </span>
-                                        ) : (
-                                            <span>Due date not recorded</span>
-                                        )}
-                                    </div>
-                                </li>
-                            );
-                        })}
-                    </ul>
-                </>
-            ) : (
-                <div className="flex min-h-32 flex-col items-center justify-center gap-3 py-4 text-center">
-                    <Wrench
-                        size={24}
-                        className="text-slate-400"
-                        aria-hidden="true"
-                    />
-                    <p className="text-sm text-slate-500">
-                        No pending maintenance records.
-                    </p>
+  maintenance,
+  today = new Date(),
+}: {
+  maintenance: PreviewRecord[];
+  today?: Date;
+}) {
+  const start_of_day = new Date(today);
+  start_of_day.setHours(0, 0, 0, 0);
+  const visible = [...maintenance]
+    .sort((first, second) =>
+      (first.due_date || "9999").localeCompare(second.due_date || "9999"),
+    )
+    .slice(0, dashboard_list_limit);
+  return (
+    <DashboardPanel
+      title="Pending Maintenance"
+      sample
+      footer={{
+        label: "View records",
+        to: "/maintenance?status=pending",
+      }}
+    >
+      {visible.length ? (
+        <ul className="space-y-2">
+          {visible.map((record) => {
+            const overdue =
+              new Date(`${record.due_date}T00:00:00`) < start_of_day;
+            return (
+              <li key={record.id} className="rounded-md bg-[#f4f7fa] p-2.5">
+                <div className="flex flex-wrap items-start justify-between gap-x-2 gap-y-1">
+                  <Link
+                    to={`/maintenance/${record.id}`}
+                    className="text-sm font-semibold wrap-break-word hover:underline"
+                  >
+                    {record.title}
+                  </Link>
+                  <StatusBadge
+                    tone={
+                      overdue ? "danger" : record.status ? "info" : "neutral"
+                    }
+                  >
+                    {overdue ? "Overdue" : record.status || "Not recorded"}
+                  </StatusBadge>
                 </div>
-            )}
-        </Card>
-    );
+                <p className="mt-1 text-xs text-slate-600">
+                  {record.aircraft || "Unassigned aircraft"}
+                </p>
+                <p
+                  className={`mt-1 text-sm ${overdue ? "text-red-700" : "text-slate-600"}`}
+                >
+                  {record.due_date ? (
+                    <>
+                      Due: <DashboardDate value={record.due_date} />
+                    </>
+                  ) : (
+                    "Due date not recorded"
+                  )}
+                </p>
+              </li>
+            );
+          })}
+        </ul>
+      ) : (
+        <p className="py-2 text-sm text-slate-600">
+          No pending maintenance records.
+        </p>
+      )}
+      {maintenance.length > visible.length && (
+        <p className="mt-2 text-xs text-slate-600">
+          Showing {visible.length} of {maintenance.length} pending items
+        </p>
+      )}
+    </DashboardPanel>
+  );
 }
-

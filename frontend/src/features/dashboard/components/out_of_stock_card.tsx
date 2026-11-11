@@ -1,82 +1,47 @@
-import { Package } from "lucide-react";
 import { Link } from "react-router";
-import EmptyState from "../../../shared/components/feedback/empty_state";
-import Card from "../../../shared/components/ui/card";
 import StatusBadge from "../../../shared/components/ui/status_badge";
 import type { InventoryItem } from "../../inventory/types/inventory_types";
 import { dashboard_list_limit } from "../config/dashboard_config";
+import DashboardPanel from "./dashboard_panel";
+import DashboardTable from "./dashboard_table";
 
-type OutOfStockCardProps = {
-    items: InventoryItem[];
-};
-
-const link_style =
-    "rounded-sm text-sm font-medium text-slate-600 underline underline-offset-4 decoration-slate-300 hover:text-[#0b2238] hover:decoration-slate-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-600";
-
-export default function OutOfStockCard({ items }: OutOfStockCardProps) {
-    const visible_items = items.slice(0, Math.min(2, dashboard_list_limit));
-
+export default function StockAlertsCard({ items }: { items: InventoryItem[] }) {
     return (
-        <Card
-            compact
-            className="h-full"
-            title="Out-of-stock Items"
-            action={
-                <Link to="/inventory" className={link_style}>
-                    View inventory
-                </Link>
-            }
+        <DashboardPanel
+            title="Stock alerts"
+            footer={{ label: "View inventory", to: "/inventory" }}
         >
-            {items.length === 0 ? (
-                <div className="flex min-h-32 items-center justify-center">
-                    <EmptyState
-                        compact
-                        title="No out-of-stock items"
-                        description="All current inventory records have a quantity above zero."
-                        icon={Package}
-                    />
-                </div>
-            ) : (
-                <ul className="divide-y divide-slate-100">
-                    {visible_items.map((item) => (
-                        <li
-                            key={item.part_UUID}
-                            className="py-3 first:pt-0 last:pb-0"
+            <DashboardTable
+                caption="Stock alerts"
+                headers={["Item", "Available", "Status"]}
+                empty="No stock alerts."
+                rows={items.slice(0, dashboard_list_limit).map((item) => ({
+                    id: item.part_UUID,
+                    cells: [
+                        <Link
+                            to={`/inventory/${item.part_UUID}`}
+                            className="hover:underline"
                         >
-                            <div className="flex flex-wrap items-center justify-between gap-3">
-                                <div className="min-w-0">
-                                    <Link
-                                        to={`/inventory/${item.part_UUID}`}
-                                        className="font-medium text-slate-900 hover:underline"
-                                    >
-                                        {item.part_name}
-                                    </Link>
-                                    <p className="mt-1 text-sm text-slate-500">
-                                        {item.part_number} ·{" "}
-                                        {item.locations
-                                            .map(
-                                                (location) =>
-                                                    location.location_name,
-                                            )
-                                            .join(", ") || "No stock location"}
-                                    </p>
-                                </div>
-
-                                <StatusBadge tone="danger">
-                                    Out of stock
-                                </StatusBadge>
-                            </div>
-                        </li>
-                    ))}
-                </ul>
-            )}
-
-            {items.length > visible_items.length && (
-                <p className="mt-4 text-xs text-slate-500">
-                    Showing {visible_items.length} of {items.length}{" "}
-                    out-of-stock items.
+                            {item.part_name}
+                        </Link>,
+                        `${item.total_quantity} ${item.unit_of_measure || (item.total_quantity === 1 ? "unit" : "units")}`,
+                        <StatusBadge
+                            tone={
+                                item.total_quantity === 0 ? "danger" : "warning"
+                            }
+                        >
+                            {item.total_quantity === 0
+                                ? "Out of stock"
+                                : "Low stock"}
+                        </StatusBadge>,
+                    ],
+                }))}
+            />
+            {items.length > dashboard_list_limit && (
+                <p className="mt-2 text-xs text-slate-600">
+                    Showing {dashboard_list_limit} of {items.length} stock alerts
                 </p>
             )}
-        </Card>
+        </DashboardPanel>
     );
 }

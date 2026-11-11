@@ -8,6 +8,7 @@ type ProfileMenuProps = {
     display_name: string;
     role: string;
     email?: string;
+    compact?: boolean;
     on_logout?: () => Promise<void>;
 };
 
@@ -15,6 +16,7 @@ export default function ProfileMenu({
     display_name,
     role,
     email,
+    compact = false,
     on_logout,
 }: ProfileMenuProps) {
     const [open, set_open] = useState(false);
@@ -103,8 +105,14 @@ export default function ProfileMenu({
                     aria-controls={panel_id}
                     className="flex min-h-11 items-center gap-3 rounded-lg px-2 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-red-600"
                 >
-                    <span className="flex size-10 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-sm font-semibold text-[#0b2238]">
-                        {initials}
+                    <span
+                        className={`flex shrink-0 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-sm font-semibold ${compact ? "size-9 text-slate-600" : "size-10 text-[#0b2238]"}`}
+                    >
+                        {compact ? (
+                            <User size={18} aria-hidden="true" />
+                        ) : (
+                            initials
+                        )}
                     </span>
 
                     <span className="hidden max-w-40 text-left sm:block">
@@ -116,7 +124,7 @@ export default function ProfileMenu({
                         </span>
                     </span>
 
-                    <ChevronDown size={16} aria-hidden="true" />
+                    {!compact && <ChevronDown size={16} aria-hidden="true" />}
                 </button>
 
                 {open && (

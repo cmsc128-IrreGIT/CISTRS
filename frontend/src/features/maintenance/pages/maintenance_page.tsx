@@ -24,13 +24,18 @@ export default function MaintenancePage() {
         set_params(next, { replace: true });
     }
     const term = search.trim().toLowerCase();
+    const due_limit = new Date();
+    due_limit.setHours(0, 0, 0, 0);
+    due_limit.setDate(due_limit.getDate() + 30);
     const filtered = rows.filter(
         (row) =>
             (!selected || row.aircraft === selected) &&
             (!part || row.part_number === part) &&
-            (status === "pending"
-                ? row.status !== "Completed"
-                : !status || row.status === status) &&
+            (status === "due"
+                ? row.status !== "Completed" && new Date(`${row.due_date}T00:00:00`) <= due_limit
+                : status === "pending"
+                  ? row.status !== "Completed"
+                  : !status || row.status === status) &&
             [row.title, row.aircraft, row.part_number, row.notes].some(
                 (value) => (value || "").toLowerCase().includes(term),
             ),
@@ -96,6 +101,7 @@ export default function MaintenancePage() {
                         >
                             <option value="">All statuses</option>
                             <option value="pending">Pending tasks</option>
+                            <option value="due">Due soon or overdue</option>
                             {["Scheduled", "In Progress", "Completed"].map(
                                 (value) => (
                                     <option key={value} value={value}>

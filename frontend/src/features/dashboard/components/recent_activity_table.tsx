@@ -1,65 +1,45 @@
-import { Link } from "react-router";
-import DataTable from "../../../shared/components/ui/data_table";
-import type { TableColumn } from "../../../shared/components/ui/data_table";
-import type { InventoryTransaction } from "../../inventory/types/inventory_types";
+import type { ReactNode } from "react";
+import DashboardDate from "./dashboard_date";
+import DashboardPanel from "./dashboard_panel";
+import DashboardTable from "./dashboard_table";
+import { dashboard_list_limit } from "../config/dashboard_config";
 
-const columns: TableColumn<InventoryTransaction>[] = [
-    {
-        id: "time",
-        header: "Time",
-        render: (row) => (
-            <time dateTime={row.created_at}>
-                {new Date(row.created_at).toLocaleString()}
-            </time>
-        ),
-    },
-    {
-        id: "user",
-        header: "User",
-        render: (row) => `${row.updater.f_name} ${row.updater.l_name}`,
-    },
-    {
-        id: "action",
-        header: "Action",
-        render: (row) =>
-            `${row.transaction_type} (${row.quantity_change > 0 ? "+" : ""}${row.quantity_change})`,
-    },
-    {
-        id: "details",
-        header: "Details",
-        render: (row) => (
-            <Link
-                to={`/inventory/${row.status.part.part_UUID}`}
-                className="rounded-sm text-sm font-medium text-slate-600 underline underline-offset-4 decoration-slate-300 hover:text-[#0b2238] hover:decoration-slate-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-600"
-            >
-                {row.status.part.part_name}
-            </Link>
-        ),
-    },
-];
-
-type RecentActivityTableProps = {
-    rows: InventoryTransaction[];
+export type Activity = {
+  id: string;
+  date: string;
+  activity: ReactNode;
+  reference: string;
 };
 
 export default function RecentActivityTable({
-    rows,
-}: RecentActivityTableProps) {
-    if (rows.length === 0)
-        return (
-            <p className="py-2 text-sm text-slate-500">
-                No activity recorded yet. Stock transactions will appear here.
-            </p>
-        );
-    return (
-        <DataTable
-            compact_empty
-            caption="Recent inventory activity"
-            columns={columns}
-            rows={rows}
-            get_row_key={(row) => row.transaction_UUID}
-            empty_title="No activity recorded yet"
-            empty_description="Stock transactions will appear here."
-        />
-    );
+  rows,
+  history_to,
+  sample = false,
+}: {
+  rows: Activity[];
+  history_to?: string;
+  sample?: boolean;
+}) {
+  return (
+    <DashboardPanel
+      title="Recent activity"
+      className="dashboard-activity"
+      sample={sample}
+      footer={
+        history_to ? { label: "View history", to: history_to } : undefined
+      }
+    >
+      <DashboardTable
+        caption="Recent activity"
+        headers={["Date", "Activity", "Reference"]}
+        empty="No recent activity recorded."
+        rows={rows
+          .slice(0, dashboard_list_limit)
+          .map(({ id, date, activity, reference }) => ({
+            id,
+            cells: [<DashboardDate value={date} />, activity, reference || "—"],
+          }))}
+      />
+    </DashboardPanel>
+  );
 }
