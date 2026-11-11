@@ -59,6 +59,7 @@ personnelRouter.patch("/employees/:emp_UUID", async (req, res) => {
 });
 
 // -----------------------------------------------------------------------------
+// Licenses
 
 // GET /api/personnel/licenses/expiring?days=60 -> licenses expiring soon
 personnelRouter.get("/licenses/expiring", async (req, res) => {

@@ -13,6 +13,19 @@ import {
 } from "./common/fields.js";
 import { employeeSummarySelect } from "./common/lookups.js";
 
+// =============================================================================
+// Personnel service (employees and pilots)
+//   Shared      : field rules, reference checks, response mapper
+//   BE-26       : create an employee / pilot record
+//   BE-27       : retrieve records (list + single)
+//   BE-28       : update a record
+//
+// There is no separate pilot table: a pilot is an employee whose
+// personnel_category is "Pilot". One set of endpoints covers both.
+// =============================================================================
+
+// -----------------------------------------------------------------------------
+// SHARED
 
 const BLOOD_TYPES = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"] as const;
 
@@ -495,6 +508,8 @@ export async function updateEmployee(
     return toEmployeeResponse(await findEmployeeOr404(emp_UUID));
 }
 
+// -----------------------------------------------------------------------------
+// LICENSES (unchanged)
 
 export async function listExpiringLicenses(days: number) {
     const limit = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
