@@ -83,6 +83,12 @@ const ROUTES: RouteCase[] = [
         permittedStatus: 200,
     },
     {
+        method: "GET",
+        path: "/api/personnel/employees/20000000-0000-4000-8000-000000000001",
+        feature: "Personnel",
+        permittedStatus: 200,
+    },
+    {
         method: "POST",
         path: "/api/personnel/employees",
         feature: "Personnel",

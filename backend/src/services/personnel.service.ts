@@ -11,8 +11,9 @@ import {
     uuidField,
     type RuleIssue,
 } from "./common/fields.js";
+import { employeeSummarySelect } from "./common/lookups.js";
 
-import { } from "./common/lookups.js";
+
 const BLOOD_TYPES = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"] as const;
 
 // Must match the CHECK constraint employee_blood_type_valid in the database.
@@ -49,6 +50,58 @@ const employeeFields = {
     position_UUID: uuidField("position_UUID"),
     personnel_category_UUID: uuidField("personnel_category_UUID"),
 };
+
+// Detail used by list, single, create and update, so every endpoint returns
+// the same shape.
+const employeeInclude = {
+    base: true,
+    employment_status: true,
+    personnel_category: true,
+    position: { select: { position_UUID: true, position_name: true } },
+    supervisor: { select: employeeSummarySelect },
+    contacts: { include: { contact: true } },
+    licenses: { include: { license_type: true } },
+} satisfies Prisma.EmployeeInclude;
+
+type EmployeeWithRelations = Prisma.EmployeeGetPayload<{
+    include: typeof employeeInclude;
+}>;
+
+const day = (value: Date) => value.toISOString().slice(0, 10);
+
+function toEmployeeResponse(employee: EmployeeWithRelations) {
+    const { personnel_category, ...rest } = employee;
+    return {
+        ...rest,
+        // DATE columns are sent as "YYYY-MM-DD", the same format they are accepted in.
+        date_of_birth: day(employee.date_of_birth),
+        date_hired: day(employee.date_hired),
+        // personnel_category is a lookup table. The category name keeps being
+        // returned under the same field; personnel_category_UUID is included too.
+        personnel_category: personnel_category.category_name,
+    };
+}
+
+async function findEmployeeOr404(emp_UUID: string) {
+    const employee = await prisma.employee.findUnique({
+        where: { emp_UUID },
+        include: employeeInclude,
+    });
+    if (!employee) throw new HttpError(404, "Employee not found");
+    return employee;
+}
+
+// Cross-field rule (also enforced by the database): hired on or after birth.
+function dateIssues(date_of_birth: string, date_hired: string): RuleIssue[] {
+    return date_hired < date_of_birth
+        ? [
+              {
+                  field: "date_hired",
+                  message: "Date hired cannot be before the date of birth",
+              },
+          ]
+        : [];
+}
 
 interface References {
     base_UUID?: string;
@@ -194,6 +247,7 @@ async function assertNoDuplicate(
     }
 }
 
+// -----------------------------------------------------------------------------
 // BE-26: CREATE
 //   POST /api/personnel/employees
 
@@ -256,6 +310,73 @@ export async function createEmployee(
 
     // Same response shape as GET.
     return toEmployeeResponse(await findEmployeeOr404(created.emp_UUID));
+}
+
+// -----------------------------------------------------------------------------
+// BE-27: RETRIEVE
+//   GET /api/personnel/employees              (list, optional filters and paging)
+//   GET /api/personnel/employees/:emp_UUID    (single)
+
+export const listEmployeesQuerySchema = z.object({
+    record_status: z
+        .enum(["Active", "Inactive"], "record_status must be Active or Inactive")
+        .optional(),
+    personnel_category_UUID: uuidField("personnel_category_UUID").optional(),
+    base_UUID: uuidField("base_UUID").optional(),
+    // Case-insensitive partial match on employee number or name. Several words
+    // must each match something ("adrian reyes").
+    q: z.string().trim().max(100, "q must be at most 100 characters").optional(),
+    // Without a limit every matching record is returned, as before.
+    limit: z.coerce
+        .number("limit must be a number")
+        .int("limit must be a whole number")
+        .min(1, "limit must be at least 1")
+        .max(200, "limit must be at most 200")
+        .optional(),
+    offset: z.coerce
+        .number("offset must be a number")
+        .int("offset must be a whole number")
+        .min(0, "offset cannot be negative")
+        .default(0),
+});
+export type ListEmployeesQuery = z.infer<typeof listEmployeesQuerySchema>;
+
+// Returns the page of records plus the total number of matches
+// (the route sends the total in the X-Total-Count header).
+export async function listEmployees(query: ListEmployeesQuery) {
+    const tokens = (query.q ?? "").split(/\s+/).filter(Boolean);
+
+    const where: Prisma.EmployeeWhereInput = {
+        record_status: query.record_status,
+        personnel_category_UUID: query.personnel_category_UUID,
+        base_UUID: query.base_UUID,
+        AND: tokens.map((token) => ({
+            OR: [
+                { emp_number: { contains: token, mode: "insensitive" as const } },
+                { f_name: { contains: token, mode: "insensitive" as const } },
+                { m_name: { contains: token, mode: "insensitive" as const } },
+                { l_name: { contains: token, mode: "insensitive" as const } },
+            ],
+        })),
+    };
+
+    const [total, employees] = await prisma.$transaction([
+        prisma.employee.count({ where }),
+        prisma.employee.findMany({
+            where,
+            orderBy: { emp_number: "asc" },
+            include: employeeInclude,
+            skip: query.offset,
+            take: query.limit,
+        }),
+    ]);
+
+    return { total, records: employees.map(toEmployeeResponse) };
+}
+
+// A nonexistent ID gives a 404, not a crash.
+export async function getEmployee(emp_UUID: string) {
+    return toEmployeeResponse(await findEmployeeOr404(emp_UUID));
 }
 
 
