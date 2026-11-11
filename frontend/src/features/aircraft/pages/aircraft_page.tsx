@@ -5,6 +5,7 @@ import SearchInput from "../../../shared/components/forms/search_input";
 import PageHeader from "../../../shared/components/ui/page_header";
 import Card from "../../../shared/components/ui/card";
 import DataTable from "../../../shared/components/ui/data_table";
+import useTablePagination from "../../../shared/hooks/use_table_pagination";
 import Pagination from "../../../shared/components/ui/pagination";
 import AircraftBreadcrumbs from "../components/aircraft_breadcrumbs";
 import AircraftStatusBadge from "../components/aircraft_status_badge";
@@ -18,7 +19,6 @@ export default function AircraftPage() {
     const rows = useAircraft();
     const [search, set_search] = useState("");
     const [status, set_status] = useState("");
-    const [requested_page, set_page] = useState(1);
     const statuses = [
         ...new Set([
             ...(
@@ -38,8 +38,10 @@ export default function AircraftPage() {
                 (value) => value?.toLowerCase().includes(term),
             ),
     );
-    const total_pages = Math.max(1, Math.ceil(filtered.length / 5));
-    const page = Math.min(requested_page, total_pages);
+    const { visible_rows, footer } = useTablePagination(
+        filtered,
+        JSON.stringify([search, status]),
+    );
 
     return (
         <section aria-labelledby="page_title" className="space-y-4">
@@ -60,7 +62,7 @@ export default function AircraftPage() {
                             value={search}
                             on_change={(value) => {
                                 set_search(value);
-                                set_page(1);
+                                footer.on_page_change(1);
                             }}
                             label="Search aircraft"
                             placeholder="Registration / tail no. or aircraft type"
@@ -72,7 +74,7 @@ export default function AircraftPage() {
                             value={status}
                             onChange={(event) => {
                                 set_status(event.target.value);
-                                set_page(1);
+                                footer.on_page_change(1);
                             }}
                             className={select_field}
                         >
@@ -86,13 +88,12 @@ export default function AircraftPage() {
                     </label>
                 </div>
                 <div className="my-3 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
-                    <p role="status">{filtered.length} records shown</p>
                     <p>Aircraft type, hours, and status are preview values.</p>
                 </div>
                 <DataTable
                     bounded
                     caption="Aircraft records"
-                    rows={filtered.slice((page - 1) * 5, page * 5)}
+                    rows={visible_rows}
                     get_row_key={(row) => row.id}
                     empty_title={
                         search || status
@@ -158,15 +159,11 @@ export default function AircraftPage() {
                         },
                     ]}
                 />
-                {total_pages > 1 && (
-                    <div className="mt-3">
-                        <Pagination
-                            page={page}
-                            total_pages={total_pages}
-                            on_page_change={set_page}
-                        />
-                    </div>
-                )}
+                <Pagination
+                    {...footer}
+                    item_label="aircraft"
+                    plural_label="aircraft"
+                />
             </Card>
         </section>
     );

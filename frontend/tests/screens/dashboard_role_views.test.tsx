@@ -2,6 +2,7 @@ import { afterEach, expect, it, vi } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";
+import { DECOMMISSIONED_STORAGE_KEY } from "../../src/features/inventory/constants/inventory_constants";
 import DashboardPage from "../../src/features/dashboard/pages/dashboard_page";
 import Sidebar from "../../src/shared/components/navigation/sidebar";
 import useInventory from "../../src/features/inventory/hooks/use_inventory";
@@ -224,4 +225,21 @@ it("keeps pilot navigation usable and retries failed records", async () => {
   ).toBeInTheDocument();
   expect(fetcher).toHaveBeenCalledTimes(2);
   expect(get_inventory).not.toHaveBeenCalled();
+});
+
+it("excludes decommissioned parts from the Inventory count and stock alerts", async () => {
+  state.features = ["Dashboard", "Inventory"];
+  state.position = "Inventory Staff";
+  localStorage.setItem(DECOMMISSIONED_STORAGE_KEY, JSON.stringify(["oil"]));
+  show();
+  await screen.findByRole("link", { name: "Brake assembly", exact: true });
+  expect(
+    screen.getByRole("link", { name: /^Inventory items\s*1$/ }),
+  ).toBeInTheDocument();
+  expect(
+    screen.getByRole("link", { name: /^Stock alerts\s*1$/ }),
+  ).toBeInTheDocument();
+  expect(
+    screen.queryByRole("link", { name: "Oil filter", exact: true }),
+  ).not.toBeInTheDocument();
 });

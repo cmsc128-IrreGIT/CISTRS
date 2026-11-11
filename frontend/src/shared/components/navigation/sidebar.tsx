@@ -72,7 +72,7 @@ export default function Sidebar() {
       <nav aria-label="Help navigation" className="mt-3">
         <NavigationLinks collapsed={collapsed} support />
       </nav>
-      {!collapsed && <LogoutAction />}
+      <LogoutAction collapsed={collapsed} />
     </aside>
   );
 }

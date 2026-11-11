@@ -1,25 +1,53 @@
+import { Download } from "lucide-react";
 import { useState } from "react";
 import ScreenLoading from "../../../shared/components/feedback/screen_loading";
-import BackLink from "../../../shared/components/navigation/back_link";
 import Card from "../../../shared/components/ui/card";
-import PageHeader from "../../../shared/components/ui/page_header";
+import Button from "../../../shared/components/ui/button";
 import SearchInput from "../../../shared/components/forms/search_input";
+import useTablePagination from "../../../shared/hooks/use_table_pagination";
 import Pagination from "../../../shared/components/ui/pagination";
-import InventoryHistoryTable from "../components/inventory_history_table";
+import {
+    InventoryBreadcrumbs,
+    InventoryTabs,
+} from "../components/inventory_workspace";
 import useInventoryHistory from "../hooks/use_inventory_history";
+import type { InventoryTransaction } from "../types/inventory_types";
+
+import {
+    StockMovementDetails,
+    StockMovementTable,
+} from "../components/stock_movements";
+import {
+    INVENTORY_PRIMARY_ACTION,
+    INVENTORY_FILTER_SELECT,
+} from "../constants/inventory_constants";
+import {
+    STOCK_HISTORY_DATE_RANGES,
+    STOCK_HISTORY_PAGE_SIZE,
+} from "../constants/stock_history_constants";
+import { export_stock_history, format_movement } from "../utils/stock_history";
+
 export default function InventoryHistoryPage() {
     const { history, is_loading, error, reload } = useInventoryHistory();
     const [search, set_search] = useState("");
     const [action, set_action] = useState("");
-    const [pagination, set_pagination] = useState({ key: "", page: 1 });
+    const [days, set_days] = useState("");
+    const [selected, set_selected] = useState<InventoryTransaction | null>(
+        null,
+    );
     const term = search.trim().toLowerCase();
-    const types = Array.from(
-        new Set(history.map((row) => row.transaction_type)),
-    ).sort();
+    const cutoff = new Date();
+    cutoff.setHours(0, 0, 0, 0);
+    cutoff.setDate(cutoff.getDate() - (Number(days) - 1));
+    const show_reference = history.some(
+        (row) => row.reference?.trim() || row.recipient?.trim(),
+    );
+    const types = [...new Set(history.map(format_movement))].sort();
     const filtered = history
         .filter(
             (row) =>
-                (!action || row.transaction_type === action) &&
+                (!action || format_movement(row) === action) &&
+                (!days || Date.parse(row.created_at) >= cutoff.getTime()) &&
                 [
                     row.status.part.part_name,
                     row.status.part.part_number,
@@ -27,94 +55,115 @@ export default function InventoryHistoryPage() {
                     row.updater.f_name,
                     row.updater.l_name,
                     row.remarks ?? "",
+                    row.reference ?? "",
+                    row.transaction_UUID,
+                    row.recipient ?? "",
                 ].some((value) => value.toLowerCase().includes(term)),
         )
         .sort(
-            (a, b) =>
-                new Date(b.created_at).getTime() -
-                new Date(a.created_at).getTime(),
+            (first, second) =>
+                Date.parse(second.created_at) - Date.parse(first.created_at),
         );
-    const key = `${term}|${action}`;
-    const total = Math.max(1, Math.ceil(filtered.length / 5));
-    const page = pagination.key === key ? Math.min(pagination.page, total) : 1;
+    const { visible_rows, footer } = useTablePagination(
+        filtered,
+        JSON.stringify([term, action, days]),
+        STOCK_HISTORY_PAGE_SIZE,
+    );
     return (
         <section aria-labelledby="page_title" className="space-y-4">
-            <BackLink to="/inventory" label="Back to inventory" />
-            <PageHeader
-                title="Inventory Change History"
-                title_id="page_title"
-                description="Recorded stock movements, quantities, locations, and responsible staff."
-                help="Search by item, part number, location, staff, or remarks. Records are shown newest first. Open the item name to review the associated part."
-            />
+            <InventoryBreadcrumbs current="Stock History" />
+            <h1 id="page_title" className="sr-only">
+                Stock History
+            </h1>
             <Card>
+                <InventoryTabs />
                 {is_loading ? (
                     <ScreenLoading compact label="Loading inventory history…" />
                 ) : error ? (
                     <div role="alert" className="text-sm text-red-700">
                         <p>{error}</p>
-                        <button
-                            type="button"
-                            onClick={() => void reload()}
-                            className="mt-2 min-h-11 rounded font-medium text-[#1d4ed8] underline focus-visible:outline-2"
-                        >
+                        <Button variant="ghost" onClick={() => void reload()}>
                             Try again
-                        </button>
+                        </Button>
                     </div>
                 ) : (
                     <>
-                        <div className="mb-3 flex flex-wrap items-center gap-3">
-                            <SearchInput
-                                value={search}
-                                on_change={set_search}
-                                label="Search inventory history"
-                                placeholder="Item, part number, location, staff, or remarks"
-                                className="w-full sm:max-w-md"
-                            />
-                            <label className="flex items-center gap-2 text-sm text-slate-600">
-                                Action
+                        <div className="mb-4 flex flex-wrap items-end gap-3 rounded-md bg-[#f5f8fa] p-4">
+                            <div className="min-w-0 flex-[2_1_14rem]">
+                                <p className="mb-1 text-sm font-medium">
+                                    Search
+                                </p>
+                                <SearchInput
+                                    value={search}
+                                    on_change={set_search}
+                                    label="Search inventory history"
+                                    placeholder={
+                                        show_reference
+                                            ? "Item, reference, or recipient"
+                                            : "Item, location, or recorded by"
+                                    }
+                                />
+                            </div>
+                            <label className="min-w-0 flex-[1_1_8rem] text-sm font-medium">
+                                Movement
                                 <select
+                                    className={`mt-1 ${INVENTORY_FILTER_SELECT}`}
                                     value={action}
                                     onChange={(event) =>
                                         set_action(event.currentTarget.value)
                                     }
-                                    className="min-h-11 rounded-lg border border-slate-300 bg-white px-3"
                                 >
-                                    <option value="">All actions</option>
+                                    <option value="">All movements</option>
                                     {types.map((value) => (
-                                        <option key={value} value={value}>
-                                            {value}
+                                        <option key={value}>{value}</option>
+                                    ))}
+                                </select>
+                            </label>
+                            <label className="min-w-0 flex-[1_1_8rem] text-sm font-medium">
+                                Date range
+                                <select
+                                    className={`mt-1 ${INVENTORY_FILTER_SELECT}`}
+                                    value={days}
+                                    onChange={(event) =>
+                                        set_days(event.currentTarget.value)
+                                    }
+                                >
+                                    <option value="">All dates</option>
+                                    {STOCK_HISTORY_DATE_RANGES.map((days) => (
+                                        <option key={days} value={days}>
+                                            Last {days} days
                                         </option>
                                     ))}
                                 </select>
                             </label>
+                            <Button
+                                className={INVENTORY_PRIMARY_ACTION}
+                                disabled={!filtered.length}
+                                onClick={() => export_stock_history(filtered)}
+                            >
+                                <Download size={17} aria-hidden="true" /> Export
+                                records
+                            </Button>
                         </div>
-                        <p
-                            role="status"
-                            className="mb-3 text-sm text-slate-500"
-                        >
-                            {filtered.length} history records
-                        </p>
-                        {history.length > 0 && filtered.length === 0 ? (
-                            <p className="py-4 text-sm text-slate-600">
-                                No history records match these filters.
-                            </p>
-                        ) : (
-                            <InventoryHistoryTable
-                                rows={filtered.slice((page - 1) * 5, page * 5)}
-                            />
-                        )}
-                        <div className="mt-3">
-                            <Pagination
-                                page={page}
-                                total_pages={total}
-                                on_page_change={(next) =>
-                                    set_pagination({ key, page: next })
-                                }
-                            />
-                        </div>
+                        <h2 className="mb-3 text-base font-semibold text-[#0b2238]">
+                            Receipts and issues
+                        </h2>
+                        <StockMovementTable
+                            rows={visible_rows}
+                            has_history={history.length > 0}
+                            show_reference={show_reference}
+                            on_view={set_selected}
+                        />
+                        <Pagination {...footer} item_label="movement" />
                     </>
                 )}
             </Card>
+            {selected && (
+                <StockMovementDetails
+                    selected={selected}
+                    on_close={() => set_selected(null)}
+                />
+            )}
         </section>
     );
 }

@@ -1,5 +1,5 @@
 import { ClipboardCheck } from "lucide-react";
-import { get_workspace } from "./workspace";
+import { get_inventory_access, get_workspace } from "./workspace";
 import { useAuth } from "../../../features/auth/hooks/auth_context";
 import { Fragment } from "react";
 import { NavLink, useLocation } from "react-router";
@@ -31,11 +31,17 @@ export default function NavigationLinks({
     "/personnel/availability": "Availability",
     "/users": "User Accounts",
   };
-  const items = navigation_items.filter(
-    (item) =>
-      (support ? item.to === "/help" : item.to !== "/help") &&
-      (!features[item.to] || user?.features?.includes(features[item.to])),
-  );
+  const items = navigation_items
+    .filter(
+      (item) =>
+        (support ? item.to === "/help" : item.to !== "/help") &&
+        (!features[item.to] || user?.features?.includes(features[item.to])),
+    )
+    .map((item) =>
+      item.to === "/inventory" && get_inventory_access(user) === "read"
+        ? { ...item, label: "Stock availability" }
+        : item,
+    );
   return (
     <>
       {items.map(({ to, label, icon: Icon }) => (

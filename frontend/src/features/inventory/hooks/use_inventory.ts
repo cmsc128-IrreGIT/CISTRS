@@ -46,5 +46,5 @@ export default function useInventory(enabled = true) {
     };
   }, [load, enabled]);
 
-  return { items, is_loading, error, reload };
+  return { items, is_loading, error, reload, refresh: load };
 }

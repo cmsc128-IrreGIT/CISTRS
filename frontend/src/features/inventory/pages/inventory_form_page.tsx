@@ -1,5 +1,11 @@
+import { useEffect, useRef, useState } from "react";
 import ScreenLoading from "../../../shared/components/feedback/screen_loading";
-import { useNavigate, useParams } from "react-router";
+import {
+    useLocation,
+    useNavigate,
+    useOutletContext,
+    useParams,
+} from "react-router";
 import { toast } from "sonner";
 import FormDialog from "../../../shared/components/ui/form_dialog";
 import InventoryForm from "../components/inventory_form";
@@ -8,7 +14,7 @@ import {
     create_inventory_item,
     update_inventory_item,
 } from "../services/inventory_services";
-import useInventory from "../hooks/use_inventory";
+import type useInventory from "../hooks/use_inventory";
 import type {
     InitialStock,
     InventoryFormValues,
@@ -17,7 +23,29 @@ import type {
 export default function InventoryFormPage() {
     const { item_id } = useParams();
     const navigate = useNavigate();
-    const { items, is_loading, error } = useInventory();
+    const location = useLocation();
+    const { items, is_loading, error, refresh } =
+        useOutletContext<ReturnType<typeof useInventory>>();
+    const [is_saving, set_is_saving] = useState(false);
+    const mounted = useRef(false);
+
+    useEffect(() => {
+        mounted.current = true;
+        return () => {
+            mounted.current = false;
+        };
+    }, []);
+
+    function close_form() {
+        if (location.state?.from_inventory === true) {
+            void navigate(-1);
+        } else {
+            void navigate(
+                { pathname: "..", search: location.search },
+                { replace: true },
+            );
+        }
+    }
     const locations = Array.from(
         new Map(
             items
@@ -32,8 +60,10 @@ export default function InventoryFormPage() {
         values: InventoryFormValues,
         initial_stock?: InitialStock,
     ) {
+        if (is_saving) return;
+        set_is_saving(true);
         try {
-            if (is_editing && item_id) {
+            if (item_id) {
                 await update_inventory_item(item_id, values);
 
                 toast.success("Inventory item updated successfully.");
@@ -46,20 +76,23 @@ export default function InventoryFormPage() {
                 toast.success("Inventory item added successfully.");
             }
 
-            navigate("/inventory");
+            if (mounted.current) close_form();
+            void refresh();
         } catch (error) {
             toast.error(
                 error instanceof Error
                     ? error.message
                     : "Could not save inventory item.",
             );
+        } finally {
+            if (mounted.current) set_is_saving(false);
         }
     }
 
     return (
         <FormDialog
             title={is_editing ? "Edit Inventory Item" : "Add Inventory Item"}
-            on_close={() => navigate("/inventory")}
+            on_close={close_form}
         >
             {is_loading ? (
                 <ScreenLoading compact label="Loading inventory…" />
@@ -87,6 +120,8 @@ export default function InventoryFormPage() {
                     }
                     locations={locations}
                     on_submit={handle_save}
+                    on_cancel={close_form}
+                    is_saving={is_saving}
                     submit_text={
                         is_editing
                             ? "Edit Inventory Item"

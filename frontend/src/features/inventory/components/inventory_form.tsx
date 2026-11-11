@@ -1,13 +1,16 @@
 import type { SubmitEvent } from "react";
-import { Link } from "react-router";
 import FormField from "../../../shared/components/forms/form_field";
 import Button from "../../../shared/components/ui/button";
-import { button_styles } from "../../../shared/styles/button_styles";
 import type {
     InitialStock,
     InventoryFormValues,
     InventoryLocation,
 } from "../types/inventory_types";
+
+import {
+    INVENTORY_TEXT_FIELDS,
+    INVENTORY_FORM_INPUT,
+} from "../constants/inventory_constants";
 
 type InventoryFormProps = {
     initial_values?: InventoryFormValues;
@@ -17,29 +20,24 @@ type InventoryFormProps = {
         initial_stock?: InitialStock,
     ) => void;
     submit_text: string;
+    on_cancel: () => void;
+    is_saving?: boolean;
 };
-
-const text_fields = [
-    { name: "part_name", label: "Item Name", required: true },
-    { name: "part_number", label: "Part Number", required: true },
-    { name: "unit_of_measure", label: "Unit of Measure", required: true },
-] as const;
-
-const input_style =
-    "min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-2 focus:outline-red-500";
 
 export default function InventoryForm({
     initial_values,
     locations,
     on_submit,
     submit_text,
+    on_cancel,
+    is_saving = false,
 }: InventoryFormProps) {
     function handle_submit(event: SubmitEvent<HTMLFormElement>) {
         event.preventDefault();
 
         const form = event.currentTarget;
 
-        for (const field of text_fields) {
+        for (const field of INVENTORY_TEXT_FIELDS) {
             const input = form.elements.namedItem(field.name);
 
             if (input instanceof HTMLInputElement) {
@@ -110,7 +108,7 @@ export default function InventoryForm({
                 </legend>
 
                 <div className="grid gap-5 sm:grid-cols-2">
-                    {text_fields.map((field) => (
+                    {INVENTORY_TEXT_FIELDS.map((field) => (
                         <FormField
                             key={field.name}
                             id={field.name}
@@ -130,7 +128,7 @@ export default function InventoryForm({
                                             "",
                                         )
                                     }
-                                    className={input_style}
+                                    className={INVENTORY_FORM_INPUT}
                                 />
                             )}
                         </FormField>
@@ -159,7 +157,7 @@ export default function InventoryForm({
                                 defaultValue={
                                     initial_values?.min_stock_level ?? 0
                                 }
-                                className={input_style}
+                                className={INVENTORY_FORM_INPUT}
                             />
                         )}
                     </FormField>
@@ -171,7 +169,7 @@ export default function InventoryForm({
                                 name="description"
                                 maxLength={500}
                                 defaultValue={initial_values?.description ?? ""}
-                                className={input_style}
+                                className={INVENTORY_FORM_INPUT}
                             />
                         )}
                     </FormField>
@@ -195,7 +193,7 @@ export default function InventoryForm({
                                             "",
                                         )
                                     }
-                                    className={input_style}
+                                    className={INVENTORY_FORM_INPUT}
                                     defaultValue=""
                                 >
                                     <option value="">Select a location</option>
@@ -224,7 +222,7 @@ export default function InventoryForm({
                                     min="0"
                                     step="1"
                                     defaultValue="0"
-                                    className={input_style}
+                                    className={INVENTORY_FORM_INPUT}
                                 />
                             )}
                         </FormField>
@@ -233,11 +231,13 @@ export default function InventoryForm({
             )}
 
             <div className="flex justify-end gap-3 border-t border-slate-200 pt-5">
-                <Link to="/inventory" className={button_styles("secondary")}>
+                <Button variant="secondary" onClick={on_cancel}>
                     Cancel
-                </Link>
+                </Button>
 
-                <Button type="submit">{submit_text}</Button>
+                <Button type="submit" is_loading={is_saving}>
+                    {submit_text}
+                </Button>
             </div>
         </form>
     );

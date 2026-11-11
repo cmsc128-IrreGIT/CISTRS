@@ -1,15 +1,22 @@
+import EmptyState from "../../../shared/components/feedback/empty_state";
+import InventoryListFilters from "../components/inventory_list_filters";
+import {
+    InventoryBreadcrumbs,
+    InventoryTabs,
+} from "../components/inventory_workspace";
+import useInventoryFilters from "../hooks/use_inventory_filters";
 import { useState } from "react";
+import useTablePagination from "../../../shared/hooks/use_table_pagination";
 import Pagination from "../../../shared/components/ui/pagination";
-import SearchInput from "../../../shared/components/forms/search_input";
 import Card from "../../../shared/components/ui/card";
-import PageHeader from "../../../shared/components/ui/page_header";
-import BackLink from "../../../shared/components/navigation/back_link";
 import DataTable from "../../../shared/components/ui/data_table";
 import type { TableColumn } from "../../../shared/components/ui/data_table";
 import ConfirmationModal from "../../../shared/components/ui/confirmation_modal";
 import type { InventoryItem } from "../types/inventory_types";
 import useInventory from "../hooks/use_inventory";
 import useDecommissionedInventory from "../hooks/use_inventory_decommission";
+
+import { DECOMMISSIONED_PAGE_SIZE } from "../constants/inventory_constants";
 
 const columns = (
     on_request_restore: (item: InventoryItem) => void,
@@ -63,11 +70,7 @@ export default function DecommissionedPartsPage() {
 
     const { is_decommissioned, restore_item } = useDecommissionedInventory();
 
-    const [search, set_search] = useState("");
-    const [pagination, set_pagination] = useState({
-        key: "",
-        page: 1,
-    });
+    const [stock_filter, set_stock_filter] = useState("");
     const [selected_item, set_selected_item] = useState<InventoryItem | null>(
         null,
     );
@@ -76,28 +79,24 @@ export default function DecommissionedPartsPage() {
         is_decommissioned(item.part_UUID),
     );
 
-    const results = decommissioned_items
-        .filter((item) => {
-            const query = search.toLowerCase().trim();
+    const filters = useInventoryFilters(
+        decommissioned_items,
+        stock_filter,
+        set_stock_filter,
+    );
+    const results = [...filters.filtered_items].sort((first, second) =>
+        first.part_name.localeCompare(second.part_name),
+    );
+    const filter_key = JSON.stringify([
+        filters.search,
+        filters.location,
+        stock_filter,
+    ]);
 
-            return (
-                item.part_name.toLowerCase().includes(query) ||
-                item.part_number.toLowerCase().includes(query)
-            );
-        })
-        .sort((first, second) =>
-            first.part_name.localeCompare(second.part_name),
-        );
-
-    const page_size = 10;
-    const total_pages = Math.max(1, Math.ceil(results.length / page_size));
-
-    const page =
-        pagination.key === search ? Math.min(pagination.page, total_pages) : 1;
-
-    const visible_items = results.slice(
-        (page - 1) * page_size,
-        page * page_size,
+    const { visible_rows, footer } = useTablePagination(
+        results,
+        filter_key,
+        DECOMMISSIONED_PAGE_SIZE,
     );
 
     const handle_confirm = () => {
@@ -109,27 +108,17 @@ export default function DecommissionedPartsPage() {
 
     return (
         <section aria-labelledby="page_title" className="space-y-6">
-            <BackLink to="/inventory" label="Back to inventory" />
-
-            <PageHeader
-                title="Decommissioned Parts"
-                title_id="page_title"
-                description="View and restore parts removed from active inventory."
-            />
-
+            <InventoryBreadcrumbs current="Decommissioned parts" />
+            <h1 id="page_title" className="sr-only">
+                Decommissioned parts
+            </h1>
             <Card>
-                <div className="mb-5 max-w-md">
-                    <p className="mb-2 text-sm font-medium text-slate-700">
-                        Search decommissioned parts
-                    </p>
-                    <SearchInput
-                        value={search}
-                        on_change={set_search}
-                        label="Search decommissioned parts"
-                        placeholder="Item name or part number"
-                    />
-                </div>
-
+                <InventoryTabs />
+                <InventoryListFilters
+                    items={decommissioned_items}
+                    filters={filters}
+                    show_category={false}
+                />
                 {is_loading ? (
                     <p className="py-8 text-center text-sm text-slate-500">
                         Loading decommissioned parts...
@@ -148,53 +137,37 @@ export default function DecommissionedPartsPage() {
                             Try again
                         </button>
                     </div>
+                ) : !results.length ? (
+                    <EmptyState
+                        title={
+                            filters.is_filtered
+                                ? "No matching parts"
+                                : "No decommissioned parts"
+                        }
+                        description={
+                            filters.is_filtered
+                                ? "Try changing the filters."
+                                : "Parts marked as decommissioned will appear here."
+                        }
+                    />
                 ) : (
                     <>
-                        <p
-                            role="status"
-                            className="mb-3 text-sm text-slate-500"
-                        >
-                            {results.length === 0
-                                ? "No decommissioned parts shown"
-                                : `Showing ${(page - 1) * page_size + 1}–${Math.min(page * page_size, results.length)} of ${results.length} parts`}
-                        </p>
-
                         <DataTable
                             caption="Decommissioned aircraft parts and supplies"
                             columns={columns(set_selected_item)}
-                            rows={visible_items}
+                            rows={visible_rows}
                             get_row_key={(row) => row.part_UUID}
-                            empty_title={
-                                search
-                                    ? "No matching parts"
-                                    : "No decommissioned parts"
-                            }
-                            empty_description={
-                                search
-                                    ? "Try another search term."
-                                    : "Decommissioned parts will appear here."
-                            }
+                            inventory
                         />
 
-                        <div className="mt-4">
-                            <Pagination
-                                page={page}
-                                total_pages={total_pages}
-                                on_page_change={(next_page) =>
-                                    set_pagination({
-                                        key: search,
-                                        page: next_page,
-                                    })
-                                }
-                            />
-                        </div>
+                        <Pagination {...footer} item_label="part" />
                     </>
                 )}
             </Card>
 
             <ConfirmationModal
                 is_open={selected_item !== null}
-                title="Restore Part?"
+                title="Restore part?"
                 message={
                     <>
                         Are you sure you want to restore{" "}
@@ -205,6 +178,8 @@ export default function DecommissionedPartsPage() {
                     </>
                 }
                 confirm_label="Restore"
+                confirm_tone="success"
+                reminder="Review the part’s stock quantity and storage location after restoring it."
                 on_confirm={handle_confirm}
                 on_cancel={() => set_selected_item(null)}
             />

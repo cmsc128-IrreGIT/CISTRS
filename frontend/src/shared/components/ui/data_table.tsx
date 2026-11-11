@@ -18,6 +18,7 @@ type DataTableProps<T> = {
     empty_action?: ReactNode;
     bounded?: boolean;
     compact_empty?: boolean;
+    inventory?: boolean;
 };
 
 export default function DataTable<T>({
@@ -30,6 +31,7 @@ export default function DataTable<T>({
     empty_action,
     bounded = false,
     compact_empty = false,
+    inventory = false,
 }: DataTableProps<T>) {
     return (
         <div
@@ -41,13 +43,13 @@ export default function DataTable<T>({
             <table className="w-full text-left text-sm">
                 <caption className="sr-only">{caption}</caption>
 
-                <thead className="sticky top-0 z-10 bg-[#f4f6f9] text-[#526273]">
+                <thead className={`sticky top-0 z-10 ${inventory ? "bg-[#152e45] text-white" : "bg-[#f4f6f9] text-[#526273]"}`}>
                     <tr>
                         {columns.map((column) => (
                             <th
                                 key={column.id}
                                 scope="col"
-                                className="whitespace-nowrap border-b border-slate-200 px-3 py-2.5 text-xs font-semibold"
+                                className="whitespace-nowrap border-b border-slate-200 px-3 py-2.5 text-sm font-semibold"
                             >
                                 {column.header}
                             </th>
@@ -55,7 +57,7 @@ export default function DataTable<T>({
                     </tr>
                 </thead>
 
-                <tbody className="divide-y divide-slate-200 bg-white">
+                <tbody className={`divide-y divide-slate-200 ${inventory && rows.length ? "bg-[#f4f6f9]" : "bg-white"}`}>
                     {rows.length === 0 ? (
                         <tr>
                             <td colSpan={columns.length}>
@@ -76,7 +78,7 @@ export default function DataTable<T>({
                                 {columns.map((column) => (
                                     <td
                                         key={column.id}
-                                        className={`px-3 py-2 text-slate-700 ${column.cell_class_name ?? ""}`}
+                                        className={`px-3 ${inventory ? "py-4 text-[#0b2238]" : "py-2 text-slate-700"} ${column.cell_class_name ?? ""}`}
                                     >
                                         {column.render(row)}
                                     </td>

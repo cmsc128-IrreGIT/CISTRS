@@ -3,6 +3,7 @@ import { Link, useSearchParams } from "react-router";
 import PageHeader from "../../../shared/components/ui/page_header";
 import Card from "../../../shared/components/ui/card";
 import SearchInput from "../../../shared/components/forms/search_input";
+import useTablePagination from "../../../shared/hooks/use_table_pagination";
 import Pagination from "../../../shared/components/ui/pagination";
 import { button_styles } from "../../../shared/styles/button_styles";
 import useAircraft from "../../aircraft/hooks/use_aircraft";
@@ -13,7 +14,6 @@ export default function MaintenancePage() {
     const aircraft = useAircraft();
     const [params, set_params] = useSearchParams();
     const [search, set_search] = useState("");
-    const [pagination, set_pagination] = useState({ key: "", page: 1 });
     const selected = params.get("aircraft") ?? "";
     const part = params.get("part") ?? "";
     const status = params.get("status") ?? "";
@@ -32,7 +32,8 @@ export default function MaintenancePage() {
             (!selected || row.aircraft === selected) &&
             (!part || row.part_number === part) &&
             (status === "due"
-                ? row.status !== "Completed" && new Date(`${row.due_date}T00:00:00`) <= due_limit
+                ? row.status !== "Completed" &&
+                  new Date(`${row.due_date}T00:00:00`) <= due_limit
                 : status === "pending"
                   ? row.status !== "Completed"
                   : !status || row.status === status) &&
@@ -40,9 +41,10 @@ export default function MaintenancePage() {
                 (value) => (value || "").toLowerCase().includes(term),
             ),
     );
-    const key = `${term}|${selected}|${part}|${status}`;
-    const total = Math.max(1, Math.ceil(filtered.length / 5));
-    const page = pagination.key === key ? Math.min(pagination.page, total) : 1;
+    const { visible_rows, footer } = useTablePagination(
+        filtered,
+        JSON.stringify([term, selected, part, status]),
+    );
     const aircraft_options = Array.from(
         new Set(
             [
@@ -129,21 +131,8 @@ export default function MaintenancePage() {
                         Related part: <strong>{part}</strong>
                     </p>
                 )}
-                <p role="status" className="mb-3 text-sm text-slate-500">
-                    {filtered.length} maintenance records
-                </p>
-                <MaintenanceTable
-                    rows={filtered.slice((page - 1) * 5, page * 5)}
-                />
-                <div className="mt-3">
-                    <Pagination
-                        page={page}
-                        total_pages={total}
-                        on_page_change={(next) =>
-                            set_pagination({ key, page: next })
-                        }
-                    />
-                </div>
+                <MaintenanceTable rows={visible_rows} />
+                <Pagination {...footer} item_label="maintenance record" />
             </Card>
         </section>
     );

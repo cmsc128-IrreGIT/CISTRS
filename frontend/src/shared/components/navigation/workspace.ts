@@ -53,3 +53,11 @@ export function workspace_label(user: SessionUser | null) {
         ""
     );
 }
+
+export function get_inventory_access(user: SessionUser | null) {
+    if (!user?.features?.includes("Inventory")) return "none";
+    const workspace = get_workspace(user);
+    return workspace === "mechanic" || workspace === "pilot_mechanic"
+        ? "read"
+        : "manage";
+}

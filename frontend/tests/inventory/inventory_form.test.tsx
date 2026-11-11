@@ -1,6 +1,5 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import InventoryForm from "../../src/features/inventory/components/inventory_form";
 import type {
@@ -27,17 +26,17 @@ const locations: InventoryLocation[] = [
 ];
 function render_form(initial_values?: InventoryFormValues) {
     const on_submit = vi.fn();
+    const on_cancel = vi.fn();
     render(
-        <MemoryRouter>
-            <InventoryForm
-                initial_values={initial_values}
-                locations={locations}
-                on_submit={on_submit}
-                submit_text="Save Item"
-            />
-        </MemoryRouter>,
+        <InventoryForm
+            initial_values={initial_values}
+            locations={locations}
+            on_submit={on_submit}
+            on_cancel={on_cancel}
+            submit_text="Save Item"
+        />,
     );
-    return { on_submit, user: userEvent.setup() };
+    return { on_submit, on_cancel, user: userEvent.setup() };
 }
 async function fill_required(user: ReturnType<typeof userEvent.setup>) {
     await user.type(screen.getByLabelText("Item Name *"), " Test Filter ");
@@ -109,8 +108,9 @@ describe("Inventory form", () => {
         expect(on_submit).toHaveBeenCalledOnce();
     });
     it("does not submit when cancelled", async () => {
-        const { user, on_submit } = render_form(valid_values);
-        await user.click(screen.getByRole("link", { name: "Cancel" }));
+        const { user, on_submit, on_cancel } = render_form(valid_values);
+        await user.click(screen.getByRole("button", { name: "Cancel" }));
+        expect(on_cancel).toHaveBeenCalledOnce();
         expect(on_submit).not.toHaveBeenCalled();
     });
 });

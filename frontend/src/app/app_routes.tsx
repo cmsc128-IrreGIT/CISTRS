@@ -1,9 +1,11 @@
 import MaintenanceDetailsPage from "../features/maintenance/pages/maintenance_details_page";
 import HelpPage from "../shared/pages/help_page";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, type ReactNode } from "react";
 import ScreenLoading from "../shared/components/feedback/screen_loading";
 import ForbiddenPage from "../shared/pages/forbidden_page";
 import { Navigate, Route, Routes } from "react-router";
+import { useAuth } from "../features/auth/hooks/auth_context";
+import { get_inventory_access } from "../shared/components/navigation/workspace";
 import RequireSession from "../features/auth/components/require_session";
 
 import LoginPage from "../features/auth/pages/login_page";
@@ -16,6 +18,8 @@ import NotFoundPage from "../shared/pages/not_found_page";
 import InventoryPage from "../features/inventory/pages/inventory_page";
 import InventoryDetailsPage from "../features/inventory/pages/inventory_details_page";
 import InventoryFormPage from "../features/inventory/pages/inventory_form_page";
+import InventoryUnavailablePage from "../features/inventory/pages/inventory_unavailable_page";
+import DecommissionedPartsPage from "../features/inventory/pages/inventory_decommissioned_parts_page";
 import InventoryHistoryPage from "../features/inventory/pages/inventory_history_page";
 
 const AircraftPage = lazy(
@@ -57,6 +61,21 @@ const LogbookFormPage = lazy(
     () => import("../features/logbook/pages/logbook_form_page"),
 );
 
+function InventoryAccess({
+    children,
+    manage = false,
+}: {
+    children: ReactNode;
+    manage?: boolean;
+}) {
+    const { user } = useAuth();
+    const access = get_inventory_access(user);
+    if (access === "none") return <Navigate to="/403" replace />;
+    if (manage && access === "read")
+        return <Navigate to="/inventory" replace />;
+    return children;
+}
+
 export default function AppRoutes() {
     return (
         <Routes>
@@ -78,20 +97,72 @@ export default function AppRoutes() {
                 <Route path="/settings" element={<SettingsPage />} />
                 <Route path="/help" element={<HelpPage />} />
 
-                <Route path="/inventory" element={<InventoryPage />} />
-                <Route path="/inventory/new" element={<InventoryFormPage />} />
+                <Route
+                    path="/inventory"
+                    element={
+                        <InventoryAccess>
+                            <InventoryPage />
+                        </InventoryAccess>
+                    }
+                >
+                    <Route
+                        path="new"
+                        element={
+                            <InventoryAccess manage>
+                                <InventoryFormPage />
+                            </InventoryAccess>
+                        }
+                    />
+                </Route>
+                <Route
+                    path="/inventory/decommissioned"
+                    element={
+                        <InventoryAccess manage>
+                            <DecommissionedPartsPage />
+                        </InventoryAccess>
+                    }
+                />
+                <Route
+                    path="/inventory/changes"
+                    element={
+                        <InventoryAccess manage>
+                            <InventoryUnavailablePage title="Change History" />
+                        </InventoryAccess>
+                    }
+                />
+                <Route
+                    path="/inventory/requests"
+                    element={
+                        <InventoryAccess manage>
+                            <InventoryUnavailablePage title="Restock Requests" />
+                        </InventoryAccess>
+                    }
+                />
                 <Route
                     path="/inventory/history"
-                    element={<InventoryHistoryPage />}
+                    element={
+                        <InventoryAccess manage>
+                            <InventoryHistoryPage />
+                        </InventoryAccess>
+                    }
                 />
                 <Route
                     path="/inventory/:item_id"
-                    element={<InventoryDetailsPage />}
-                />
-                <Route
-                    path="/inventory/:item_id/edit"
-                    element={<InventoryFormPage />}
-                />
+                    element={
+                        <InventoryAccess>
+                            <InventoryDetailsPage />
+                        </InventoryAccess>
+                    }
+                >
+                    <Route
+                        path="edit"
+                        element={
+                            <InventoryAccess manage>
+                                <InventoryFormPage />
+                            </InventoryAccess>
+                        }
+                    />
+                </Route>
 
                 <Route
                     path="/aircraft"

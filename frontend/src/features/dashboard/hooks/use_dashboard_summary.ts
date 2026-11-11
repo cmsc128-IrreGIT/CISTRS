@@ -1,7 +1,8 @@
 import { useSyncExternalStore } from "react";
 import type { DonutChartEntry } from "../../../shared/components/charts/donut_chart";
 import useAircraft from "../../aircraft/hooks/use_aircraft";
-import useInventory from "../../inventory/hooks/use_inventory";
+import useActiveInventory from "../../inventory/hooks/use_active_inventory";
+import { get_stock_status } from "../../inventory/utils/stock_status";
 import useInventoryHistory from "../../inventory/hooks/use_inventory_history";
 import useLogbook from "../../logbook/hooks/use_logbook";
 import usePersonnel from "../../personnel/hooks/use_personnel";
@@ -12,7 +13,7 @@ export default function useDashboardSummary(
   include_inventory = true,
   employee_id?: string,
 ) {
-  const inventory = useInventory(include_inventory);
+  const inventory = useActiveInventory(include_inventory);
   const transactions = useInventoryHistory(include_inventory);
   const aircraft = useAircraft();
   const maintenance = useMaintenance();
@@ -29,7 +30,7 @@ export default function useDashboardSummary(
   due_soon.setDate(today.getDate() + 30);
 
   const stock_alerts = inventory.items
-    .filter((item) => item.total_quantity === 0 || item.is_low_stock)
+    .filter((item) => get_stock_status(item) !== "in_stock")
     .sort((first, second) => first.total_quantity - second.total_quantity);
   const pending_maintenance = maintenance.filter(
     (row) => row.status !== "Completed",

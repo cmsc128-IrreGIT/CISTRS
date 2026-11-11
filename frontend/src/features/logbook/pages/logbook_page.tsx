@@ -6,6 +6,7 @@ import FormField from "../../../shared/components/forms/form_field";
 import Button from "../../../shared/components/ui/button";
 import Card from "../../../shared/components/ui/card";
 import PageHeader from "../../../shared/components/ui/page_header";
+import useTablePagination from "../../../shared/hooks/use_table_pagination";
 import Pagination from "../../../shared/components/ui/pagination";
 import { button_styles } from "../../../shared/styles/button_styles";
 import LogbookTable from "../components/logbook_table";
@@ -17,7 +18,6 @@ export default function LogbookPage() {
     const [search, set_search] = useState("");
     const [date, set_date] = useState("");
     const [selected_id, set_selected_id] = useState<string | null>(null);
-    const [pagination, set_pagination] = useState({ key: "", page: 1 });
     const term = search.trim().toLowerCase();
     const filtered = rows
         .filter(
@@ -36,12 +36,11 @@ export default function LogbookPage() {
         .sort((first, second) =>
             second.entry_date.localeCompare(first.entry_date),
         );
-    const filter_key = JSON.stringify([search, date]);
-    const total_pages = Math.max(1, Math.ceil(filtered.length / 10));
-    const page =
-        pagination.key === filter_key
-            ? Math.min(pagination.page, total_pages)
-            : 1;
+    const { visible_rows, footer } = useTablePagination(
+        filtered,
+        JSON.stringify([search, date]),
+        10,
+    );
     const selected = rows.find((row) => row.id === selected_id);
     return (
         <section aria-labelledby="page_title" className="space-y-5">
@@ -96,24 +95,17 @@ export default function LogbookPage() {
                         </Button>
                     )}
                 </div>
-                <p role="status" className="mb-3 text-sm text-slate-500">
-                    {filtered.length} matching entries
-                </p>
                 <LogbookTable
-                    rows={filtered.slice((page - 1) * 10, page * 10)}
+                    rows={visible_rows}
                     selected_id={selected_id}
                     on_select={set_selected_id}
                     is_filtered={Boolean(term || date)}
                 />
-                <div className="mt-4">
-                    <Pagination
-                        page={page}
-                        total_pages={total_pages}
-                        on_page_change={(next_page) =>
-                            set_pagination({ key: filter_key, page: next_page })
-                        }
-                    />
-                </div>
+                <Pagination
+                    {...footer}
+                    item_label="entry"
+                    plural_label="entries"
+                />
             </Card>
             <div id="log_entry_details">
                 {selected ? (

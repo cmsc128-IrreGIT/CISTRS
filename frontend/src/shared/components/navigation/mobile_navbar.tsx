@@ -4,6 +4,7 @@ import { Bell, LayoutDashboard, Menu, Package, X } from "lucide-react";
 import { useRef } from "react";
 import { NavLink } from "react-router";
 import NavigationLinks from "./navigation_links";
+import { get_inventory_access } from "./workspace";
 
 const mobile_links = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -30,7 +31,7 @@ export default function MobileNavbar() {
             .filter(
               (item) =>
                 item.to !== "/inventory" ||
-                user?.features?.includes("Inventory"),
+                get_inventory_access(user) !== "none",
             )
             .map(({ to, label, icon: Icon }) => (
               <NavLink
@@ -45,7 +46,11 @@ export default function MobileNavbar() {
                 }
               >
                 <Icon size={21} aria-hidden="true" />
-                <span>{label}</span>
+                <span>
+                  {to === "/inventory" && get_inventory_access(user) === "read"
+                    ? "Stock availability"
+                    : label}
+                </span>
               </NavLink>
             ))}
 

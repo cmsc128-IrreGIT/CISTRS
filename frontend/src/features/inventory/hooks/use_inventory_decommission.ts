@@ -1,17 +1,24 @@
 import { useSyncExternalStore } from "react";
 import type { InventoryItem } from "../types/inventory_types";
 
-type PartId = InventoryItem["part_UUID"];
+import {
+    DECOMMISSIONED_CHANGE_EVENT,
+    DECOMMISSIONED_STORAGE_KEY,
+} from "../constants/inventory_constants";
 
-const STORAGE_KEY = "decommissioned_inventory_ids";
-const CHANGE_EVENT = "decommissioned_inventory_changed";
+type PartId = InventoryItem["part_UUID"];
 
 let cached_raw: string | null | undefined;
 let cached_ids: PartId[] = [];
 const empty_ids: PartId[] = [];
 
 function get_snapshot(): PartId[] {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    let raw: string | null;
+    try {
+        raw = localStorage.getItem(DECOMMISSIONED_STORAGE_KEY);
+    } catch {
+        return empty_ids;
+    }
 
     if (raw !== cached_raw) {
         cached_raw = raw;
@@ -30,11 +37,11 @@ function get_snapshot(): PartId[] {
 }
 
 function subscribe(callback: () => void) {
-    window.addEventListener(CHANGE_EVENT, callback);
+    window.addEventListener(DECOMMISSIONED_CHANGE_EVENT, callback);
     window.addEventListener("storage", callback);
 
     return () => {
-        window.removeEventListener(CHANGE_EVENT, callback);
+        window.removeEventListener(DECOMMISSIONED_CHANGE_EVENT, callback);
         window.removeEventListener("storage", callback);
     };
 }
@@ -44,8 +51,8 @@ function get_server_snapshot(): PartId[] {
 }
 
 function save_ids(ids: PartId[]) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(ids));
-    window.dispatchEvent(new Event(CHANGE_EVENT));
+    localStorage.setItem(DECOMMISSIONED_STORAGE_KEY, JSON.stringify(ids));
+    window.dispatchEvent(new Event(DECOMMISSIONED_CHANGE_EVENT));
 }
 
 export default function useDecommissionedInventory() {

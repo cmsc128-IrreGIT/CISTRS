@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-type StatusTone = "neutral" | "success" | "warning" | "danger" | "info";
+export type StatusTone = "neutral" | "success" | "warning" | "danger" | "info";
 
 const tone_styles: Record<StatusTone, string> = {
     neutral: "bg-slate-100 text-slate-700",

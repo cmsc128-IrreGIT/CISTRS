@@ -182,3 +182,54 @@ it("keeps a saved token when the server is temporarily unreachable", async () =>
     );
     expect(get_token()).toBe("saved-token");
 });
+
+it.each([
+    ["/users", "Dashboard"],
+    ["/personnel/employee-1/edit", "Dashboard"],
+    ["/inventory/part-1/edit", "Stock availability"],
+])(
+    "resumes a mechanic's sign-in from %s at an allowed screen",
+    async (from, destination) => {
+        const mechanic = {
+            ...user,
+            roles: ["Mechanic"],
+            features: ["Inventory", "Maintenance"],
+        };
+        vi.stubGlobal(
+            "fetch",
+            vi
+                .fn()
+                .mockResolvedValue(
+                    new Response(
+                        JSON.stringify({
+                            token: "mechanic-token",
+                            user: mechanic,
+                        }),
+                    ),
+                ),
+        );
+        render(
+            <MemoryRouter
+                initialEntries={[{ pathname: "/login", state: { from } }]}
+            >
+                <AuthProvider>
+                    <Routes>
+                        <Route path="/login" element={<LoginPage />} />
+                        <Route path="/dashboard" element={<h1>Dashboard</h1>} />
+                        <Route
+                            path="/inventory"
+                            element={<h1>Stock availability</h1>}
+                        />
+                    </Routes>
+                </AuthProvider>
+            </MemoryRouter>,
+        );
+        const person = userEvent.setup();
+        await person.type(screen.getByLabelText("Username"), "mechanic");
+        await person.type(screen.getByLabelText("Password"), "test-password1");
+        await person.click(screen.getByRole("button", { name: "Log in" }));
+        expect(
+            await screen.findByRole("heading", { name: destination }),
+        ).toBeInTheDocument();
+    },
+);

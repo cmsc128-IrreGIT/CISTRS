@@ -42,7 +42,7 @@ it("filters aircraft by status without the development banner", async () => {
         screen.getByRole("combobox", { name: "Status" }),
         "Maintenance",
     );
-    expect(screen.getByRole("status")).toHaveTextContent("1 records shown");
+    expect(screen.getByRole("status")).toHaveTextContent("1 aircraft");
     expect(
         screen.queryByText(/Fictional preview records/),
     ).not.toBeInTheDocument();

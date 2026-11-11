@@ -4,9 +4,10 @@ import { useRef } from "react";
 import { Eye, EyeOff, PlaneTakeoff } from "lucide-react";
 import { useState } from "react";
 import type { SubmitEvent } from "react";
-import { Link, Navigate, useLocation, useNavigate } from "react-router";
+import { Link, Navigate, useLocation } from "react-router";
 import login_plane from "../../../assets/login_plane.png";
 import AuthPanel from "../components/auth_panel";
+import { get_sign_in_destination } from "../utils/sign_in_destination";
 
 const input_style =
     "min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600";
@@ -19,19 +20,15 @@ export default function LoginPage() {
     const [error, set_error] = useState("");
 
     const { user, login, loading } = useAuth();
-    const navigate = useNavigate();
     const location = useLocation();
     const [pending, set_pending] = useState(false);
     const submitting = useRef(false);
     const requested = (location.state as { from?: string } | null)?.from;
-    const destination =
-        requested?.startsWith("/") &&
-        !requested.startsWith("//") &&
-        !requested.startsWith("/login")
-            ? requested
-            : "/dashboard";
     if (loading) return <ScreenLoading label="Opening your workspace…" />;
-    if (user) return <Navigate to={destination} replace />;
+    if (user)
+        return (
+            <Navigate to={get_sign_in_destination(user, requested)} replace />
+        );
     async function handle_submit(event: SubmitEvent<HTMLFormElement>) {
         event.preventDefault();
 
@@ -55,7 +52,6 @@ export default function LoginPage() {
         set_error("");
         try {
             await login((username as HTMLInputElement).value, password);
-            navigate(destination, { replace: true });
         } catch (error) {
             set_error(
                 error instanceof Error ? error.message : "Unable to sign in.",

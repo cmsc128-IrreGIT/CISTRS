@@ -59,12 +59,15 @@ const columns: TableColumn<PreviewRecord>[] = [
 export default function MaintenanceTable({
     rows,
     caption = "Maintenance records",
+    inventory = false,
 }: {
     rows: PreviewRecord[];
     caption?: string;
+    inventory?: boolean;
 }) {
     return (
         <DataTable
+            inventory={inventory}
             bounded
             compact_empty
             caption={caption}

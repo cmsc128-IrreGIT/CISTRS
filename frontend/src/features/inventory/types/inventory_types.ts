@@ -10,6 +10,8 @@ export type InventoryItem = {
     part_UUID: string;
     part_number: string;
     part_name: string;
+    category?: string | null;
+    expiry_date?: string | null;
     unit_of_measure: string;
     min_stock_level: number;
     description: string | null;
@@ -52,6 +54,8 @@ export type InventoryTransaction = {
     updated_by: string;
     created_at: string;
     remarks: string | null;
+    reference?: string | null;
+    recipient?: string | null;
     status: {
         status_UUID: string;
         current_quantity: number;
@@ -59,6 +63,7 @@ export type InventoryTransaction = {
             part_UUID: string;
             part_number: string;
             part_name: string;
+            unit_of_measure?: string;
         };
         location: {
             location_UUID: string;

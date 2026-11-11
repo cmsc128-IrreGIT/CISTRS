@@ -5,9 +5,11 @@ import Sidebar from "../components/navigation/sidebar";
 
 export default function AppLayout() {
     const is_dashboard = Boolean(useMatch("/dashboard"));
+    const is_inventory = Boolean(useMatch("/inventory/*"));
+    const workspace_background = is_dashboard || is_inventory;
     return (
         <div
-            className={`flex min-h-dvh ${is_dashboard ? "bg-linear-to-br from-[#f3f6f9] via-[#f6f8fa] to-[#edf0f3]" : "bg-[#f4f6f9]"}`}
+            className={`flex min-h-dvh ${workspace_background ? "bg-linear-to-br from-[#f3f6f9] via-[#f6f8fa] to-[#edf0f3]" : "bg-[#f4f6f9]"}`}
         >
             <a
                 href="#main_content"
@@ -24,7 +26,7 @@ export default function AppLayout() {
                 <main
                     id="main_content"
                     tabIndex={-1}
-                    className={`mx-auto w-full max-w-[1440px] p-4 pb-[calc(6rem+env(safe-area-inset-bottom))] md:px-6 md:pb-5 ${is_dashboard ? "md:pt-8 xl:px-9" : "md:pt-5 xl:px-8"}`}
+                    className={`mx-auto w-full max-w-[1440px] p-4 pb-[calc(6rem+env(safe-area-inset-bottom))] md:px-6 md:pb-5 ${workspace_background ? "md:pt-8 xl:px-9" : "md:pt-5 xl:px-8"}`}
                 >
                     <Outlet />
                 </main>

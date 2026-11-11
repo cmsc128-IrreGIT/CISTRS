@@ -40,6 +40,10 @@ it("keeps navigation accessible when the whole sidebar is collapsed", async () =
     "href",
     "/inventory",
   );
+  expect(screen.getByRole("button", { name: "Log out" })).toHaveAttribute(
+    "title",
+    "Log out",
+  );
   await user.click(screen.getByRole("button", { name: "Expand sidebar" }));
   expect(
     screen.getByRole("button", { name: "Collapse sidebar" }),
