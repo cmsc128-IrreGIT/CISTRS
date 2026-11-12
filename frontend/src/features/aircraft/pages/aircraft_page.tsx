@@ -2,7 +2,6 @@ import { Pencil } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router";
 import SearchInput from "../../../shared/components/forms/search_input";
-import PageHeader from "../../../shared/components/ui/page_header";
 import Card from "../../../shared/components/ui/card";
 import DataTable from "../../../shared/components/ui/data_table";
 import useTablePagination from "../../../shared/hooks/use_table_pagination";
@@ -46,14 +45,9 @@ export default function AircraftPage() {
     return (
         <section aria-labelledby="page_title" className="space-y-4">
             <AircraftBreadcrumbs />
-            <PageHeader
-                title="Aircraft"
-                title_id="page_title"
-                description="Review aircraft information, recorded status, and related maintenance."
-                help="Search by registration, aircraft type, or current aircraft hours. Open an aircraft for its details and maintenance records. Update status opens the existing status form."
-            />
-            <Card compact>
-                <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_220px]">
+            <h1 id="page_title" className="sr-only">Aircraft</h1>
+            <Card>
+                <div className="mb-4 grid gap-4 rounded-lg bg-slate-50 p-3 sm:grid-cols-[minmax(0,1fr)_220px]">
                     <div>
                         <p className="mb-2 text-sm font-medium text-slate-700">
                             Search aircraft
@@ -87,10 +81,8 @@ export default function AircraftPage() {
                         </select>
                     </label>
                 </div>
-                <div className="my-3 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
-                    <p>Aircraft type, hours, and status are preview values.</p>
-                </div>
                 <DataTable
+                    inventory
                     bounded
                     caption="Aircraft records"
                     rows={visible_rows}

@@ -2,14 +2,16 @@ import { Outlet, useMatch } from "react-router";
 import AppHeader from "../components/header/app_header";
 import MobileNavbar from "../components/navigation/mobile_navbar";
 import Sidebar from "../components/navigation/sidebar";
-import { INVENTORY_CONTENT_WIDTH } from "../styles/layout_styles";
+import { WORKSPACE_CONTENT_WIDTH } from "../styles/layout_styles";
 
 export default function AppLayout() {
     const is_dashboard = Boolean(useMatch("/dashboard"));
     const is_inventory = Boolean(useMatch("/inventory/*"));
-    const workspace_background = is_dashboard || is_inventory;
-    const content_width = is_inventory
-        ? INVENTORY_CONTENT_WIDTH
+    const is_aircraft = Boolean(useMatch("/aircraft/*"));
+    const aligned_workspace = is_inventory || is_aircraft;
+    const workspace_background = is_dashboard || aligned_workspace;
+    const content_width = aligned_workspace
+        ? WORKSPACE_CONTENT_WIDTH
         : `mx-auto w-full max-w-[1440px] px-4 md:px-6 ${is_dashboard ? "xl:px-9" : "xl:px-8"}`;
     return (
         <div

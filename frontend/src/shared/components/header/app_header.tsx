@@ -4,7 +4,7 @@ import { Link, useLocation, useMatch } from "react-router";
 import { useAuth } from "../../../features/auth/hooks/auth_context";
 import { get_inventory_access, workspace_label } from "../navigation/workspace";
 import ProfileMenu from "./profile_menu";
-import { INVENTORY_CONTENT_WIDTH } from "../../styles/layout_styles";
+import { WORKSPACE_CONTENT_WIDTH } from "../../styles/layout_styles";
 
 export default function AppHeader() {
   const { user, logout } = useAuth();
@@ -12,17 +12,21 @@ export default function AppHeader() {
   const pathname = useLocation().pathname.replace(/\/$/, "");
   const inventory = Boolean(useMatch("/inventory/*"));
   const lookup = inventory && get_inventory_access(user) === "read";
-  const workspace_header = dashboard || inventory;
+  const aircraft = Boolean(useMatch("/aircraft/*"));
+  const aligned_workspace = inventory || aircraft;
+  const workspace_header = dashboard || aligned_workspace;
   const title = dashboard
     ? "Dashboard"
-    : lookup
-      ? "Stock availability"
-      : "Inventory";
+    : aircraft
+      ? "Aircraft"
+      : lookup
+        ? "Stock availability"
+        : "Inventory";
   return (
     <header className="sticky top-0 z-30 h-16 border-b border-slate-200 bg-white">
-      <div className={`flex h-full items-center justify-between gap-3 ${inventory ? INVENTORY_CONTENT_WIDTH : "px-4 sm:px-6"}`}>
+      <div className={`flex h-full items-center justify-between gap-3 ${aligned_workspace ? WORKSPACE_CONTENT_WIDTH : "px-4 sm:px-6"}`}>
         {workspace_header && (
-          <div className={`flex min-w-0 items-center gap-2 ${inventory ? "" : "md:pl-6"}`}>
+          <div className={`flex min-w-0 items-center gap-2 ${aligned_workspace ? "" : "md:pl-6"}`}>
             <span className="text-lg font-bold text-[#0b2238] sm:text-[1.375rem]">
               {title}
             </span>
@@ -32,7 +36,9 @@ export default function AppHeader() {
                 text={
                   dashboard
                     ? "Review summaries and open the related records. Cards follow the features assigned to your position."
-                    : "Search for parts, filter by location or stock status, and use the tabs to review inventory records."
+                    : aircraft
+                      ? "Browse fleet records and review aircraft status and related maintenance. Aircraft type, hours, and status are preview values."
+                      : "Search for parts, filter by location or stock status, and use the tabs to review inventory records."
                 }
               />
             )}
