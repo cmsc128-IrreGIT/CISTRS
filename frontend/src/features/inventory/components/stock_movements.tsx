@@ -4,9 +4,11 @@ import DataTable, {
 } from "../../../shared/components/ui/data_table";
 import DetailsList from "../../../shared/components/ui/details_list";
 import StatusBadge from "../../../shared/components/ui/status_badge";
+import Button from "../../../shared/components/ui/button";
 import FormDialog from "../../../shared/components/ui/form_dialog";
-import { INVENTORY_DATE_OPTIONS } from "../constants/inventory_constants";
+import { INVENTORY_DATE_OPTIONS, INVENTORY_PRIMARY_ACTION } from "../constants/inventory_constants";
 import { STOCK_MOVEMENT_TONES } from "../constants/stock_history_constants";
+import { inventory_location_label, inventory_request_date } from "../utils/inventory_workflows";
 import type { InventoryTransaction } from "../types/inventory_types";
 import {
     format_movement,
@@ -34,6 +36,9 @@ export function StockMovementTable({
             id: "date",
             header: "Date",
             render: (row) => {
+                if (row.movement_date) {
+                    return <time dateTime={row.movement_date}>{inventory_request_date(row.movement_date)}</time>;
+                }
                 const date = Date.parse(row.created_at);
                 return Number.isNaN(date) ? (
                     "—"
@@ -159,66 +164,75 @@ export function StockMovementDetails({
     on_close: () => void;
 }) {
     return (
-        <FormDialog title="Stock movement details" on_close={on_close}>
-            <DetailsList
-                entries={[
-                    {
-                        id: "item",
-                        label: "Item",
-                        value: selected.status.part.part_name,
-                    },
-                    {
-                        id: "date",
-                        label: "Date and time",
-                        value: new Date(selected.created_at).toLocaleString(),
-                    },
-                    {
-                        id: "reference",
-                        label: "Reference",
-                        value: selected.reference?.trim() || "—",
-                    },
-                    {
-                        id: "transaction_id",
-                        label: "Transaction ID",
-                        value: selected.transaction_UUID,
-                    },
-                    {
-                        id: "recipient",
-                        label: "Recipient",
-                        value: selected.recipient || "—",
-                    },
-                    {
-                        id: "part",
-                        label: "Part number",
-                        value: selected.status.part.part_number,
-                    },
-                    {
-                        id: "type",
-                        label: "Movement",
-                        value: format_movement(selected),
-                    },
-                    {
-                        id: "quantity",
-                        label: "Quantity",
-                        value: format_quantity_change(selected),
-                    },
-                    {
-                        id: "location",
-                        label: "Location",
-                        value: selected.status.location.location_name,
-                    },
-                    {
-                        id: "staff",
-                        label: "Recorded by",
-                        value: `${selected.updater.f_name} ${selected.updater.l_name}`,
-                    },
-                    {
-                        id: "remarks",
-                        label: "Remarks",
-                        value: selected.remarks || "—",
-                    },
-                ]}
-            />
+        <FormDialog title="Stock movement details" on_close={on_close} compact>
+            <div className="p-4 sm:px-5">
+                <div className="rounded-md bg-slate-100 p-4">
+                    <DetailsList
+                        entries={[
+                            {
+                                id: "item",
+                                label: "Item",
+                                value: selected.status.part.part_name,
+                            },
+                            {
+                                id: "date",
+                                label: selected.movement_date ? "Movement date" : "Date and time",
+                                value: selected.movement_date ? inventory_request_date(selected.movement_date) : new Date(selected.created_at).toLocaleString(),
+                            },
+                            {
+                                id: "reference",
+                                label: "Reference",
+                                value: selected.reference?.trim() || "—",
+                            },
+                            {
+                                id: "transaction_id",
+                                label: "Transaction ID",
+                                value: selected.transaction_UUID,
+                            },
+                            {
+                                id: "recipient",
+                                label: "Recipient",
+                                value: selected.recipient || "—",
+                            },
+                            ...(selected.supplier_name ? [{ id: "supplier", label: "Supplier", value: selected.supplier_name }] : []),
+                            ...(selected.aircraft ? [{ id: "aircraft", label: "Aircraft", value: selected.aircraft }] : []),
+                            {
+                                id: "part",
+                                label: "Part number",
+                                value: selected.status.part.part_number,
+                            },
+                            {
+                                id: "type",
+                                label: "Movement",
+                                value: format_movement(selected),
+                            },
+                            {
+                                id: "quantity",
+                                label: "Quantity",
+                                value: format_quantity_change(selected),
+                            },
+                            {
+                                id: "location",
+                                label: "Location / Storage area",
+                                value: inventory_location_label(selected.status.location),
+                            },
+                            {
+                                id: "staff",
+                                label: "Recorded by",
+                                value: `${selected.updater.f_name} ${selected.updater.l_name}`,
+                            },
+                            {
+                                id: "remarks",
+                                label: "Remarks",
+                                value: selected.remarks || "—",
+                            },
+                        ]}
+                    />
+                </div>
+            </div>
+            <div className="flex justify-end border-t border-slate-200 px-4 py-3 sm:px-5">
+                <Button className={INVENTORY_PRIMARY_ACTION} onClick={on_close}>Close</Button>
+            </div>
         </FormDialog>
     );
 }

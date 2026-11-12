@@ -39,6 +39,8 @@ export default function InventoryHistoryPage() {
     const cutoff = new Date();
     cutoff.setHours(0, 0, 0, 0);
     cutoff.setDate(cutoff.getDate() - (Number(days) - 1));
+    const cutoff_day = new Date(cutoff.getTime() - cutoff.getTimezoneOffset() * 60_000)
+        .toISOString().slice(0, 10);
     const show_reference = history.some(
         (row) => row.reference?.trim() || row.recipient?.trim(),
     );
@@ -47,7 +49,9 @@ export default function InventoryHistoryPage() {
         .filter(
             (row) =>
                 (!action || format_movement(row) === action) &&
-                (!days || Date.parse(row.created_at) >= cutoff.getTime()) &&
+                (!days || (row.movement_date
+                    ? row.movement_date.slice(0, 10) >= cutoff_day
+                    : Date.parse(row.created_at) >= cutoff.getTime())) &&
                 [
                     row.status.part.part_name,
                     row.status.part.part_number,

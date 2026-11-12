@@ -2,11 +2,15 @@ import { Outlet, useMatch } from "react-router";
 import AppHeader from "../components/header/app_header";
 import MobileNavbar from "../components/navigation/mobile_navbar";
 import Sidebar from "../components/navigation/sidebar";
+import { INVENTORY_CONTENT_WIDTH } from "../styles/layout_styles";
 
 export default function AppLayout() {
     const is_dashboard = Boolean(useMatch("/dashboard"));
     const is_inventory = Boolean(useMatch("/inventory/*"));
     const workspace_background = is_dashboard || is_inventory;
+    const content_width = is_inventory
+        ? INVENTORY_CONTENT_WIDTH
+        : `mx-auto w-full max-w-[1440px] px-4 md:px-6 ${is_dashboard ? "xl:px-9" : "xl:px-8"}`;
     return (
         <div
             className={`flex min-h-dvh ${workspace_background ? "bg-linear-to-br from-[#f3f6f9] via-[#f6f8fa] to-[#edf0f3]" : "bg-[#f4f6f9]"}`}
@@ -26,7 +30,7 @@ export default function AppLayout() {
                 <main
                     id="main_content"
                     tabIndex={-1}
-                    className={`mx-auto w-full max-w-[1440px] p-4 pb-[calc(6rem+env(safe-area-inset-bottom))] md:px-6 md:pb-5 ${workspace_background ? "md:pt-8 xl:px-9" : "md:pt-5 xl:px-8"}`}
+                    className={`${content_width} pt-4 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-5 ${workspace_background ? "md:pt-8" : "md:pt-5"}`}
                 >
                     <Outlet />
                 </main>

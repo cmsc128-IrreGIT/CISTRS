@@ -138,12 +138,6 @@ export default function InventoryPage() {
                     <Pagination {...footer} item_label="item" />
                 )}
             </Card>
-            {!read_only && (
-                <p className="text-sm text-slate-600">
-                    Receive stock adds quantity. Issue stock deducts quantity.
-                    Stock availability does not authorize aircraft use.
-                </p>
-            )}
             <Outlet context={{ ...inventory, items: all_items }} />
         </section>
     );

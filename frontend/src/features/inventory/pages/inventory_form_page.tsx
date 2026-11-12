@@ -19,6 +19,7 @@ import type {
     InitialStock,
     InventoryFormValues,
 } from "../types/inventory_types";
+import { get_inventory_locations } from "../utils/inventory_workflows";
 
 export default function InventoryFormPage() {
     const { item_id } = useParams();
@@ -47,13 +48,7 @@ export default function InventoryFormPage() {
             );
         }
     }
-    const locations = Array.from(
-        new Map(
-            items
-                .flatMap((item) => item.locations)
-                .map((location) => [location.location_UUID, location]),
-        ).values(),
-    );
+    const locations = get_inventory_locations(items);
     const existing_item = items.find((item) => item.part_UUID === item_id);
     const is_editing = Boolean(item_id);
     const units = [...new Set(items.map((item) => item.unit_of_measure.trim()).filter(Boolean))].sort();

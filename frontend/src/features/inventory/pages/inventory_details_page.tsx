@@ -6,12 +6,14 @@ import ScreenLoading from "../../../shared/components/feedback/screen_loading";
 import { get_inventory_access } from "../../../shared/components/navigation/workspace";
 import Button from "../../../shared/components/ui/button";
 import Card from "../../../shared/components/ui/card";
-import ConfirmationModal from "../../../shared/components/ui/confirmation_modal";
 import { button_styles } from "../../../shared/styles/button_styles";
 import { AuthContext } from "../../auth/hooks/auth_context";
 import InventoryItemInformation from "../components/inventory_item_information";
 import InventoryItemStockHistory from "../components/inventory_item_stock_history";
 import InventoryItemUsage from "../components/inventory_item_usage";
+import InventoryLifecycleDialog from "../components/inventory_lifecycle_dialog";
+import InventoryStockWorkflowDialog from "../components/inventory_stock_workflow_dialog";
+import type { STOCK_WORKFLOW_TITLES } from "../constants/inventory_workflow_constants";
 import InventoryNotFound from "../components/inventory_not_found";
 import { InventoryBreadcrumbs } from "../components/inventory_workspace";
 import {
@@ -52,6 +54,7 @@ function InventoryDetails({
         get_inventory_access(useContext(AuthContext)?.user ?? null) === "read";
     const { decommission_item, is_decommissioned } = useDecommissionedInventory();
     const [decommission_id, set_decommission_id] = useState<string | null>(null);
+    const [workflow, set_workflow] = useState<{ part_id: string; mode: keyof typeof STOCK_WORKFLOW_TITLES }>();
     const { items, is_loading, error, reload } = inventory;
 
     const item = items.find((record) => record.part_UUID === item_id);
@@ -94,56 +97,36 @@ function InventoryDetails({
     return (
         <section aria-labelledby="page_title" className="min-w-0 space-y-4">
             <InventoryBreadcrumbs current={item.part_name} read_only={read_only} />
-            <div className="flex flex-wrap items-center justify-between gap-3">
+            <Card>
                 <h1
                     id="page_title"
-                    className="min-w-0 wrap-anywhere text-2xl font-semibold tracking-tight text-[#0b2238]"
+                    className="mb-3 min-w-0 wrap-anywhere text-2xl font-semibold tracking-tight text-[#0b2238]"
                 >
                     {item.part_name}
                 </h1>
-                {!read_only && (
-                    <div className="flex flex-wrap gap-2">
-                        {!decommissioned && (
-                            <button
-                                type="button"
-                                className={button_styles("secondary")}
-                                onClick={() => set_decommission_id(item.part_UUID)}
-                            >
-                                <Archive size={17} aria-hidden="true" />
-                                Decommission part
-                            </button>
-                        )}
-                        <Link
-                            to={{ pathname: "edit", search }}
-                            state={{ from_inventory: true }}
-                            className={button_styles("secondary")}
-                        >
-                            <Pencil size={17} aria-hidden="true" /> Edit details
-                        </Link>
-                    </div>
-                )}
-            </div>
-
-            <Card>
-                <div className="flex flex-wrap items-center justify-between gap-4">
-                    <div>
-                        <h2 className="text-sm font-semibold text-[#0b2238]">Current stock</h2>
-                        <div className="mt-2 flex flex-wrap items-center gap-3">
-                            <p className="text-xl font-semibold tabular-nums text-[#0b2238]">
+                <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 rounded-lg border border-slate-200 bg-slate-100 px-3 py-3 sm:px-4">
+                    <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5">
+                        <h2 className="text-sm font-medium text-slate-600">Current stock</h2>
+                        <div className="flex min-w-0 flex-wrap items-center gap-2 border-l border-slate-300 pl-3">
+                            <p className="wrap-anywhere text-lg font-semibold tabular-nums text-[#0b2238]">
                                 {item.total_quantity} {item.unit_of_measure}
                             </p>
-                            <span className={`rounded-md px-2 py-1 text-xs font-medium ${decommissioned ? "bg-slate-100 text-slate-700" : STOCK_STATUS_STYLES[stock_status]}`}>
+                            <span className={`rounded-md px-2 py-1 text-xs font-medium ${decommissioned ? "border border-slate-200 bg-white text-slate-700" : STOCK_STATUS_STYLES[stock_status]}`}>
                                 {decommissioned ? "Decommissioned" : STOCK_STATUS_LABELS[stock_status]}
                             </span>
                         </div>
                     </div>
                     {!read_only && !decommissioned && (
-                        <div className="space-y-1">
-                            <div className="flex flex-wrap gap-2">
-                                <Button disabled>Receive stock</Button>
-                                <Button className={INVENTORY_PRIMARY_ACTION} disabled>Issue stock</Button>
-                            </div>
-                            <p className="text-xs text-slate-600">Stock updates are unavailable here.</p>
+                        <div className="flex w-full flex-wrap gap-2 sm:w-auto">
+                            <Button className="flex-1 sm:flex-none"
+                                onClick={() => set_workflow({ part_id: item.part_UUID, mode: "receive" })}>
+                                Receive stock
+                            </Button>
+                            <Button className={`flex-1 sm:flex-none ${INVENTORY_PRIMARY_ACTION}`}
+                                disabled={item.total_quantity <= 0}
+                                onClick={() => set_workflow({ part_id: item.part_UUID, mode: "issue" })}>
+                                Issue stock
+                            </Button>
                         </div>
                     )}
                 </div>
@@ -171,13 +154,46 @@ function InventoryDetails({
                 </nav>
                 <section aria-label={active_tab.label}>
                     {active_tab.id === "information" && (
-                        <InventoryItemInformation item={item} />
+                        <>
+                            <InventoryItemInformation item={item} />
+                            {!read_only && (
+                                <div className="mt-5 flex flex-col gap-2 border-t border-slate-200 pt-4 sm:flex-row sm:flex-wrap sm:justify-end">
+                                    {!decommissioned && (
+                                        <Button
+                                            variant="secondary"
+                                            onClick={() => set_decommission_id(item.part_UUID)}
+                                        >
+                                            <Archive size={17} aria-hidden="true" /> Decommission part
+                                        </Button>
+                                    )}
+                                    <Link
+                                        to={{ pathname: "edit", search }}
+                                        state={{ from_inventory: true }}
+                                        className={button_styles("secondary")}
+                                    >
+                                        <Pencil size={17} aria-hidden="true" /> Edit details
+                                    </Link>
+                                </div>
+                            )}
+                        </>
                     )}
                     {active_tab.id === "stock-history" && (
-                        <InventoryItemStockHistory
-                            key={item.part_UUID}
-                            part_id={item.part_UUID}
-                        />
+                        <>
+                            {!read_only && !decommissioned && (
+                                <div className="mb-3 flex justify-end">
+                                    <Button
+                                        variant="secondary"
+                                        onClick={() => set_workflow({ part_id: item.part_UUID, mode: "correction" })}
+                                    >
+                                        Request stock correction
+                                    </Button>
+                                </div>
+                            )}
+                            <InventoryItemStockHistory
+                                key={item.part_UUID}
+                                part_id={item.part_UUID}
+                            />
+                        </>
                     )}
                     {active_tab.id === "record-changes" && (
                         <EmptyState
@@ -197,18 +213,19 @@ function InventoryDetails({
                 </p>
             )}
 
-            <ConfirmationModal
-                is_open={decommission_id === item.part_UUID && !read_only && !decommissioned}
-                title="Decommission part?"
-                message={`${item.part_name} will be removed from active inventory.`}
-                confirm_label="Decommission"
-                on_cancel={() => set_decommission_id(null)}
-                on_confirm={() => {
-                    decommission_item(item.part_UUID);
-                    set_decommission_id(null);
-                    navigate("/inventory/decommissioned");
-                }}
-            />
+            {workflow?.part_id === item.part_UUID && !read_only && !decommissioned && (
+                <InventoryStockWorkflowDialog key={workflow.mode} mode={workflow.mode} item={item}
+                    items={items} on_close={() => set_workflow(undefined)} />
+            )}
+
+            {decommission_id === item.part_UUID && !read_only && !decommissioned && (
+                <InventoryLifecycleDialog item={item} on_close={() => set_decommission_id(null)}
+                    on_saved={() => {
+                        decommission_item(item.part_UUID);
+                        set_decommission_id(null);
+                        navigate("/inventory/decommissioned");
+                    }} />
+            )}
         </section>
     );
 }

@@ -11,7 +11,7 @@ import Pagination from "../../../shared/components/ui/pagination";
 import Card from "../../../shared/components/ui/card";
 import DataTable from "../../../shared/components/ui/data_table";
 import type { TableColumn } from "../../../shared/components/ui/data_table";
-import ConfirmationModal from "../../../shared/components/ui/confirmation_modal";
+import InventoryLifecycleDialog from "../components/inventory_lifecycle_dialog";
 import type { InventoryItem } from "../types/inventory_types";
 import useInventory from "../hooks/use_inventory";
 import useDecommissionedInventory from "../hooks/use_inventory_decommission";
@@ -99,13 +99,6 @@ export default function DecommissionedPartsPage() {
         DECOMMISSIONED_PAGE_SIZE,
     );
 
-    const handle_confirm = () => {
-        if (!selected_item) return;
-
-        restore_item(selected_item.part_UUID);
-        set_selected_item(null);
-    };
-
     return (
         <section aria-labelledby="page_title" className="space-y-6">
             <InventoryBreadcrumbs current="Decommissioned parts" />
@@ -165,24 +158,14 @@ export default function DecommissionedPartsPage() {
                 )}
             </Card>
 
-            <ConfirmationModal
-                is_open={selected_item !== null}
-                title="Restore part?"
-                message={
-                    <>
-                        Are you sure you want to restore{" "}
-                        <strong className="font-semibold text-slate-900">
-                            {selected_item?.part_name ?? "this part"}
-                        </strong>{" "}
-                        to active inventory?
-                    </>
-                }
-                confirm_label="Restore"
-                confirm_tone="success"
-                reminder="Review the part’s stock quantity and storage location after restoring it."
-                on_confirm={handle_confirm}
-                on_cancel={() => set_selected_item(null)}
-            />
+            {selected_item && (
+                <InventoryLifecycleDialog item={selected_item} restore
+                    on_close={() => set_selected_item(null)}
+                    on_saved={() => {
+                        restore_item(selected_item.part_UUID);
+                        set_selected_item(null);
+                    }} />
+            )}
         </section>
     );
 }

@@ -56,6 +56,9 @@ export type InventoryTransaction = {
     remarks: string | null;
     reference?: string | null;
     recipient?: string | null;
+    supplier_name?: string | null;
+    aircraft?: string | null;
+    movement_date?: string | null;
     status: {
         status_UUID: string;
         current_quantity: number;
@@ -76,4 +79,26 @@ export type InventoryTransaction = {
         f_name: string;
         l_name: string;
     };
+};
+
+export type InventoryRequestDecision =
+    | { status: "APPROVED" }
+    | { status: "RETURNED"; review_note: string };
+
+export type InventoryRequestPreview = {
+    request_UUID: string;
+    kind: "RESTOCK" | "CORRECTION";
+    status: "PENDING" | InventoryRequestDecision["status"];
+    part: Pick<InventoryItem, "part_UUID" | "part_name" | "part_number" | "unit_of_measure">;
+    location: Pick<InventoryLocation, "location_name" | "storage_area"> | null;
+    quantity: number;
+    recorded_quantity: number | null;
+    needed_by: string | null;
+    reason: string;
+    reference: string | null;
+    requester: string;
+    reviewer: string | null;
+    review_note: string | null;
+    created_at: string;
+    reviewed_at: string | null;
 };

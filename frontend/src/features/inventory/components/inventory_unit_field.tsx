@@ -1,10 +1,7 @@
 import { ChevronDown } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import FormField from "../../../shared/components/forms/form_field";
-import {
-    INVENTORY_FORM_INPUT,
-    INVENTORY_FORM_TEXT,
-} from "../constants/inventory_form_constants";
+import { INVENTORY_FORM_INPUT } from "../constants/inventory_form_constants";
 
 const field_name = "unit_of_measure";
 
@@ -50,9 +47,14 @@ export default function InventoryUnitField({
         trigger.current?.focus();
     }
 
-    const field = INVENTORY_FORM_TEXT.unit_of_measure;
     return (
-        <FormField id={field_name} label={field.label} required help={field.help} error={error}>
+        <FormField
+            id={field_name}
+            label="Unit"
+            required
+            help="Use the unit you count this item in, such as pcs, box, or set."
+            error={error}
+        >
             {({ id, "aria-describedby": described_by, "aria-invalid": invalid }) => {
                 const options_id = `${id}_options`;
                 return (
@@ -108,7 +110,7 @@ export default function InventoryUnitField({
                                         maxLength={20}
                                         value={unit}
                                         onChange={(event) => set_unit(event.currentTarget.value)}
-                                        placeholder={field.placeholder}
+                                        placeholder="Enter a unit"
                                         className="min-w-0 flex-1 bg-transparent px-2.5 text-sm text-[#0b2238] outline-none placeholder:text-slate-500 disabled:text-slate-500"
                                     />
                                 )}

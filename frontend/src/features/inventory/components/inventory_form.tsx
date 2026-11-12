@@ -1,11 +1,11 @@
-import { CalendarDays, ChevronDown, ChevronUp } from "lucide-react";
+import { CalendarDays, ChevronDown } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent, SubmitEvent } from "react";
 import FormField from "../../../shared/components/forms/form_field";
 import Button from "../../../shared/components/ui/button";
 import { INVENTORY_PRIMARY_ACTION } from "../constants/inventory_constants";
-import { INVENTORY_FORM_HELP, INVENTORY_FORM_INPUT, INVENTORY_FORM_TEXT } from "../constants/inventory_form_constants";
+import { INVENTORY_FORM_INPUT } from "../constants/inventory_form_constants";
 import type {
     InitialStock,
     InventoryFormValues,
@@ -13,11 +13,13 @@ import type {
     InventoryLocation,
 } from "../types/inventory_types";
 import { format_inventory_expiry } from "../utils/inventory_dates";
+import InventoryQuantityField from "./inventory_quantity_field";
 import InventoryUnitField from "./inventory_unit_field";
 
-type TextField = keyof typeof INVENTORY_FORM_TEXT;
-type FieldName = TextField | "min_stock_level" | "initial_stock_location" |
-    "initial_stock_area" | "initial_stock_quantity";
+const storage_area_help = "Storage areas are listed for the selected location.";
+
+type FieldName = Exclude<keyof InventoryFormValues, "description"> |
+    "initial_stock_location" | "initial_stock_area" | "initial_stock_quantity";
 type FieldErrors = Partial<Record<FieldName, string>>;
 
 type InventoryFormProps = {
@@ -86,13 +88,25 @@ export default function InventoryForm({
         const get_text = (name: string) => String(data.get(name) ?? "").trim();
         const next_errors: FieldErrors = {};
 
-        for (const name of Object.keys(INVENTORY_FORM_TEXT) as TextField[]) {
-            if (!get_text(name)) next_errors[name] = INVENTORY_FORM_TEXT[name].error;
-        }
-
         const minimum = get_text("min_stock_level");
-        const min_stock_level = Number(minimum);
-        if (!minimum || !Number.isSafeInteger(min_stock_level) || min_stock_level < 0) {
+        const values: InventoryFormValues = {
+            part_name: get_text("part_name"),
+            part_number: get_text("part_number"),
+            unit_of_measure: get_text("unit_of_measure"),
+            min_stock_level: Number(minimum),
+            description: get_text("description"),
+        };
+
+        if (!values.part_name) {
+            next_errors.part_name = "Enter an item name. Spaces alone are not accepted.";
+        }
+        if (!values.part_number) {
+            next_errors.part_number = "Enter a part number.";
+        }
+        if (!values.unit_of_measure) {
+            next_errors.unit_of_measure = "Enter a unit of measure.";
+        }
+        if (!minimum || !Number.isSafeInteger(values.min_stock_level) || values.min_stock_level < 0) {
             next_errors.min_stock_level = "Enter a whole number of 0 or more.";
         }
 
@@ -123,36 +137,7 @@ export default function InventoryForm({
             return;
         }
 
-        on_submit(
-            {
-                part_name: get_text("part_name"),
-                part_number: get_text("part_number"),
-                unit_of_measure: get_text("unit_of_measure"),
-                min_stock_level,
-                description: get_text("description"),
-            },
-            !initial_values && quantity > 0 ? { location_UUID, quantity } : undefined,
-        );
-    }
-
-    function text_field(name: Exclude<TextField, "unit_of_measure">) {
-        const field = INVENTORY_FORM_TEXT[name];
-        const { label, placeholder } = field;
-        const help = "help" in field ? field.help : undefined;
-        return (
-            <FormField id={name} label={label} required help={help} error={errors[name]}>
-                {(props) => (
-                    <input
-                        {...props}
-                        name={name}
-                        placeholder={placeholder}
-                        maxLength={150}
-                        defaultValue={initial_values?.[name] ?? ""}
-                        className={INVENTORY_FORM_INPUT}
-                    />
-                )}
-            </FormField>
-        );
+        on_submit(values, !initial_values && quantity > 0 ? { location_UUID, quantity } : undefined);
     }
 
     return (
@@ -175,9 +160,42 @@ export default function InventoryForm({
                 <fieldset disabled={is_saving} className="min-w-0">
                     <legend className="mb-3 text-sm font-semibold text-[#0b2238]">Item &amp; stock</legend>
                     <div className="grid gap-x-3 gap-y-3 sm:grid-cols-2">
-                        {text_field("part_name")}
+                        <FormField
+                            id="part_name"
+                            label="Item name"
+                            required
+                            error={errors.part_name}
+                        >
+                            {(props) => (
+                                <input
+                                    {...props}
+                                    name="part_name"
+                                    placeholder="Enter item name"
+                                    maxLength={150}
+                                    defaultValue={initial_values?.part_name ?? ""}
+                                    className={INVENTORY_FORM_INPUT}
+                                />
+                            )}
+                        </FormField>
                         <UnavailableField label="Category" value={item?.category} />
-                        {text_field("part_number")}
+                        <FormField
+                            id="part_number"
+                            label="Part number"
+                            required
+                            help="Use the unique part number that identifies this item."
+                            error={errors.part_number}
+                        >
+                            {(props) => (
+                                <input
+                                    {...props}
+                                    name="part_number"
+                                    placeholder="Enter part number"
+                                    maxLength={150}
+                                    defaultValue={initial_values?.part_number ?? ""}
+                                    className={INVENTORY_FORM_INPUT}
+                                />
+                            )}
+                        </FormField>
                         <InventoryUnitField
                             initial_unit={initial_values?.unit_of_measure}
                             units={units}
@@ -192,7 +210,7 @@ export default function InventoryForm({
                                 />
                                 <UnavailableField
                                     label="Storage area"
-                                    help={INVENTORY_FORM_HELP.storage_area}
+                                    help={storage_area_help}
                                     value={item?.locations.map(({ storage_area }) => storage_area || "—").join(", ")}
                                 />
                                 <UnavailableField
@@ -228,7 +246,7 @@ export default function InventoryForm({
                                 <FormField
                                     id="initial_stock_area"
                                     label="Storage area"
-                                    help={INVENTORY_FORM_HELP.storage_area}
+                                    help={storage_area_help}
                                     error={errors.initial_stock_area}
                                 >
                                     {(props) => (
@@ -254,24 +272,24 @@ export default function InventoryForm({
                                 <InventoryQuantityField
                                     name="initial_stock_quantity"
                                     label="Opening quantity"
-                                    help={INVENTORY_FORM_HELP.opening_quantity}
+                                    help="Enter the starting quantity at the selected location. Use 0 to add the item without stock."
                                     default_value={0}
                                     error={errors.initial_stock_quantity}
-                                    on_step={(value) => clear_field_error("initial_stock_quantity", value)}
+                                    on_value_change={(value) => clear_field_error("initial_stock_quantity", value)}
                                 />
                             </>
                         )}
                         <InventoryQuantityField
                             name="min_stock_level"
                             label="Minimum stock level"
-                            help={INVENTORY_FORM_HELP.minimum_stock}
+                            help="The item is marked Low stock when its total quantity falls below this number."
                             default_value={initial_values?.min_stock_level ?? 0}
                             error={errors.min_stock_level}
-                            on_step={(value) => clear_field_error("min_stock_level", value)}
+                            on_value_change={(value) => clear_field_error("min_stock_level", value)}
                         />
                         <UnavailableField
                             label="Expiry date"
-                            help={INVENTORY_FORM_HELP.expiry}
+                            help="Expiry dates are read-only in this form."
                             value={item && format_inventory_expiry(item)}
                             icon={CalendarDays}
                         />
@@ -300,7 +318,7 @@ export default function InventoryForm({
                                 )}
                             </FormField>
                         </div>
-                        <UnavailableField label="Serial number" help={INVENTORY_FORM_HELP.serial_number} />
+                        <UnavailableField label="Serial number" help="Serial numbers are read-only in this form." />
                         <UnavailableField label="Manufacturer" value={item?.manufacturers.join(", ")} />
                         <UnavailableField label="Supplier" value={item?.suppliers.join(", ")} />
                     </fieldset>
@@ -316,70 +334,6 @@ export default function InventoryForm({
                 </Button>
             </div>
         </form>
-    );
-}
-
-function InventoryQuantityField({
-    name,
-    label,
-    default_value,
-    help,
-    error,
-    on_step,
-}: {
-    name: "min_stock_level" | "initial_stock_quantity";
-    label: string;
-    default_value: number;
-    help: string;
-    error?: string;
-    on_step: (value: string) => void;
-}) {
-    const input = useRef<HTMLInputElement>(null);
-
-    function step(direction: "up" | "down") {
-        const field = input.current;
-        if (!field) return;
-        if (direction === "up") field.stepUp();
-        else field.stepDown();
-        on_step(field.value);
-    }
-
-    return (
-        <FormField id={name} label={label} required help={help} error={error}>
-            {(props) => (
-                <div className="relative">
-                    <input
-                        {...props}
-                        ref={input}
-                        name={name}
-                        type="number"
-                        min="0"
-                        max={Number.MAX_SAFE_INTEGER}
-                        step="1"
-                        defaultValue={default_value}
-                        className={`${INVENTORY_FORM_INPUT} appearance-none pr-10 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none`}
-                    />
-                    <div className="absolute inset-y-px right-px flex w-9 flex-col justify-center rounded-r-md">
-                        <button
-                            type="button"
-                            aria-label={`Increase ${label.toLowerCase()}`}
-                            onClick={() => step("up")}
-                            className="flex min-h-5 flex-1 items-center justify-center rounded-tr-md text-slate-600 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-[#1d4ed8] disabled:text-slate-400"
-                        >
-                            <ChevronUp size={14} aria-hidden="true" />
-                        </button>
-                        <button
-                            type="button"
-                            aria-label={`Decrease ${label.toLowerCase()}`}
-                            onClick={() => step("down")}
-                            className="flex min-h-5 flex-1 items-center justify-center rounded-br-md text-slate-600 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-[#1d4ed8] disabled:text-slate-400"
-                        >
-                            <ChevronDown size={14} aria-hidden="true" />
-                        </button>
-                    </div>
-                </div>
-            )}
-        </FormField>
     );
 }
 

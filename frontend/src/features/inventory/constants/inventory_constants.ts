@@ -1,10 +1,13 @@
 import {
     Archive,
+    ClipboardCheck,
     ClipboardList,
     FileClock,
     History,
     Package,
 } from "lucide-react";
+
+export const INVENTORY_CORRECTIONS_PATH = "/inventory/corrections";
 
 export const INVENTORY_TABS = [
     { label: "Parts & Supplies", to: "/inventory", icon: Package },
@@ -13,6 +16,11 @@ export const INVENTORY_TABS = [
         label: "Restock Requests",
         to: "/inventory/requests",
         icon: ClipboardList,
+    },
+    {
+        label: "Stock Corrections",
+        to: INVENTORY_CORRECTIONS_PATH,
+        icon: ClipboardCheck,
     },
     {
         label: "Decommissioned Parts",

@@ -29,7 +29,7 @@ export function export_stock_history(rows: InventoryTransaction[]) {
     const cells = [
         STOCK_HISTORY_CSV_HEADERS,
         ...rows.map((row) => [
-            row.created_at,
+            row.movement_date?.slice(0, 10) ?? row.created_at,
             row.status.part.part_name,
             row.status.part.part_number,
             format_movement(row),

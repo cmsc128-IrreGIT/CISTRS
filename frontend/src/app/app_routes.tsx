@@ -21,6 +21,7 @@ import InventoryFormPage from "../features/inventory/pages/inventory_form_page";
 import InventoryUnavailablePage from "../features/inventory/pages/inventory_unavailable_page";
 import DecommissionedPartsPage from "../features/inventory/pages/inventory_decommissioned_parts_page";
 import InventoryHistoryPage from "../features/inventory/pages/inventory_history_page";
+import { INVENTORY_CORRECTIONS_PATH } from "../features/inventory/constants/inventory_constants";
 
 const AircraftPage = lazy(
     () => import("../features/aircraft/pages/aircraft_page"),
@@ -49,6 +50,10 @@ import NotificationsPage from "../features/notifications/pages/notifications_pag
 import UsersPage from "../features/user_management/pages/users_page";
 import UserDetailsPage from "../features/user_management/pages/user_details_page";
 import UserFormPage from "../features/user_management/pages/user_form_page";
+
+const InventoryRequestsPage = lazy(
+    () => import("../features/inventory/pages/inventory_requests_page"),
+);
 
 const DashboardPage = lazy(
     () => import("../features/dashboard/pages/dashboard_page"),
@@ -134,7 +139,19 @@ export default function AppRoutes() {
                     path="/inventory/requests"
                     element={
                         <InventoryAccess manage>
-                            <InventoryUnavailablePage title="Restock Requests" />
+                            <Suspense fallback={<ScreenLoading />}>
+                                <InventoryRequestsPage />
+                            </Suspense>
+                        </InventoryAccess>
+                    }
+                />
+                <Route
+                    path={INVENTORY_CORRECTIONS_PATH}
+                    element={
+                        <InventoryAccess manage>
+                            <Suspense fallback={<ScreenLoading />}>
+                                <InventoryRequestsPage key="corrections" correction />
+                            </Suspense>
                         </InventoryAccess>
                     }
                 />
