@@ -222,7 +222,7 @@ export default function AppRoutes() {
                     path="/maintenance/new"
                     element={
                         <Suspense fallback={<ScreenLoading />}>
-                            <MaintenanceFormPage />
+                            <MaintenancePage create_on_load />
                         </Suspense>
                     }
                 />

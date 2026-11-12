@@ -67,6 +67,4 @@ export const STOCK_STATUS_STYLES: Record<
 export const INVENTORY_FILTER_SELECT =
     "min-h-11 w-full rounded-lg border border-slate-200 bg-white px-2.5 text-sm font-normal text-slate-700 focus-visible:outline-2 focus-visible:outline-[#1d4ed8]";
 
-export function inventory_tab_style(active: boolean) {
-    return `flex min-h-11 items-center gap-2 rounded-t-md px-3 text-sm focus-visible:outline-2 focus-visible:outline-[#1d4ed8] ${active ? "bg-[#152e45] font-semibold text-white" : "bg-[#f3f6f9] text-slate-700 hover:bg-slate-200"}`;
-}
+export { workspace_tab_style as inventory_tab_style } from "../../../shared/styles/tab_styles";

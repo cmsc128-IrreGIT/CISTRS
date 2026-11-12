@@ -49,7 +49,7 @@ export default function AircraftPage() {
             <Card>
                 <div className="mb-4 grid gap-4 rounded-lg bg-slate-50 p-3 sm:grid-cols-[minmax(0,1fr)_220px]">
                     <div>
-                        <p className="mb-2 text-sm font-medium text-slate-700">
+                        <p className="mb-2 text-sm font-normal text-slate-700">
                             Search aircraft
                         </p>
                         <SearchInput
@@ -62,7 +62,7 @@ export default function AircraftPage() {
                             placeholder="Registration / tail no. or aircraft type"
                         />
                     </div>
-                    <label className="block text-sm font-medium text-slate-700">
+                    <label className="block text-sm font-normal text-slate-700">
                         Status
                         <select
                             value={status}

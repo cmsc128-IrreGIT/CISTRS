@@ -1,15 +1,16 @@
-import { Link, useParams } from "react-router";
+import { Link, Navigate, useParams, useSearchParams } from "react-router";
 import PageHeader from "../../../shared/components/ui/page_header";
 import Card from "../../../shared/components/ui/card";
 import DetailsList from "../../../shared/components/ui/details_list";
 import EmptyState from "../../../shared/components/feedback/empty_state";
-import BackLink from "../../../shared/components/navigation/back_link";
+import WorkspaceBreadcrumbs from "../../../shared/components/navigation/workspace_breadcrumbs";
 import { button_styles } from "../../../shared/styles/button_styles";
 import useAircraft from "../../aircraft/hooks/use_aircraft";
 import useMaintenance from "../hooks/use_maintenance";
 import MaintenanceTable from "../components/maintenance_table";
 export default function MaintenanceDetailsPage() {
     const { maintenance_id } = useParams();
+    const [params] = useSearchParams();
     const rows = useMaintenance();
     const aircraft = useAircraft();
     const record = rows.find((row) => row.id === maintenance_id);
@@ -30,6 +31,12 @@ export default function MaintenanceDetailsPage() {
                 />
             </Card>
         );
+    if (record.performed_date) {
+        const next = new URLSearchParams(params);
+        next.set("record", record.id);
+        return <Navigate replace to={{ pathname: "/maintenance", search: next.toString() }} />;
+    }
+
     const associated = aircraft.find(
         (row) => row.registration === record.aircraft,
     );
@@ -42,7 +49,10 @@ export default function MaintenanceDetailsPage() {
     );
     return (
         <section aria-labelledby="page_title" className="space-y-4">
-            <BackLink to="/maintenance" label="Back to maintenance" />
+            <WorkspaceBreadcrumbs
+                current={record.title || "Maintenance record"}
+                parents={[{ label: "Maintenance", to: "/maintenance" }]}
+            />
             <PageHeader
                 title={record.title || "Maintenance record"}
                 title_id="page_title"

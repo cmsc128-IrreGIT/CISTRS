@@ -13,15 +13,18 @@ export default function AppHeader() {
   const inventory = Boolean(useMatch("/inventory/*"));
   const lookup = inventory && get_inventory_access(user) === "read";
   const aircraft = Boolean(useMatch("/aircraft/*"));
-  const aligned_workspace = inventory || aircraft;
+  const maintenance = Boolean(useMatch("/maintenance/*"));
+  const aligned_workspace = inventory || aircraft || maintenance;
   const workspace_header = dashboard || aligned_workspace;
   const title = dashboard
     ? "Dashboard"
     : aircraft
       ? "Aircraft"
-      : lookup
-        ? "Stock availability"
-        : "Inventory";
+      : maintenance
+        ? "Maintenance"
+        : lookup
+          ? "Stock availability"
+          : "Inventory";
   return (
     <header className="sticky top-0 z-30 h-16 border-b border-slate-200 bg-white">
       <div className={`flex h-full items-center justify-between gap-3 ${aligned_workspace ? WORKSPACE_CONTENT_WIDTH : "px-4 sm:px-6"}`}>
@@ -38,7 +41,9 @@ export default function AppHeader() {
                     ? "Review summaries and open the related records. Cards follow the features assigned to your position."
                     : aircraft
                       ? "Browse fleet records and review aircraft status and related maintenance. Aircraft type, hours, and status are preview values."
-                      : "Search for parts, filter by location or stock status, and use the tabs to review inventory records."
+                      : maintenance
+                        ? "Browse recorded maintenance work and review linked stock issues."
+                        : "Search for parts, filter by location or stock status, and use the tabs to review inventory records."
                 }
               />
             )}

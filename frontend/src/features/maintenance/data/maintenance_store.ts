@@ -22,6 +22,9 @@ export const maintenance_store = create_preview_store([
     {
         id: "maintenance-demo-3",
         title: "100-hour inspection",
+        work_order: "DEMO-WO-014",
+        performed_date: "2026-10-12",
+        performed_by: "Demo Technician",
         aircraft: "RP-C8333",
         due_date: "2026-10-12",
         status: "Completed",

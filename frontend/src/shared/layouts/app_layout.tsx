@@ -8,7 +8,8 @@ export default function AppLayout() {
     const is_dashboard = Boolean(useMatch("/dashboard"));
     const is_inventory = Boolean(useMatch("/inventory/*"));
     const is_aircraft = Boolean(useMatch("/aircraft/*"));
-    const aligned_workspace = is_inventory || is_aircraft;
+    const is_maintenance = Boolean(useMatch("/maintenance/*"));
+    const aligned_workspace = is_inventory || is_aircraft || is_maintenance;
     const workspace_background = is_dashboard || aligned_workspace;
     const content_width = aligned_workspace
         ? WORKSPACE_CONTENT_WIDTH

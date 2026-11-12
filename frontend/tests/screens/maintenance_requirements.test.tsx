@@ -11,23 +11,23 @@ afterEach(cleanup);
 it("shows maintenance only for the selected aircraft and supports an empty selection", async () => {
     const user = userEvent.setup();
     render(
-        <MemoryRouter initialEntries={["/maintenance?aircraft=RP-C1738"]}>
+        <MemoryRouter initialEntries={["/maintenance?aircraft=RP-C8333"]}>
             <MaintenancePage />
         </MemoryRouter>,
     );
     expect(
-        screen.getByRole("link", { name: "Routine inspection" }),
-    ).toHaveAttribute("href", "/maintenance/maintenance-demo-1");
+        screen.getByRole("cell", { name: "100-hour inspection" }),
+    ).toBeInTheDocument();
     await user.selectOptions(
         screen.getByRole("combobox", { name: "Aircraft" }),
-        "RP-C8333",
+        "RP-C1738",
     );
     expect(
-        screen.queryByRole("link", { name: "Routine inspection" }),
+        screen.queryByRole("cell", { name: "100-hour inspection" }),
     ).not.toBeInTheDocument();
     expect(
-        screen.getByRole("link", { name: "100-hour inspection" }),
-    ).toHaveAttribute("href", "/maintenance/maintenance-demo-3");
+        screen.getByText("No maintenance work records"),
+    ).toBeInTheDocument();
 });
 it("identifies the aircraft, condition, date, and notes in a maintenance details view", () => {
     render(

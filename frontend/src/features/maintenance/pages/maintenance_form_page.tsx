@@ -3,7 +3,7 @@ import useAircraft from "../../aircraft/hooks/use_aircraft";
 import RecordFormPage from "../../../shared/components/records/record_form_page";
 import { maintenance_config } from "../config/maintenance_config";
 import useMaintenance from "../hooks/use_maintenance";
-import { useParams } from "react-router";
+import { Navigate, useParams } from "react-router";
 import { maintenance_store } from "../data/maintenance_store";
 
 export default function MaintenanceFormPage() {
@@ -18,6 +18,9 @@ export default function MaintenanceFormPage() {
     };
     const rows = useMaintenance();
     const { maintenance_id } = useParams();
+    if (rows.some((row) => row.id === maintenance_id && row.performed_date)) {
+        return <Navigate replace to={`/maintenance/${maintenance_id}`} />;
+    }
     return (
         <RecordFormPage
             background={maintenance_id ? <MaintenanceDetailsPage /> : undefined}

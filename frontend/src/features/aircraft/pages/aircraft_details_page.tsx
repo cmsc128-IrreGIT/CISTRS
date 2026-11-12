@@ -4,6 +4,7 @@ import Card from "../../../shared/components/ui/card";
 import DetailsList from "../../../shared/components/ui/details_list";
 import EmptyState from "../../../shared/components/feedback/empty_state";
 import { button_styles } from "../../../shared/styles/button_styles";
+import { workspace_tab_style } from "../../../shared/styles/tab_styles";
 import MaintenanceTable from "../../maintenance/components/maintenance_table";
 import useMaintenance from "../../maintenance/hooks/use_maintenance";
 import AircraftBreadcrumbs from "../components/aircraft_breadcrumbs";
@@ -44,7 +45,7 @@ export default function AircraftDetailsPage() {
     const active = sections.find((section) => section.id === params.get("tab")) ?? sections[0];
     const path = `/aircraft/${record.id}`;
     const tasks = maintenance.filter((row) => record.registration && row.aircraft === record.registration);
-    const maintenance_url = `/maintenance?${new URLSearchParams({ aircraft: record.registration })}`;
+    const maintenance_url = `/maintenance?${new URLSearchParams({ aircraft: record.registration, view: "work-history" })}`;
 
     return (
         <section aria-labelledby="page_title" className="space-y-4">
@@ -59,7 +60,7 @@ export default function AircraftDetailsPage() {
                             key={id}
                             to={id === "information" ? path : `${path}?tab=${id}`}
                             aria-current={id === active.id ? "page" : undefined}
-                            className={`flex min-h-11 items-center gap-2 rounded-t-md px-3 text-sm focus-visible:outline-2 focus-visible:outline-[#1d4ed8] ${id === active.id ? "bg-[#152e45] font-semibold text-white" : "bg-[#f3f6f9] text-slate-700 hover:bg-slate-200"}`}
+                            className={workspace_tab_style(id === active.id)}
                         >
                             <Icon size={16} aria-hidden="true" />
                             {label}
@@ -102,7 +103,7 @@ export default function AircraftDetailsPage() {
                     <div className="space-y-3">
                         <div className="flex flex-wrap items-center justify-between gap-2">
                             <h2 className="font-semibold text-[#0b2238]">Related maintenance</h2>
-                            <Link to={maintenance_url} className="text-sm underline underline-offset-4">View all related records</Link>
+                            <Link to={maintenance_url} className="text-sm underline underline-offset-4">View work history</Link>
                         </div>
                         <MaintenanceTable inventory rows={tasks} caption={`Maintenance for ${record.registration}`} />
                     </div>
