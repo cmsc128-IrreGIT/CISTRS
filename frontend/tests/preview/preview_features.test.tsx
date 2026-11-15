@@ -23,7 +23,7 @@ import {
   it,
   vi,
 } from "vitest";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";
 import { create_preview_store } from "../../src/shared/data/create_preview_store";
@@ -171,26 +171,21 @@ describe("preview records", () => {
       </MemoryRouter>,
     );
     for (const value of ["Available", "Unavailable"]) {
-      await user.click(
-        screen.getByRole("button", { name: "Record availability" }),
-      );
-      await user.selectOptions(
-        screen.getByRole("combobox", { name: /^Personnel/ }),
-        "personnel-demo-1",
-      );
-      await user.type(screen.getByLabelText(/^Date/), "2026-10-07");
-      await user.selectOptions(
-        screen.getByRole("combobox", { name: /^Availability/ }),
-        value,
-      );
-      await user.click(
-        screen.getByRole("button", { name: "Save availability" }),
-      );
-      expect(
-        screen.queryByRole("dialog", { name: "Record availability" }),
-      ).not.toBeInTheDocument();
+      await user.click(screen.getByRole("button", { name: "Record availability" }));
+      const dialog = within(screen.getByRole("dialog", { name: "Record availability" }));
+      await user.selectOptions(dialog.getByRole("combobox", { name: /^Personnel/ }), "personnel-demo-1");
+      fireEvent.change(dialog.getByLabelText(/^Date/), { target: { value: "2026-10-07" } });
+      await user.selectOptions(dialog.getByRole("combobox", { name: /^Availability/ }), value);
+      await user.click(dialog.getByRole("button", { name: "Save availability" }));
+      expect(screen.queryByRole("dialog", { name: "Record availability" })).not.toBeInTheDocument();
     }
-    expect(screen.getAllByRole("row")).toHaveLength(2);
-    expect(screen.getByRole("cell", { name: "Unavailable" })).toBeTruthy();
+
+    const register = within(screen.getByRole("table", { name: "Personnel availability" }));
+    expect(register.getAllByRole("row")).toHaveLength(3);
+    expect(within(register.getByRole("row", { name: /Demo Employee/ })).getByText("Unavailable")).toBeInTheDocument();
+    expect(within(register.getByRole("row", { name: /Demo Pilot/ })).getByText("Not recorded")).toBeInTheDocument();
+    await user.selectOptions(screen.getByLabelText("Availability"), "Not recorded");
+    expect(register.queryByRole("row", { name: /Demo Employee/ })).not.toBeInTheDocument();
+    expect(register.getByRole("row", { name: /Demo Pilot/ })).toBeInTheDocument();
   });
 });

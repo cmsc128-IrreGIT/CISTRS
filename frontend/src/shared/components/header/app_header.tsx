@@ -16,7 +16,9 @@ export default function AppHeader() {
   const maintenance = Boolean(useMatch("/maintenance/*"));
   const logbook = Boolean(useMatch("/logbook/*"));
   const logbook_report = Boolean(useMatch("/logbook/report"));
-  const aligned_workspace = inventory || aircraft || maintenance || logbook;
+  const personnel = Boolean(useMatch("/personnel/*"));
+  const availability = Boolean(useMatch("/personnel/availability"));
+  const aligned_workspace = inventory || aircraft || maintenance || logbook || personnel;
   const workspace_header = dashboard || aligned_workspace;
   const title = dashboard
     ? "Dashboard"
@@ -26,9 +28,11 @@ export default function AppHeader() {
         ? "Maintenance"
         : logbook
           ? logbook_report ? "Logbook report preview" : "Aircraft Logbook"
-          : lookup
-            ? "Stock availability"
-            : "Inventory";
+          : personnel
+            ? availability ? "Personnel availability" : "Personnel"
+            : lookup
+              ? "Stock availability"
+              : "Inventory";
   return (
     <header className="sticky top-0 z-30 h-16 border-b border-slate-200 bg-white">
       <div className={`flex h-full items-center justify-between gap-3 ${aligned_workspace ? WORKSPACE_CONTENT_WIDTH : "px-4 sm:px-6"}`}>
@@ -49,7 +53,9 @@ export default function AppHeader() {
                         ? "Browse recorded maintenance work and review linked stock issues."
                         : logbook
                           ? "Find logbook entries, review observed conditions, and open linked maintenance records."
-                          : "Search for parts, filter by location or stock status, and use the tabs to review inventory records."
+                          : personnel
+                            ? "Find personnel records and review staff profiles and availability."
+                            : "Search for parts, filter by location or stock status, and use the tabs to review inventory records."
                 }
               />
             )}

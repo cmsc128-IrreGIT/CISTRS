@@ -118,6 +118,17 @@ it.each([
     ).toBe(stock);
   },
 );
+it.each([
+  [["Personnel", "Availability"], "/personnel"],
+  [["Availability"], "/personnel/availability"],
+] as const)("keeps one Personnel sidebar entry with %j access", (features, href) => {
+  state.features = [...features];
+  show();
+  const nav = within(screen.getByRole("navigation", { name: "Main navigation" }));
+  expect(nav.queryByRole("link", { name: "Availability", exact: true })).not.toBeInTheDocument();
+  expect(nav.getByRole("link", { name: "Personnel", exact: true })).toHaveAttribute("href", href);
+});
+
 it("keeps the collapsed preference after remount", async () => {
   state.features = ["Dashboard"];
   const person = userEvent.setup();

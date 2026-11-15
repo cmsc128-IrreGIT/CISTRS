@@ -2,7 +2,7 @@ import { ClipboardCheck } from "lucide-react";
 import { get_inventory_access, get_workspace } from "./workspace";
 import { useAuth } from "../../../features/auth/hooks/auth_context";
 import { Fragment } from "react";
-import { NavLink, useLocation } from "react-router";
+import { NavLink } from "react-router";
 import { navigation_items } from "./navigation_items";
 
 type NavigationLinksProps = {
@@ -18,9 +18,9 @@ export default function NavigationLinks({
   on_navigate,
   support = false,
 }: NavigationLinksProps) {
-  const pathname = useLocation().pathname;
   const { user } = useAuth();
   const workspace = get_workspace(user);
+  const availability_only = user?.features?.includes("Availability") && !user.features.includes("Personnel");
   const pilot = workspace === "pilot" || workspace === "pilot_mechanic";
   const features: Record<string, string> = {
     "/inventory": "Inventory",
@@ -28,14 +28,14 @@ export default function NavigationLinks({
     "/maintenance": "Maintenance",
     "/logbook": "Logbook",
     "/personnel": "Personnel",
-    "/personnel/availability": "Availability",
     "/users": "User Accounts",
   };
   const items = navigation_items
     .filter(
       (item) =>
         (support ? item.to === "/help" : item.to !== "/help") &&
-        (!features[item.to] || user?.features?.includes(features[item.to])),
+        (!features[item.to] || user?.features?.includes(features[item.to]) ||
+          (item.to === "/personnel" && availability_only)),
     )
     .map((item) =>
       item.to === "/inventory" && get_inventory_access(user) === "read"
@@ -53,14 +53,7 @@ export default function NavigationLinks({
             />
           )}
           <NavLink
-            to={to}
-            end={to === "/personnel/availability"}
-            aria-current={
-              to === "/personnel" &&
-              pathname.startsWith("/personnel/availability")
-                ? false
-                : "page"
-            }
+            to={to === "/personnel" && availability_only ? "/personnel/availability" : to}
             onClick={on_navigate}
             title={collapsed ? label : undefined}
             aria-label={collapsed ? label : undefined}
@@ -70,11 +63,7 @@ export default function NavigationLinks({
                   ? "mx-auto size-11 shrink-0 justify-center"
                   : "gap-3 px-3"
               } ${
-                isActive &&
-                !(
-                  to === "/personnel" &&
-                  pathname.startsWith("/personnel/availability")
-                )
+                isActive
                   ? "bg-[#1d4ed8] text-white"
                   : "text-slate-300 hover:bg-white/10 hover:text-white"
               }`

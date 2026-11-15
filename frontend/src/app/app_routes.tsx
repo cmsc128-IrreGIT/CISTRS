@@ -40,8 +40,10 @@ const MaintenanceFormPage = lazy(
     () => import("../features/maintenance/pages/maintenance_form_page"),
 );
 
+import PersonnelWorkspace from "../features/personnel/pages/personnel_workspace";
 import PersonnelPage from "../features/personnel/pages/personnel_page";
 import PersonnelDetailsPage from "../features/personnel/pages/personnel_details_page";
+import PersonnelDocumentsPage from "../features/personnel/pages/personnel_documents_page";
 import PersonnelFormPage from "../features/personnel/pages/personnel_form_page";
 import AvailabilityPage from "../features/personnel/pages/availability_page";
 
@@ -258,20 +260,16 @@ export default function AppRoutes() {
                     <Route path="edit" element={<Suspense fallback={<ScreenLoading />}><LogbookFormPage /></Suspense>} />
                 </Route>
 
-                <Route path="/personnel" element={<PersonnelPage />} />
-                <Route path="/personnel/new" element={<PersonnelFormPage />} />
-                <Route
-                    path="/personnel/availability"
-                    element={<AvailabilityPage />}
-                />
-                <Route
-                    path="/personnel/:personnel_id"
-                    element={<PersonnelDetailsPage />}
-                />
-                <Route
-                    path="/personnel/:personnel_id/edit"
-                    element={<PersonnelFormPage />}
-                />
+                <Route element={<PersonnelWorkspace />}>
+                    <Route path="/personnel" element={<PersonnelPage />}>
+                        <Route path="new" element={<PersonnelFormPage />} />
+                    </Route>
+                    <Route path="/personnel/:personnel_id" element={<PersonnelDetailsPage />}>
+                        <Route path="edit" element={<PersonnelFormPage />} />
+                    </Route>
+                    <Route path="/personnel/:personnel_id/documents" element={<PersonnelDocumentsPage />} />
+                </Route>
+                <Route path="/personnel/availability" element={<AvailabilityPage />} />
 
                 <Route path="/notifications" element={<NotificationsPage />} />
 

@@ -11,7 +11,8 @@ export default function AppLayout() {
     const is_maintenance = Boolean(useMatch("/maintenance/*"));
     const is_logbook = Boolean(useMatch("/logbook/*"));
     const print_report = Boolean(useMatch("/logbook/report"));
-    const aligned_workspace = is_inventory || is_aircraft || is_maintenance || is_logbook;
+    const is_personnel = Boolean(useMatch("/personnel/*"));
+    const aligned_workspace = is_inventory || is_aircraft || is_maintenance || is_logbook || is_personnel;
     const workspace_background = is_dashboard || aligned_workspace;
     const content_width = aligned_workspace
         ? WORKSPACE_CONTENT_WIDTH
