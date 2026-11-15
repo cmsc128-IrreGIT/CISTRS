@@ -4,6 +4,7 @@ import ScreenLoading from "../../../shared/components/feedback/screen_loading";
 import Card from "../../../shared/components/ui/card";
 import Button from "../../../shared/components/ui/button";
 import SearchInput from "../../../shared/components/forms/search_input";
+import useRecordHighlight from "../../../shared/hooks/use_record_highlight";
 import useTablePagination from "../../../shared/hooks/use_table_pagination";
 import Pagination from "../../../shared/components/ui/pagination";
 import {
@@ -29,6 +30,7 @@ import { export_stock_history, format_movement } from "../utils/stock_history";
 
 export default function InventoryHistoryPage() {
     const { history, is_loading, error, reload } = useInventoryHistory();
+    const highlight = useRecordHighlight();
     const [search, set_search] = useState("");
     const [action, set_action] = useState("");
     const [days, set_days] = useState("");
@@ -72,6 +74,7 @@ export default function InventoryHistoryPage() {
         filtered,
         JSON.stringify([term, action, days]),
         STOCK_HISTORY_PAGE_SIZE,
+        filtered.findIndex((row) => row.transaction_UUID === highlight?.id),
     );
     return (
         <section aria-labelledby="page_title" className="space-y-4">
@@ -149,6 +152,9 @@ export default function InventoryHistoryPage() {
                                 records
                             </Button>
                         </div>
+                        {highlight && !history.some((row) => row.transaction_UUID === highlight.id) && (
+                            <p role="status" className="mb-3 text-sm text-slate-600">The linked transaction is unavailable in recent Stock History.</p>
+                        )}
                         <h2 className="mb-3 text-base font-semibold text-[#0b2238]">
                             Receipts and issues
                         </h2>
@@ -157,6 +163,7 @@ export default function InventoryHistoryPage() {
                             has_history={history.length > 0}
                             show_reference={show_reference}
                             on_view={set_selected}
+                            highlight_row={highlight}
                         />
                         <Pagination {...footer} item_label="movement" />
                     </>

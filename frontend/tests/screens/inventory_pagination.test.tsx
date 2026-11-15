@@ -1,4 +1,4 @@
-import { cleanup, render, screen, within } from "@testing-library/react";
+import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
 import { MemoryRouter } from "react-router";
@@ -156,4 +156,19 @@ it("shows all locations and only shows the Category controls when data exists", 
         screen.getByRole("cell", { name: "Consumables" }),
     ).toBeInTheDocument();
     expect(screen.getByRole("status")).toHaveTextContent("1 item");
+});
+
+it("opens the inventory page containing the notification target and highlights the matching row", async () => {
+    const user = userEvent.setup();
+    render(
+        <MemoryRouter initialEntries={[{ pathname: "/inventory", state: { highlight_record: "part-10" } }]}>
+            <InventoryPage />
+        </MemoryRouter>,
+    );
+
+    expect(screen.getByRole("status")).toHaveTextContent("Showing 11–12 of 12 items");
+    await waitFor(() => expect(screen.getByRole("row", { name: /Part 11/ })).toHaveClass("record-highlight"));
+    expect(screen.getByRole("row", { name: /Part 12/ })).not.toHaveClass("record-highlight");
+    await user.click(screen.getByRole("button", { name: "Previous page" }));
+    expect(screen.getByRole("status")).toHaveTextContent("Showing 6–10 of 12 items");
 });

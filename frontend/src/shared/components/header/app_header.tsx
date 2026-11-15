@@ -18,9 +18,11 @@ export default function AppHeader() {
   const logbook_report = Boolean(useMatch("/logbook/report"));
   const personnel = Boolean(useMatch("/personnel/*"));
   const availability = Boolean(useMatch("/personnel/availability"));
+  const notifications = Boolean(useMatch("/notifications/*"));
+  const notification_preferences = Boolean(useMatch("/notifications/preferences"));
   const user_accounts = Boolean(useMatch("/users/*"));
   const profile = Boolean(useMatch("/profile"));
-  const aligned_workspace = inventory || aircraft || maintenance || logbook || personnel || user_accounts || profile;
+  const aligned_workspace = inventory || aircraft || maintenance || logbook || personnel || user_accounts || profile || notifications;
   const workspace_header = dashboard || aligned_workspace;
   const title = dashboard
     ? "Dashboard"
@@ -36,7 +38,9 @@ export default function AppHeader() {
               ? "User Accounts"
               : profile
                 ? "My profile"
-                : lookup ? "Stock availability" : "Inventory";
+                : notifications
+                  ? notification_preferences ? "Notification preferences" : "Notifications"
+                  : lookup ? "Stock availability" : "Inventory";
   return (
     <header className="sticky top-0 z-30 h-16 border-b border-slate-200 bg-white">
       <div className={`flex h-full items-center justify-between gap-3 ${aligned_workspace ? WORKSPACE_CONTENT_WIDTH : "px-4 sm:px-6"}`}>
@@ -45,7 +49,7 @@ export default function AppHeader() {
             <span className="text-lg font-bold text-[#0b2238] sm:text-[1.375rem]">
               {title}
             </span>
-            {!profile && !lookup && pathname !== "/inventory/changes" && (
+            {!profile && !notification_preferences && !lookup && pathname !== "/inventory/changes" && (
               <FeatureHelp
                 title={title}
                 text={
@@ -61,7 +65,9 @@ export default function AppHeader() {
                             ? "Find personnel records and review staff profiles and availability."
                             : user_accounts
                               ? "Find sign-in accounts and review their linked personnel, position, and status."
-                              : "Search for parts, filter by location or stock status, and use the tabs to review inventory records."
+                              : notifications
+                                ? "Review alerts, filter by feature, and update read status."
+                                : "Search for parts, filter by location or stock status, and use the tabs to review inventory records."
                 }
               />
             )}
@@ -86,7 +92,7 @@ export default function AppHeader() {
             to="/notifications"
             aria-label="Open notifications"
             title="Notifications"
-            className="flex size-11 items-center justify-center rounded-xl text-slate-500 transition-colors hover:bg-[#eaf0ff] hover:text-[#1d4ed8] focus-visible:outline-2 focus-visible:outline-[#1d4ed8]"
+            className={`flex size-11 items-center justify-center rounded-xl transition-colors hover:bg-[#eaf0ff] hover:text-[#1d4ed8] focus-visible:outline-2 focus-visible:outline-[#1d4ed8] ${notifications ? "bg-[#eaf0ff] text-[#1d4ed8]" : "text-slate-500"}`}
           >
             <Bell
               size={workspace_header ? 18 : 21}

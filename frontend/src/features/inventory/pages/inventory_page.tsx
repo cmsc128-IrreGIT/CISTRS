@@ -1,6 +1,7 @@
 ﻿import { Plus } from "lucide-react";
 import { useContext } from "react";
 import ScreenLoading from "../../../shared/components/feedback/screen_loading";
+import useRecordHighlight from "../../../shared/hooks/use_record_highlight";
 import useTablePagination from "../../../shared/hooks/use_table_pagination";
 import Pagination from "../../../shared/components/ui/pagination";
 import { Link, Outlet, useLocation, useSearchParams } from "react-router";
@@ -26,6 +27,7 @@ import {
 
 export default function InventoryPage() {
     const inventory = useActiveInventory();
+    const highlight = useRecordHighlight();
     const { items: active_items, all_items, is_loading, error, reload } = inventory;
     const { search: location_search } = useLocation();
 
@@ -62,9 +64,17 @@ export default function InventoryPage() {
             ? active_items.filter((item) => item.total_quantity > 0)
             : [...filtered_items]
     ).sort((first, second) => first.part_name.localeCompare(second.part_name));
+    const part_matches = (item: (typeof active_items)[number]) =>
+        item.part_UUID === highlight?.id || item.part_number.trim().toUpperCase() === highlight?.id;
+    const target_row_index = highlight ? results.findIndex(part_matches) : -1;
+    const highlight_row = highlight && target_row_index >= 0
+        ? { id: results[target_row_index].part_UUID, ref: highlight.ref }
+        : undefined;
     const { visible_rows, footer } = useTablePagination(
         results,
         JSON.stringify([search, stock_filter, category, location]),
+        undefined,
+        target_row_index,
     );
     return (
         <section aria-labelledby="page_title" className="space-y-4">
@@ -109,6 +119,9 @@ export default function InventoryPage() {
                         />
                     </>
                 )}
+                {!is_loading && !error && highlight && !active_items.some((item) =>
+                    part_matches(item) && (!read_only || item.total_quantity > 0)
+                ) && <p role="status" className="mb-3 text-sm text-slate-600">The item linked from this notification is unavailable.</p>}
                 {is_loading ? (
                     <ScreenLoading compact label="Loading inventory…" />
                 ) : error ? (
@@ -132,6 +145,7 @@ export default function InventoryPage() {
                         is_filtered={is_filtered && !read_only}
                         show_category={filters.categories.length > 0}
                         read_only={read_only}
+                        highlight_row={highlight_row}
                     />
                 )}
                 {!read_only && !is_loading && !error && (

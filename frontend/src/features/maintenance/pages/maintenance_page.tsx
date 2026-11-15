@@ -8,6 +8,7 @@ import Button from "../../../shared/components/ui/button";
 import Card from "../../../shared/components/ui/card";
 import DataTable from "../../../shared/components/ui/data_table";
 import Pagination from "../../../shared/components/ui/pagination";
+import useRecordHighlight from "../../../shared/hooks/use_record_highlight";
 import useTablePagination from "../../../shared/hooks/use_table_pagination";
 import type { PreviewRecord } from "../../../shared/types/record_types";
 import { workspace_tab_style } from "../../../shared/styles/tab_styles";
@@ -32,6 +33,7 @@ const scoped_tabs = [
 
 export default function MaintenancePage({ create_on_load = false }: { create_on_load?: boolean }) {
     const rows = useMaintenance();
+    const highlight = useRecordHighlight();
     const aircraft = useAircraft();
     const navigate = useNavigate();
     const user = useContext(AuthContext)?.user;
@@ -60,7 +62,10 @@ export default function MaintenancePage({ create_on_load = false }: { create_on_
     const records = filter_maintenance_records(
         rows, { aircraft: selected, part, status, date, term, task_view }, new Date(),
     );
-    const { visible_rows, footer } = useTablePagination(records, JSON.stringify([term, selected, part, status, date, scoped]));
+    const { visible_rows, footer } = useTablePagination(
+        records, JSON.stringify([term, selected, part, status, date, scoped]), undefined,
+        records.findIndex((row) => row.id === highlight?.id),
+    );
     const add_button = (
         <Button className={work_button_style} onClick={() => set_creating(true)}>
             <Plus size={16} aria-hidden="true" />
@@ -155,9 +160,9 @@ export default function MaintenancePage({ create_on_load = false }: { create_on_
                 {(!scoped || tab.id === "work-history") && (
                     <>
                         {scoped && <div className="mb-4 flex justify-end">{add_button}</div>}
-                        {task_view ? <MaintenanceTable inventory rows={visible_rows} /> : (
+                        {task_view ? <MaintenanceTable inventory rows={visible_rows} highlight_row={highlight} /> : (
                             <DataTable inventory caption={scoped ? "Maintenance work history" : "Maintenance work records"}
-                                rows={visible_rows} get_row_key={(row) => row.id} empty_title="No maintenance work records"
+                                rows={visible_rows} get_row_key={(row) => row.id} highlight_row={highlight} empty_title="No maintenance work records"
                                 columns={[
                                     { id: "date", header: "Date", render: (row) => format_work_date(row.performed_date) },
                                     ...(!scoped ? [{ id: "aircraft", header: "Aircraft", render: (row: PreviewRecord) => row.aircraft }] : []),

@@ -1,6 +1,7 @@
 import { Link } from "react-router";
 import DataTable, {
     type TableColumn,
+    type TableRowHighlight,
 } from "../../../shared/components/ui/data_table";
 import DetailsList from "../../../shared/components/ui/details_list";
 import StatusBadge from "../../../shared/components/ui/status_badge";
@@ -24,12 +25,14 @@ export function StockMovementTable({
     show_reference,
     show_item = true,
     on_view,
+    highlight_row,
 }: {
     rows: InventoryTransaction[];
     has_history: boolean;
     show_reference: boolean;
     show_item?: boolean;
     on_view: (row: InventoryTransaction) => void;
+    highlight_row?: TableRowHighlight;
 }) {
     const columns: TableColumn<InventoryTransaction>[] = [
         {
@@ -142,6 +145,7 @@ export function StockMovementTable({
             )}
             rows={rows}
             get_row_key={(row) => row.transaction_UUID}
+            highlight_row={highlight_row}
             empty_title={
                 has_history
                     ? "No history records match these filters."

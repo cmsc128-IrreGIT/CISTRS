@@ -1,8 +1,7 @@
 import { useSyncExternalStore } from "react";
-import { notifications_store } from "../data/notifications_store";
-export default function useNotifications() {
-    return useSyncExternalStore(
-        notifications_store.subscribe,
-        notifications_store.get_snapshot,
-    );
+import { notification_inbox } from "../data/notifications_store";
+
+export default function useNotifications(account_id: string) {
+    const inbox = notification_inbox(account_id);
+    return useSyncExternalStore(inbox.subscribe, inbox.get_snapshot);
 }

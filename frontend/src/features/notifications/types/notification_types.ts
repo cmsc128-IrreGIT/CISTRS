@@ -1,5 +1,5 @@
 export type NotificationCategory =
-    "inventory" | "maintenance" | "aircraft" | "system";
+    "inventory" | "maintenance" | "aircraft" | "personnel" | "system";
 
 export type NotificationRecord = {
     id: string;
@@ -7,6 +7,7 @@ export type NotificationRecord = {
     message: string;
     category: NotificationCategory;
     to: string | null;
+    record_id?: string;
     created_at: string;
     read_at: string | null;
 };

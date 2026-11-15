@@ -1,102 +1,60 @@
-import { Bell, Check, MailOpen, Package, Plane, Wrench } from "lucide-react";
+import { Bell, Check, Clock3, MailOpen, Package, Plane, Wrench } from "lucide-react";
 import { Link } from "react-router";
+import Button from "../../../shared/components/ui/button";
 import type { NotificationRecord } from "../types/notification_types";
 import { notification_relative_time } from "../utils/notification_time";
+
 const category_icons = {
     inventory: Package,
     maintenance: Wrench,
     aircraft: Plane,
+    personnel: Clock3,
     system: Bell,
 };
-function record_label(to: string) {
-    if (to.startsWith("/inventory/")) return "View inventory item";
-    if (to.startsWith("/inventory")) return "View inventory";
-    if (to.startsWith("/maintenance")) return "View maintenance";
-    if (to.startsWith("/logbook")) return "View logbook";
-    if (to.startsWith("/aircraft")) return "View aircraft";
-    return "View related record";
-}
-export default function NotificationItem({
-    notification,
-    now,
-    disabled,
-    on_read_change,
-}: {
+
+export default function NotificationItem({ notification, now, disabled, can_open, on_read_change }: {
     notification: NotificationRecord;
     now: Date;
     disabled: boolean;
+    can_open: boolean;
     on_read_change: (id: string, is_read: boolean) => void;
 }) {
-    const is_unread = notification.read_at === null;
+    const unread = notification.read_at === null;
     const Icon = category_icons[notification.category];
-    const exact_time = new Date(notification.created_at);
-    const formatted_time = Number.isFinite(exact_time.getTime())
-        ? exact_time.toLocaleString()
-        : "Date unavailable";
+    const ReadIcon = unread ? Check : MailOpen;
+    const date = new Date(notification.created_at);
+    const timestamp = Number.isFinite(date.getTime()) ? date.toLocaleString() : "Date unavailable";
+
+    const read_action = unread ? "Mark as read" : "Mark as unread";
+
     return (
-        <li
-            className={`flex items-start gap-3 rounded-lg px-3 py-4 sm:px-4 ${is_unread ? "bg-slate-50" : "bg-white"}`}
-        >
-            <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500">
-                <Icon size={18} aria-hidden="true" />
+        <li className={`flex min-w-0 items-start gap-3 rounded-lg border border-slate-100 px-3 py-2.5 ${unread ? "bg-blue-50/50" : "bg-white"}`}>
+            <span className={`relative mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full ${unread ? "bg-blue-100 text-blue-800" : "bg-slate-100 text-slate-600"}`}>
+                <Icon size={17} aria-hidden="true" />
+                {unread && <span aria-hidden="true" className="absolute right-0 bottom-0 size-2 rounded-full bg-blue-700 ring-2 ring-white" />}
             </span>
-            <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-1">
-                    <h3
-                        className={`break-words text-sm text-slate-900 ${is_unread ? "font-semibold" : "font-medium"}`}
-                    >
-                        {notification.title}
-                    </h3>
-                    <time
-                        dateTime={notification.created_at}
-                        title={formatted_time}
-                        aria-label={formatted_time}
-                        className="shrink-0 text-xs text-slate-500"
-                    >
-                        {notification_relative_time(
-                            notification.created_at,
-                            now,
-                        )}
-                    </time>
-                </div>
-                <p className="mt-1 break-words text-sm leading-6 text-slate-600">
-                    {notification.message}
-                </p>
-                <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
-                    <span className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-600">
-                        {is_unread && (
-                            <span
-                                aria-hidden="true"
-                                className="size-1.5 rounded-full bg-slate-600"
-                            />
-                        )}
-                        {is_unread ? "Unread" : "Read"}
-                    </span>
-                    {notification.to && (
-                        <Link
-                            to={notification.to}
-                            className="inline-flex min-h-11 items-center rounded-sm text-xs font-medium text-slate-600 underline decoration-slate-300 underline-offset-4 hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-600"
-                        >
-                            {record_label(notification.to)}
+            <div className="min-w-0 flex-1 pt-0.5">
+                <h3 className={`wrap-anywhere text-sm text-[#0b2238] ${unread ? "font-semibold" : "font-medium"}`}>
+                    {notification.to && can_open ? (
+                        <Link to={notification.record_id ? `${notification.to}#record=${encodeURIComponent(notification.record_id)}` : notification.to}
+                            className="rounded-sm underline decoration-slate-400 underline-offset-4 hover:text-[#1d4ed8] focus-visible:outline-2 focus-visible:outline-[#1d4ed8]">
+                            {notification.title}
                         </Link>
-                    )}
-                    <button
-                        type="button"
-                        disabled={disabled}
-                        onClick={() =>
-                            on_read_change(notification.id, is_unread)
-                        }
-                        className="inline-flex min-h-11 items-center gap-1.5 rounded-lg px-2 text-xs text-slate-500 hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-600 disabled:cursor-wait disabled:opacity-50"
-                    >
-                        {is_unread ? (
-                            <Check size={15} aria-hidden="true" />
-                        ) : (
-                            <MailOpen size={15} aria-hidden="true" />
-                        )}
-                        Mark as {is_unread ? "read" : "unread"}
-                        <span className="sr-only">: {notification.title}</span>
-                    </button>
-                </div>
+                    ) : notification.title}
+                </h3>
+                <p className="mt-0.5 wrap-anywhere text-sm text-slate-600">{notification.message}</p>
+                <span className="sr-only">{unread ? "Unread" : "Read"}</span>
+            </div>
+            <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+                <time dateTime={notification.created_at} title={timestamp} aria-label={timestamp}
+                    className="max-w-[5.5rem] text-right text-xs text-slate-600 tabular-nums sm:max-w-28">
+                    {notification_relative_time(notification.created_at, now)}
+                </time>
+                <Button variant="ghost" className="size-10! min-h-10! p-0! text-slate-600! hover:bg-slate-200/60! hover:text-[#0b2238]!"
+                    title={read_action} aria-label={`${read_action}: ${notification.title}`}
+                    disabled={disabled} onClick={() => on_read_change(notification.id, unread)}>
+                    <ReadIcon size={16} aria-hidden="true" />
+                </Button>
             </div>
         </li>
     );

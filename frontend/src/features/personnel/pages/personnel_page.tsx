@@ -8,6 +8,7 @@ import Card from "../../../shared/components/ui/card";
 import DataTable from "../../../shared/components/ui/data_table";
 import type { TableColumn } from "../../../shared/components/ui/data_table";
 import Pagination from "../../../shared/components/ui/pagination";
+import useRecordHighlight from "../../../shared/hooks/use_record_highlight";
 import useTablePagination from "../../../shared/hooks/use_table_pagination";
 import { button_styles } from "../../../shared/styles/button_styles";
 import PersonnelTabs from "../components/personnel_tabs";
@@ -20,6 +21,7 @@ const select_style = "mt-1.5 min-h-11 w-full rounded-lg border border-slate-200 
 
 export default function PersonnelPage() {
     const directory = usePersonnelDirectory();
+    const highlight = useRecordHighlight();
     const { rows, availability, can_manage } = directory;
     const [params] = useSearchParams();
     const [search, set_search] = useState("");
@@ -31,7 +33,16 @@ export default function PersonnelPage() {
         (!position || row.position.trim().toLowerCase() === position.trim().toLowerCase()) &&
         [row.name, row.employee_number, row.position, row.department, row.category].some((value) => value.toLowerCase().includes(term)),
     );
-    const { visible_rows, footer } = useTablePagination(filtered, JSON.stringify([term, department, position]));
+    const employee_matches = (row: PersonnelRecord) =>
+        row.id === highlight?.id || row.employee_number.trim().toUpperCase() === highlight?.id;
+    const target_row_index = highlight ? filtered.findIndex(employee_matches) : -1;
+    const highlight_row = highlight && target_row_index >= 0
+        ? { id: filtered[target_row_index].id, ref: highlight.ref }
+        : undefined;
+    const { visible_rows, footer } = useTablePagination(
+        filtered, JSON.stringify([term, department, position]), undefined,
+        target_row_index,
+    );
 
     const columns: TableColumn<PersonnelRecord>[] = [
         { id: "name", header: "Name / employee ID", render: (row) => (
@@ -85,8 +96,11 @@ export default function PersonnelPage() {
                         </Link>
                     )}
                 </div>
+                {highlight && !rows.some(employee_matches) && (
+                    <p role="status" className="mb-3 text-sm text-slate-600">The employee linked from this notification is unavailable.</p>
+                )}
                 <DataTable inventory caption="Personnel directory"
-                    columns={columns} rows={visible_rows} get_row_key={(row) => row.id}
+                    columns={columns} rows={visible_rows} get_row_key={(row) => row.id} highlight_row={highlight_row}
                     empty_title={rows.length ? "No matching personnel" : "No personnel records"} />
                 {filtered.length > footer.default_page_size && <Pagination {...footer} item_label="person" plural_label="people" />}
             </Card>

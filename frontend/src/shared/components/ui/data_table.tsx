@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { ReactNode, RefCallback } from "react";
 import EmptyState from "../feedback/empty_state";
 
 export type TableColumn<T> = {
@@ -7,6 +7,8 @@ export type TableColumn<T> = {
     render: (row: T) => ReactNode;
     cell_class_name?: string;
 };
+
+export type TableRowHighlight = { id: string; ref: RefCallback<HTMLTableRowElement> };
 
 type DataTableProps<T> = {
     columns: TableColumn<T>[];
@@ -19,6 +21,7 @@ type DataTableProps<T> = {
     bounded?: boolean;
     compact_empty?: boolean;
     inventory?: boolean;
+    highlight_row?: TableRowHighlight;
 };
 
 export default function DataTable<T>({
@@ -32,6 +35,7 @@ export default function DataTable<T>({
     bounded = false,
     compact_empty = false,
     inventory = false,
+    highlight_row,
 }: DataTableProps<T>) {
     return (
         <div
@@ -73,6 +77,7 @@ export default function DataTable<T>({
                         rows.map((row) => (
                             <tr
                                 key={get_row_key(row)}
+                                ref={highlight_row?.id === get_row_key(row) ? highlight_row.ref : undefined}
                                 className="hover:bg-slate-50"
                             >
                                 {columns.map((column) => (

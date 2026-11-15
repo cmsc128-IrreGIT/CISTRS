@@ -47,6 +47,7 @@ import PersonnelDocumentsPage from "../features/personnel/pages/personnel_docume
 import PersonnelFormPage from "../features/personnel/pages/personnel_form_page";
 import AvailabilityPage from "../features/personnel/pages/availability_page";
 
+import NotificationPreferencesPage from "../features/notifications/pages/notification_preferences_page";
 import NotificationsPage from "../features/notifications/pages/notifications_page";
 
 import UserAccountsWorkspace from "../features/user_management/pages/user_accounts_workspace";
@@ -273,6 +274,7 @@ export default function AppRoutes() {
                 <Route path="/personnel/availability" element={<AvailabilityPage />} />
 
                 <Route path="/notifications" element={<NotificationsPage />} />
+                <Route path="/notifications/preferences" element={<NotificationPreferencesPage />} />
 
                 <Route element={<UserAccountsWorkspace />}>
                     <Route path="/users" element={<UsersPage />}>

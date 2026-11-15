@@ -1,6 +1,7 @@
 import { Link } from "react-router";
 import DataTable, {
     type TableColumn,
+    type TableRowHighlight,
 } from "../../../shared/components/ui/data_table";
 import EmptyState from "../../../shared/components/feedback/empty_state";
 import type { InventoryItem } from "../types/inventory_types";
@@ -117,11 +118,13 @@ export default function InventoryTable({
     is_filtered = false,
     read_only = false,
     show_category = false,
+    highlight_row,
 }: {
     rows: InventoryItem[];
     is_filtered?: boolean;
     read_only?: boolean;
     show_category?: boolean;
+    highlight_row?: TableRowHighlight;
 }) {
     if (!rows.length) {
         return (
@@ -160,6 +163,7 @@ export default function InventoryTable({
             }
             rows={rows}
             get_row_key={(row) => row.part_UUID}
+            highlight_row={highlight_row}
         />
     );
 }
