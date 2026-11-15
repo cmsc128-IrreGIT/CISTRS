@@ -49,6 +49,7 @@ import AvailabilityPage from "../features/personnel/pages/availability_page";
 
 import NotificationsPage from "../features/notifications/pages/notifications_page";
 
+import UserAccountsWorkspace from "../features/user_management/pages/user_accounts_workspace";
 import UsersPage from "../features/user_management/pages/users_page";
 import UserDetailsPage from "../features/user_management/pages/user_details_page";
 import UserFormPage from "../features/user_management/pages/user_form_page";
@@ -273,10 +274,14 @@ export default function AppRoutes() {
 
                 <Route path="/notifications" element={<NotificationsPage />} />
 
-                <Route path="/users" element={<UsersPage />} />
-                <Route path="/users/new" element={<UserFormPage />} />
-                <Route path="/users/:user_id" element={<UserDetailsPage />} />
-                <Route path="/users/:user_id/edit" element={<UserFormPage />} />
+                <Route element={<UserAccountsWorkspace />}>
+                    <Route path="/users" element={<UsersPage />}>
+                        <Route path="new" element={<UserFormPage />} />
+                    </Route>
+                    <Route path="/users/:user_id" element={<UserDetailsPage />}>
+                        <Route path="edit" element={<UserFormPage />} />
+                    </Route>
+                </Route>
             </Route>
 
             <Route path="/403" element={<ForbiddenPage />} />

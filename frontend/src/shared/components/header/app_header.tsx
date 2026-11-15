@@ -18,7 +18,9 @@ export default function AppHeader() {
   const logbook_report = Boolean(useMatch("/logbook/report"));
   const personnel = Boolean(useMatch("/personnel/*"));
   const availability = Boolean(useMatch("/personnel/availability"));
-  const aligned_workspace = inventory || aircraft || maintenance || logbook || personnel;
+  const user_accounts = Boolean(useMatch("/users/*"));
+  const profile = Boolean(useMatch("/profile"));
+  const aligned_workspace = inventory || aircraft || maintenance || logbook || personnel || user_accounts || profile;
   const workspace_header = dashboard || aligned_workspace;
   const title = dashboard
     ? "Dashboard"
@@ -30,9 +32,11 @@ export default function AppHeader() {
           ? logbook_report ? "Logbook report preview" : "Aircraft Logbook"
           : personnel
             ? availability ? "Personnel availability" : "Personnel"
-            : lookup
-              ? "Stock availability"
-              : "Inventory";
+            : user_accounts
+              ? "User Accounts"
+              : profile
+                ? "My profile"
+                : lookup ? "Stock availability" : "Inventory";
   return (
     <header className="sticky top-0 z-30 h-16 border-b border-slate-200 bg-white">
       <div className={`flex h-full items-center justify-between gap-3 ${aligned_workspace ? WORKSPACE_CONTENT_WIDTH : "px-4 sm:px-6"}`}>
@@ -41,7 +45,7 @@ export default function AppHeader() {
             <span className="text-lg font-bold text-[#0b2238] sm:text-[1.375rem]">
               {title}
             </span>
-            {!lookup && pathname !== "/inventory/changes" && (
+            {!profile && !lookup && pathname !== "/inventory/changes" && (
               <FeatureHelp
                 title={title}
                 text={
@@ -55,7 +59,9 @@ export default function AppHeader() {
                           ? "Find logbook entries, review observed conditions, and open linked maintenance records."
                           : personnel
                             ? "Find personnel records and review staff profiles and availability."
-                            : "Search for parts, filter by location or stock status, and use the tabs to review inventory records."
+                            : user_accounts
+                              ? "Find sign-in accounts and review their linked personnel, position, and status."
+                              : "Search for parts, filter by location or stock status, and use the tabs to review inventory records."
                 }
               />
             )}

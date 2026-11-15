@@ -12,7 +12,9 @@ export default function AppLayout() {
     const is_logbook = Boolean(useMatch("/logbook/*"));
     const print_report = Boolean(useMatch("/logbook/report"));
     const is_personnel = Boolean(useMatch("/personnel/*"));
-    const aligned_workspace = is_inventory || is_aircraft || is_maintenance || is_logbook || is_personnel;
+    const is_user_accounts = Boolean(useMatch("/users/*"));
+    const is_profile = Boolean(useMatch("/profile"));
+    const aligned_workspace = is_inventory || is_aircraft || is_maintenance || is_logbook || is_personnel || is_user_accounts || is_profile;
     const workspace_background = is_dashboard || aligned_workspace;
     const content_width = aligned_workspace
         ? WORKSPACE_CONTENT_WIDTH
