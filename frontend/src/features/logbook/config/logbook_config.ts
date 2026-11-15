@@ -20,6 +20,11 @@ export const logbook_sections: LogbookSection[] = [
                 hint: "",
             },
             {
+                key: "entry_time",
+                label: "Entry time (UTC)",
+                type: "time",
+            },
+            {
                 key: "log_page",
                 label: "Paper log page",
                 type: "text",
@@ -128,6 +133,12 @@ export const logbook_sections: LogbookSection[] = [
                 type: "textarea",
                 required: false,
                 hint: "Record work already performed. This does not authorize release to service.",
+            },
+            {
+                key: "maintenance_id",
+                label: "Linked maintenance",
+                type: "maintenance",
+                hint: "Optional. Select a recorded maintenance item for this aircraft.",
             },
         ],
     },

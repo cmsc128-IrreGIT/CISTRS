@@ -62,6 +62,12 @@ const DashboardPage = lazy(
 const LogbookPage = lazy(
     () => import("../features/logbook/pages/logbook_page"),
 );
+const LogbookDetailsPage = lazy(
+    () => import("../features/logbook/pages/logbook_details_page"),
+);
+const LogbookReportPage = lazy(
+    () => import("../features/logbook/pages/logbook_report_page"),
+);
 const LogbookFormPage = lazy(
     () => import("../features/logbook/pages/logbook_form_page"),
 );
@@ -237,28 +243,20 @@ export default function AppRoutes() {
 
                 <Route
                     path="/logbook"
-                    element={
-                        <Suspense fallback={<ScreenLoading />}>
-                            <LogbookPage />
-                        </Suspense>
-                    }
+                    element={<Suspense fallback={<ScreenLoading />}><LogbookPage /></Suspense>}
+                >
+                    <Route path="new" element={<Suspense fallback={<ScreenLoading />}><LogbookFormPage /></Suspense>} />
+                </Route>
+                <Route
+                    path="/logbook/report"
+                    element={<Suspense fallback={<ScreenLoading />}><LogbookReportPage /></Suspense>}
                 />
                 <Route
-                    path="/logbook/new"
-                    element={
-                        <Suspense fallback={<ScreenLoading />}>
-                            <LogbookFormPage />
-                        </Suspense>
-                    }
-                />
-                <Route
-                    path="/logbook/:entry_id/edit"
-                    element={
-                        <Suspense fallback={<ScreenLoading />}>
-                            <LogbookFormPage />
-                        </Suspense>
-                    }
-                />
+                    path="/logbook/:entry_id"
+                    element={<Suspense fallback={<ScreenLoading />}><LogbookDetailsPage /></Suspense>}
+                >
+                    <Route path="edit" element={<Suspense fallback={<ScreenLoading />}><LogbookFormPage /></Suspense>} />
+                </Route>
 
                 <Route path="/personnel" element={<PersonnelPage />} />
                 <Route path="/personnel/new" element={<PersonnelFormPage />} />

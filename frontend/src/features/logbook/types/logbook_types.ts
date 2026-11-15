@@ -1,6 +1,8 @@
 export type LogbookFieldKey =
     | "aircraft"
     | "entry_date"
+    | "entry_time"
+    | "maintenance_id"
     | "log_page"
     | "station_from"
     | "station_to"
@@ -55,12 +57,20 @@ export type LogbookFieldKey =
     | "inspection_licence"
     | "inspection_utc_date";
 
-export type LogbookFormValues = Record<LogbookFieldKey, string>;
-export type LogbookEntry = LogbookFormValues & { id: string };
+export type LogbookCondition = "Defect reported" | "No defect reported";
+
+export type LogbookFormValues = Record<LogbookFieldKey, string> & {
+    recorded_condition?: LogbookCondition;
+};
+export type LogbookEntry = LogbookFormValues & {
+    id: string;
+    recorded_by?: string;
+    updated_at?: string;
+};
 export type LogbookField = {
     key: LogbookFieldKey;
     label: string;
-    type: "text" | "date" | "time" | "number" | "textarea" | "aircraft";
+    type: "text" | "date" | "time" | "number" | "textarea" | "aircraft" | "maintenance";
     required?: boolean;
     hint?: string;
 };
