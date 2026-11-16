@@ -19,7 +19,10 @@ const user = {
     account_UUID: "account",
     emp_UUID: "employee",
     username: "adrian.reyes",
-    roles: ["Administrator", "Inventory Staff"],
+    position: {
+        position_UUID: "position",
+        position_name: "Inventory Officer",
+    },
     features: ["Inventory", "Personnel", "User Accounts"],
 };
 function Workspace() {
@@ -28,7 +31,7 @@ function Workspace() {
     return (
         <>
             <p>{user?.username || "Signed out"}</p>
-            <p>{user?.roles.join(", ")}</p>
+            <p>{user?.position.position_name}</p>
             <p role="alert">{error}</p>
             <button onClick={() => void logout()}>Log out</button>
             <button onClick={retry}>Retry</button>
@@ -39,7 +42,7 @@ afterEach(() => {
     sessionStorage.clear();
     vi.unstubAllGlobals();
 });
-it("logs in through the existing endpoint and shows all assigned roles", async () => {
+it("logs in through the existing endpoint and shows the assigned position", async () => {
     const fetcher = vi
         .fn()
         .mockResolvedValue(
@@ -62,7 +65,7 @@ it("logs in through the existing endpoint and shows all assigned roles", async (
     await person.click(screen.getByRole("button", { name: "Log in" }));
     expect(await screen.findByText("adrian.reyes")).toBeInTheDocument();
     expect(
-        screen.getByText("Administrator, Inventory Staff"),
+        screen.getByText("Inventory Officer"),
     ).toBeInTheDocument();
     expect(get_token()).toBe("session-token");
     expect(JSON.parse(fetcher.mock.calls[0][1].body)).toEqual({

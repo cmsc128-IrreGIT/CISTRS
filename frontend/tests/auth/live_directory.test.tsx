@@ -8,7 +8,10 @@ const session = {
     account_UUID: "admin",
     emp_UUID: "admin-employee",
     username: "admin",
-    roles: ["Administrator"],
+    position: {
+        position_UUID: "position-admin",
+        position_name: "Administrator",
+    },
     features: ["Personnel", "User Accounts"],
 };
 const role = { role_UUID: "role-one", role_name: "Inventory Staff" };
@@ -17,15 +20,22 @@ const account = {
     username: "saved.user",
     account_status: "Active",
     last_login_at: null,
-    employee: { emp_number: "E-1", f_name: "Saved", l_name: "Employee" },
-    roles: [role],
+    employee: {
+        emp_number: "E-1",
+        f_name: "Saved",
+        l_name: "Employee",
+        position: { position_name: "Administrator" },
+    },
 };
 const employee = {
     emp_UUID: "employee-one",
     emp_number: "E-2",
     f_name: "New",
     l_name: "Employee",
-    position: "Mechanic",
+    position: {
+        position_UUID: "position-mechanic",
+        position_name: "Mechanic",
+    },
     personnel_category: "Maintenance",
     record_status: "Active",
     licenses: [],
@@ -87,29 +97,16 @@ beforeEach(() => {
     });
 });
 afterEach(() => vi.unstubAllGlobals());
-it("displays saved accounts and all their roles", async () => {
+it("displays saved accounts using their returned position", async () => {
     vi.stubGlobal(
         "fetch",
         vi.fn().mockResolvedValue(
-            new Response(
-                JSON.stringify([
-                    {
-                        ...account,
-                        roles: [
-                            role,
-                            {
-                                role_UUID: "role-two",
-                                role_name: "Mechanic",
-                            },
-                        ],
-                    },
-                ]),
-            ),
+            new Response(JSON.stringify([account])),
         ),
     );
     mount("users", "/users");
     expect(await screen.findByText("saved.user")).toBeInTheDocument();
-    expect(screen.getByText("Inventory Staff, Mechanic")).toBeInTheDocument();
+    expect(screen.getByText("Administrator")).toBeInTheDocument();
     expect(
         screen.getByRole("link", { name: "Saved Employee" }),
     ).toHaveAttribute("href", "/users/existing");
@@ -122,6 +119,17 @@ it("displays a saved employee and an honest empty qualifications state", async (
     mount("personnel", "/personnel/employee-one", false, true);
     expect(await screen.findByText("Mechanic")).toBeInTheDocument();
     expect(screen.getByText("No qualifications recorded.")).toBeInTheDocument();
+});
+it("displays personnel records using their returned position object", async () => {
+    vi.stubGlobal(
+        "fetch",
+        vi.fn().mockResolvedValue(new Response(JSON.stringify([employee]))),
+    );
+    mount("personnel", "/personnel");
+    expect(
+        await screen.findByRole("link", { name: "New Employee" }),
+    ).toHaveAttribute("href", "/personnel/employee-one");
+    expect(screen.getByText("Mechanic")).toBeInTheDocument();
 });
 it("does not fetch records without the corresponding feature access", async () => {
     const fetcher = vi.fn();

@@ -17,7 +17,7 @@ type Employee = {
     emp_number: string;
     f_name: string;
     l_name: string;
-    position: string;
+    position: { position_UUID: string; position_name: string };
     personnel_category: string;
     record_status: string;
     base: { base_name: string };
@@ -35,8 +35,13 @@ type Account = {
     username: string;
     account_status: string;
     last_login_at: string | null;
-    employee: { emp_number: string; f_name: string; l_name: string };
-    roles: Role[];
+    employee: {
+        emp_number: string;
+        f_name: string;
+        l_name: string;
+        position: { position_name: string };
+    };
+    roles?: Role[];
 };
 const field =
     "mt-1 min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm";
@@ -158,16 +163,14 @@ export default function LiveDirectory({
                   id: row.account_UUID,
                   name: `${row.employee.f_name} ${row.employee.l_name}`,
                   reference: row.username,
-                  description: row.roles
-                      .map((role) => role.role_name)
-                      .join(", "),
+                  description: row.employee.position.position_name,
                   status: row.account_status,
               }))
             : employees.map((row) => ({
                   id: row.emp_UUID,
                   name: `${row.f_name} ${row.l_name}`,
                   reference: row.emp_number,
-                  description: row.position,
+                  description: row.position.position_name,
                   status: row.record_status,
               }));
     const filtered = rows.filter((row) =>
@@ -183,7 +186,7 @@ export default function LiveDirectory({
                 title={kind === "users" ? "Users" : "Personnel"}
                 description={
                     kind === "users"
-                        ? "Account records and assigned roles."
+                        ? "Account records and assigned positions."
                         : "Employee records and qualifications."
                 }
                 actions={
@@ -208,7 +211,7 @@ export default function LiveDirectory({
                         label={`Search ${kind}`}
                         placeholder={
                             kind === "users"
-                                ? "Name, username, role, or status"
+                                ? "Name, username, position, or status"
                                 : "Name, employee number, position, or status"
                         }
                     />
@@ -244,7 +247,7 @@ export default function LiveDirectory({
                         },
                         {
                             id: "description",
-                            header: kind === "users" ? "Roles" : "Position",
+                            header: "Position",
                             render: (row) => row.description,
                         },
                         {
@@ -444,11 +447,11 @@ export default function LiveDirectory({
                                             name="roles"
                                             type="checkbox"
                                             value={role.role_UUID}
-                                            defaultChecked={account?.roles.some(
+                                            defaultChecked={account?.roles?.some(
                                                 (value) =>
                                                     value.role_UUID ===
                                                     role.role_UUID,
-                                            )}
+                                            ) ?? false}
                                         />
                                         {role.role_name}
                                     </label>
@@ -518,10 +521,8 @@ export default function LiveDirectory({
                                       account.employee.emp_number,
                                   ],
                                   [
-                                      "Roles",
-                                      account.roles
-                                          .map((role) => role.role_name)
-                                          .join(", "),
+                                      "Position",
+                                      account.employee.position.position_name,
                                   ],
                                   ["Account status", account.account_status],
                                   [
@@ -535,7 +536,10 @@ export default function LiveDirectory({
                               ]
                             : [
                                   ["Employee number", employee!.emp_number],
-                                  ["Position", employee!.position],
+                                  [
+                                      "Position",
+                                      employee!.position.position_name,
+                                  ],
                                   ["Base", employee!.base?.base_name],
                                   [
                                       "Employment status",
