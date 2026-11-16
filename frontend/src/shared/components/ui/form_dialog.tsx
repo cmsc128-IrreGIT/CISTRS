@@ -6,12 +6,14 @@ export default function FormDialog({
     children,
     on_close,
     compact = false,
+    close_label = "Close form",
     is_busy = false,
 }: {
     title: string;
     children: ReactNode;
     on_close: () => void;
     compact?: boolean;
+    close_label?: string;
     is_busy?: boolean;
 }) {
     const ref = useRef<HTMLDialogElement>(null);
@@ -40,7 +42,7 @@ export default function FormDialog({
                 </h2>
                 <button
                     type="button"
-                    aria-label="Close form"
+                    aria-label={close_label}
                     onClick={on_close}
                     disabled={is_busy}
                     className="flex size-11 shrink-0 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-[#1d4ed8]"

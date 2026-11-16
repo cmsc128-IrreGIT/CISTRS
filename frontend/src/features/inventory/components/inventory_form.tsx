@@ -2,6 +2,7 @@ import { CalendarDays, ChevronDown } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent, SubmitEvent } from "react";
+import FeatureHelp from "../../../shared/components/feedback/feature_help";
 import FormField from "../../../shared/components/forms/form_field";
 import Button from "../../../shared/components/ui/button";
 import { INVENTORY_PRIMARY_ACTION } from "../constants/inventory_constants";
@@ -143,9 +144,12 @@ export default function InventoryForm({
     return (
         <form onSubmit={handle_submit} onChange={clear_error} noValidate>
             <div className="space-y-4 px-4 py-3 sm:px-5">
-                <p className="text-xs text-slate-600">
-                    <span className="text-red-700">*</span> indicates a required field.
-                </p>
+                <div className="flex items-center gap-1">
+                    <p className="text-xs text-slate-600">
+                        <span className="text-red-700">*</span> indicates a required field.
+                    </p>
+                    <FeatureHelp title="required fields" guide_id="required" />
+                </div>
                 {save_error && (
                     <div
                         ref={save_alert}

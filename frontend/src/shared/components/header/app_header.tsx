@@ -22,7 +22,8 @@ export default function AppHeader() {
   const notification_preferences = Boolean(useMatch("/notifications/preferences"));
   const user_accounts = Boolean(useMatch("/users/*"));
   const profile = Boolean(useMatch("/profile"));
-  const aligned_workspace = inventory || aircraft || maintenance || logbook || personnel || user_accounts || profile || notifications;
+  const help = Boolean(useMatch("/help"));
+  const aligned_workspace = inventory || aircraft || maintenance || logbook || personnel || user_accounts || profile || notifications || help;
   const workspace_header = dashboard || aligned_workspace;
   const title = dashboard
     ? "Dashboard"
@@ -40,7 +41,12 @@ export default function AppHeader() {
                 ? "My profile"
                 : notifications
                   ? notification_preferences ? "Notification preferences" : "Notifications"
-                  : lookup ? "Stock availability" : "Inventory";
+                  : help ? "Help & guides" : lookup ? "Stock availability" : "Inventory";
+  const guide_id = ([
+    [dashboard, "dashboard"], [aircraft, "aircraft"], [maintenance, "maintenance"],
+    [logbook, "logbook"], [personnel, "personnel"], [user_accounts, "accounts"],
+    [notifications, "notifications"], [inventory, "inventory"],
+  ] as const).find(([matches]) => matches)?.[1];
   return (
     <header className="sticky top-0 z-30 h-16 border-b border-slate-200 bg-white">
       <div className={`flex h-full items-center justify-between gap-3 ${aligned_workspace ? WORKSPACE_CONTENT_WIDTH : "px-4 sm:px-6"}`}>
@@ -49,27 +55,8 @@ export default function AppHeader() {
             <span className="text-lg font-bold text-[#0b2238] sm:text-[1.375rem]">
               {title}
             </span>
-            {!profile && !notification_preferences && !lookup && pathname !== "/inventory/changes" && (
-              <FeatureHelp
-                title={title}
-                text={
-                  dashboard
-                    ? "Review summaries and open the related records. Cards follow the features assigned to your position."
-                    : aircraft
-                      ? "Browse fleet records and review aircraft status and related maintenance. Aircraft type, hours, and status are preview values."
-                      : maintenance
-                        ? "Browse recorded maintenance work and review linked stock issues."
-                        : logbook
-                          ? "Find logbook entries, review observed conditions, and open linked maintenance records."
-                          : personnel
-                            ? "Find personnel records and review staff profiles and availability."
-                            : user_accounts
-                              ? "Find sign-in accounts and review their linked personnel, position, and status."
-                              : notifications
-                                ? "Review alerts, filter by feature, and update read status."
-                                : "Search for parts, filter by location or stock status, and use the tabs to review inventory records."
-                }
-              />
+            {guide_id && !notification_preferences && !lookup && pathname !== "/inventory/changes" && (
+              <FeatureHelp title={title} guide_id={guide_id} />
             )}
           </div>
         )}

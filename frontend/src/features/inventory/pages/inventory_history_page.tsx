@@ -1,5 +1,6 @@
 import { Download } from "lucide-react";
 import { useState } from "react";
+import FeatureHelp from "../../../shared/components/feedback/feature_help";
 import ScreenLoading from "../../../shared/components/feedback/screen_loading";
 import Card from "../../../shared/components/ui/card";
 import Button from "../../../shared/components/ui/button";
@@ -143,14 +144,16 @@ export default function InventoryHistoryPage() {
                                     ))}
                                 </select>
                             </label>
-                            <Button
-                                className={INVENTORY_PRIMARY_ACTION}
-                                disabled={!filtered.length}
-                                onClick={() => export_stock_history(filtered)}
-                            >
-                                <Download size={17} aria-hidden="true" /> Export
-                                records
-                            </Button>
+                            <div className="flex shrink-0 items-center gap-1">
+                                <Button
+                                    className={INVENTORY_PRIMARY_ACTION}
+                                    disabled={!filtered.length}
+                                    onClick={() => export_stock_history(filtered)}
+                                >
+                                    <Download size={17} aria-hidden="true" /> Export records
+                                </Button>
+                                <FeatureHelp title="exporting stock movements" guide_id="export" />
+                            </div>
                         </div>
                         {highlight && !history.some((row) => row.transaction_UUID === highlight.id) && (
                             <p role="status" className="mb-3 text-sm text-slate-600">The linked transaction is unavailable in recent Stock History.</p>
