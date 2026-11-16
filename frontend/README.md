@@ -1,5 +1,7 @@
 # React + TypeScript + Vite
 
+> **CISTRS integration handoff:** See [INTEGRATION_HANDOFF.md](INTEGRATION_HANDOFF.md) for frontend feature status, API connections, preview-only workflows, permissions, and integration checks.
+
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
 Currently, two official plugins are available:
