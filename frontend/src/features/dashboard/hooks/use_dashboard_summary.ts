@@ -1,4 +1,3 @@
-import { useSyncExternalStore } from "react";
 import type { DonutChartEntry } from "../../../shared/components/charts/donut_chart";
 import useAircraft from "../../aircraft/hooks/use_aircraft";
 import useActiveInventory from "../../inventory/hooks/use_active_inventory";
@@ -7,7 +6,7 @@ import useInventoryHistory from "../../inventory/hooks/use_inventory_history";
 import useLogbook from "../../logbook/hooks/use_logbook";
 import usePersonnel from "../../personnel/hooks/use_personnel";
 import useMaintenance from "../../maintenance/hooks/use_maintenance";
-import { availability_store } from "../../personnel/data/availability_store";
+import useAvailability from "../../personnel/hooks/use_availability";
 
 export default function useDashboardSummary(
   include_inventory = true,
@@ -19,10 +18,7 @@ export default function useDashboardSummary(
   const maintenance = useMaintenance();
   const logbook = useLogbook();
   const personnel = usePersonnel();
-  const availability = useSyncExternalStore(
-    availability_store.subscribe,
-    availability_store.get_snapshot,
-  );
+  const availability = useAvailability();
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);

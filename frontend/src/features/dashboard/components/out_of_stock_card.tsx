@@ -1,7 +1,6 @@
 import { Link } from "react-router";
 import StatusBadge from "../../../shared/components/ui/status_badge";
 import type { InventoryItem } from "../../inventory/types/inventory_types";
-import { dashboard_list_limit } from "../config/dashboard_config";
 import DashboardPanel from "./dashboard_panel";
 import DashboardTable from "./dashboard_table";
 
@@ -13,14 +12,15 @@ export default function StockAlertsCard({ items }: { items: InventoryItem[] }) {
         >
             <DashboardTable
                 caption="Stock alerts"
+                scroll
                 headers={["Item", "Available", "Status"]}
                 empty="No stock alerts."
-                rows={items.slice(0, dashboard_list_limit).map((item) => ({
+                rows={items.map((item) => ({
                     id: item.part_UUID,
                     cells: [
                         <Link
                             to={`/inventory/${item.part_UUID}`}
-                            className="hover:underline"
+                            className="text-link"
                         >
                             {item.part_name}
                         </Link>,
@@ -37,11 +37,6 @@ export default function StockAlertsCard({ items }: { items: InventoryItem[] }) {
                     ],
                 }))}
             />
-            {items.length > dashboard_list_limit && (
-                <p className="mt-2 text-xs text-slate-600">
-                    Showing {dashboard_list_limit} of {items.length} stock alerts
-                </p>
-            )}
         </DashboardPanel>
     );
 }

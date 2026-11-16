@@ -94,7 +94,7 @@ export default function InventoryPage() {
                             items={active_items}
                             filters={filters}
                             action={
-                                <div className="flex flex-wrap gap-2">
+                                <>
                                     {is_filtered && (
                                         <Button
                                             variant="ghost"
@@ -114,7 +114,7 @@ export default function InventoryPage() {
                                         <Plus size={17} aria-hidden="true" />{" "}
                                         Add item
                                     </Link>
-                                </div>
+                                </>
                             }
                         />
                     </>

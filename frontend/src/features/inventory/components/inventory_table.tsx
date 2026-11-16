@@ -42,7 +42,7 @@ const location: TableColumn<InventoryItem> = {
 const expiry_column: TableColumn<InventoryItem> = {
     id: "expiry",
     header: "Expiry",
-    render: format_inventory_expiry,
+    render: (item) => format_inventory_expiry(item, "--"),
 };
 const columns: TableColumn<InventoryItem>[] = [
     {
@@ -89,7 +89,7 @@ const columns: TableColumn<InventoryItem>[] = [
             <Link
                 to={`/inventory/${row.part_UUID}`}
                 aria-label={`View ${row.part_name}`}
-                className="inline-flex min-h-8 items-center rounded font-semibold underline underline-offset-4 focus-visible:outline-2"
+                className="inline-flex min-h-8 items-center rounded font-semibold text-link"
             >
                 View
             </Link>

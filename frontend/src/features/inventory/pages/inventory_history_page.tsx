@@ -6,6 +6,7 @@ import Card from "../../../shared/components/ui/card";
 import Button from "../../../shared/components/ui/button";
 import SearchInput from "../../../shared/components/forms/search_input";
 import useRecordHighlight from "../../../shared/hooks/use_record_highlight";
+import { employee_name } from "../../../shared/utils/employee_name";
 import useTablePagination from "../../../shared/hooks/use_table_pagination";
 import Pagination from "../../../shared/components/ui/pagination";
 import {
@@ -59,8 +60,7 @@ export default function InventoryHistoryPage() {
                     row.status.part.part_name,
                     row.status.part.part_number,
                     row.status.location.location_name,
-                    row.updater.f_name,
-                    row.updater.l_name,
+                    employee_name(row.updater),
                     row.remarks ?? "",
                     row.reference ?? "",
                     row.transaction_UUID,
@@ -96,9 +96,9 @@ export default function InventoryHistoryPage() {
                     </div>
                 ) : (
                     <>
-                        <div className="mb-4 flex flex-wrap items-end gap-3 rounded-md bg-[#f5f8fa] p-4">
-                            <div className="min-w-0 flex-[2_1_14rem]">
-                                <p className="mb-1 text-sm font-medium">
+                        <div className="filter-toolbar mb-4 rounded-md bg-[#f5f8fa] p-4">
+                            <div className="filter-toolbar-search grid gap-1.5">
+                                <p aria-hidden="true" className="text-sm font-medium">
                                     Search
                                 </p>
                                 <SearchInput
@@ -112,10 +112,10 @@ export default function InventoryHistoryPage() {
                                     }
                                 />
                             </div>
-                            <label className="min-w-0 flex-[1_1_8rem] text-sm font-medium">
+                            <label className="filter-toolbar-field grid gap-1.5 text-sm font-medium">
                                 Movement
                                 <select
-                                    className={`mt-1 ${INVENTORY_FILTER_SELECT}`}
+                                    className={INVENTORY_FILTER_SELECT}
                                     value={action}
                                     onChange={(event) =>
                                         set_action(event.currentTarget.value)
@@ -127,10 +127,10 @@ export default function InventoryHistoryPage() {
                                     ))}
                                 </select>
                             </label>
-                            <label className="min-w-0 flex-[1_1_8rem] text-sm font-medium">
+                            <label className="filter-toolbar-field grid gap-1.5 text-sm font-medium">
                                 Date range
                                 <select
-                                    className={`mt-1 ${INVENTORY_FILTER_SELECT}`}
+                                    className={INVENTORY_FILTER_SELECT}
                                     value={days}
                                     onChange={(event) =>
                                         set_days(event.currentTarget.value)
@@ -144,7 +144,7 @@ export default function InventoryHistoryPage() {
                                     ))}
                                 </select>
                             </label>
-                            <div className="flex shrink-0 items-center gap-1">
+                            <div className="filter-toolbar-actions">
                                 <Button
                                     className={INVENTORY_PRIMARY_ACTION}
                                     disabled={!filtered.length}

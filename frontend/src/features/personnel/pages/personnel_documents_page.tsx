@@ -1,3 +1,4 @@
+import WorkspaceTabs from "../../../shared/components/navigation/workspace_tabs";
 import { Plus } from "lucide-react";
 import { useCallback, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router";
@@ -47,7 +48,7 @@ function FileLink({ file, name }: { file: File; name: string }) {
     }, [file]);
 
     return <a ref={attach_file} target="_blank" rel="noopener noreferrer" aria-label={`View file for ${name}`}
-        className="whitespace-nowrap underline underline-offset-4">View file</a>;
+        className="whitespace-nowrap text-link">View file</a>;
 }
 
 export default function PersonnelDocumentsPage() {
@@ -66,7 +67,7 @@ export default function PersonnelDocumentsPage() {
         return (
             <section className="space-y-4">
                 <WorkspaceBreadcrumbs parents={[{ label: "Personnel", to: "/personnel" }]} current="Personnel documents" />
-                <Card><EmptyState title="Personnel record not found" action={<Link className="underline" to="/personnel">Return to personnel</Link>} /></Card>
+                <Card><EmptyState title="Personnel record not found" action={<Link className="text-link" to="/personnel">Return to personnel</Link>} /></Card>
             </section>
         );
     }
@@ -96,21 +97,21 @@ export default function PersonnelDocumentsPage() {
                 current="Documents" />
             <h1 id="page_title" className="text-2xl font-semibold text-[#0b2238]">Personnel documents</h1>
             <Card>
-                <nav aria-label="Document types" className="mb-4 flex flex-wrap gap-1 border-b border-slate-200">
+                <WorkspaceTabs label="Document types">
                     {document_tabs.map(({ id, label, icon: Icon }) => (
                         <Link key={id} to={id === "all" ? documents_path : `${documents_path}?type=${encodeURIComponent(id)}`}
                             aria-current={id === active_tab ? "page" : undefined} className={workspace_tab_style(id === active_tab)}>
                             <Icon size={16} aria-hidden="true" /> {label}
                         </Link>
                     ))}
-                </nav>
+                </WorkspaceTabs>
                 <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                     <h2 className="font-semibold text-[#0b2238]">Documents / {person.name}</h2>
                     {directory.can_manage && <Button className="bg-[#0b2238]! hover:bg-[#193951]!" onClick={() => set_is_open(true)}>
                         <Plus size={16} aria-hidden="true" /> Add document
                     </Button>}
                 </div>
-                <DataTable inventory caption="Personnel documents" columns={columns} rows={rows}
+                <DataTable inventory bounded caption="Personnel documents" columns={columns} rows={rows}
                     empty_title="No documents recorded" get_row_key={(row) => row.id} />
             </Card>
             {is_open && directory.can_manage && <PersonnelDocumentDialog person={person} people={directory.rows}

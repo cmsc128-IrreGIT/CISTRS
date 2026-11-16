@@ -14,7 +14,10 @@ import { Link } from "react-router";
 import { useAuth } from "../../auth/hooks/auth_context";
 import ScreenLoading from "../../../shared/components/feedback/screen_loading";
 import StatusBadge from "../../../shared/components/ui/status_badge";
-import { get_workspace } from "../../../shared/components/navigation/workspace";
+import { employee_name } from "../../../shared/utils/employee_name";
+import { get_inventory_access, get_workspace } from "../../../shared/components/navigation/workspace";
+import { INVENTORY_REQUESTS_PATH } from "../../inventory/constants/inventory_constants";
+import { useInventoryRequestPreviews } from "../../inventory/hooks/use_inventory_request_previews";
 import AircraftStatusCard from "../components/aircraft_status_card";
 import DashboardDate from "../components/dashboard_date";
 import DashboardOverview, {
@@ -48,7 +51,10 @@ export default function DashboardPage() {
   const { user } = useAuth();
   const workspace = get_workspace(user);
   const features = user?.features ?? [];
-  const config = get_dashboard_config(workspace, features);
+  const can_manage_inventory = get_inventory_access(user) === "manage";
+  const config = get_dashboard_config(workspace, features, can_manage_inventory);
+  const request_previews = useInventoryRequestPreviews();
+  const open_requests = request_previews.filter(({ kind, status }) => kind === "RESTOCK" && status === "PENDING");
   const uses_inventory = config.panels.includes("stock");
   const uses_availability = config.panels.includes("availability");
   const can_view_availability = features.includes("Availability");
@@ -161,8 +167,9 @@ export default function DashboardPage() {
     },
     requests: {
       label: "Open stock requests",
-      value: "Unavailable",
+      value: open_requests.length,
       icon: ClipboardCheck,
+      to: INVENTORY_REQUESTS_PATH,
     },
     work: {
       label: "Work records",
@@ -189,6 +196,11 @@ export default function DashboardPage() {
       ),
       icon: CalendarDays,
       to: can_view_availability ? "/personnel/availability" : undefined,
+    },
+    staff_availability: {
+      label: "Personnel availability",
+      icon: CalendarDays,
+      to: "/personnel/availability",
     },
     checklists: {
       label: "Flight checklists",
@@ -236,7 +248,6 @@ export default function DashboardPage() {
     logbook: (
       <DashboardPanel
         title="Recent logbook entries"
-        sample
         footer={{ label: "View logbook", to: "/logbook" }}
       >
         {summary.recent_logbook.length ? (
@@ -270,17 +281,18 @@ export default function DashboardPage() {
     requests: (
       <DashboardPanel
         title="Stock requests"
-        footer={{ label: "View requests" }}
+        footer={{ label: "View requests", to: INVENTORY_REQUESTS_PATH }}
       >
         <p className="rounded-md bg-[#f4f7fa] p-2.5 text-sm text-slate-600">
-          Stock request records are unavailable.
+          {open_requests.length === 0
+            ? "No open restock requests in this session."
+            : `${open_requests.length} open restock ${open_requests.length === 1 ? "request" : "requests"} in this session.`}
         </p>
       </DashboardPanel>
     ),
     work: (
       <DashboardPanel
         title="Recent maintenance"
-        sample
         footer={{
           label: "View work history",
           to: "/maintenance?status=Completed",
@@ -298,7 +310,7 @@ export default function DashboardPage() {
                   <div className="flex flex-wrap items-start justify-between gap-2">
                     <Link
                       to={`/maintenance/${row.id}`}
-                      className="font-semibold hover:underline"
+                      className="font-semibold text-link"
                     >
                       {row.title}
                     </Link>
@@ -367,7 +379,7 @@ export default function DashboardPage() {
     inventory: {
       to: "/inventory/history",
       rows: uses_inventory
-        ? summary.recent_changes.slice(0, dashboard_list_limit).map((row) => {
+        ? summary.recent_changes.map((row) => {
             const type = row.transaction_type.toUpperCase();
             const part = row.status.part;
             const action = stock_actions[type] ?? row.transaction_type;
@@ -377,41 +389,40 @@ export default function DashboardPage() {
               activity: (
                 <Link
                   to={`/inventory/${part.part_UUID}`}
-                  className="hover:underline"
+                  className="text-link"
                 >
                   {action} {Math.abs(row.quantity_change)} {part.part_name}
                 </Link>
               ),
               reference: part.part_number || row.transaction_UUID,
+              processed_by: row.updater ? employee_name(row.updater) : undefined,
             };
           })
         : [],
     },
     maintenance: {
       to: "/maintenance?status=Completed",
-      rows: summary.completed_work
-        .slice(0, dashboard_list_limit)
-        .map((row) => ({
-          id: row.id,
-          date: row.due_date,
-          activity: (
-            <Link to={`/maintenance/${row.id}`} className="hover:underline">
-              {row.title}
-            </Link>
-          ),
-          reference: row.aircraft,
-        })),
+      rows: summary.completed_work.map((row) => ({
+        id: row.id,
+        date: row.due_date,
+        activity: (
+          <Link to={`/maintenance/${row.id}`} className="text-link">
+            {row.title}
+          </Link>
+        ),
+        reference: row.aircraft,
+        processed_by: row.recorded_by?.trim() || row.performed_by,
+      })),
     },
     logbook: {
       to: "/logbook",
-      rows: summary.recent_logbook
-        .slice(0, dashboard_list_limit)
-        .map((row) => ({
-          id: row.id,
-          date: row.entry_date,
-          activity: `Logbook entry for ${row.aircraft}`,
-          reference: row.log_page || row.aircraft,
-        })),
+      rows: summary.recent_logbook.map((row) => ({
+        id: row.id,
+        date: row.entry_date,
+        activity: `Logbook entry for ${row.aircraft}`,
+        reference: row.log_page || row.aircraft,
+        processed_by: row.recorded_by,
+      })),
     },
   }[config.activity];
 
@@ -426,6 +437,7 @@ export default function DashboardPage() {
       {config.metrics.length > 0 && (
         <DashboardOverview
           summaries={config.metrics.map((key) => metrics[key])}
+          today={summary.today}
         />
       )}
       {config.panels.length > 0 && (
@@ -462,11 +474,10 @@ export default function DashboardPage() {
         <RecentActivityTable
           rows={activity.rows}
           history_to={
-            config.activity !== "inventory" || uses_inventory
+            config.activity !== "inventory" || (uses_inventory && can_manage_inventory)
               ? activity.to
               : undefined
           }
-          sample={config.activity !== "inventory"}
         />
       )}
     </section>

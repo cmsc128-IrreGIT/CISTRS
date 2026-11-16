@@ -16,17 +16,17 @@ export default function AppLayout() {
     const is_notifications = Boolean(useMatch("/notifications/*"));
     const is_profile = Boolean(useMatch("/profile"));
     const is_help = Boolean(useMatch("/help"));
-    const aligned_workspace = is_inventory || is_aircraft || is_maintenance || is_logbook || is_personnel || is_user_accounts || is_profile || is_notifications || is_help;
-    const workspace_background = is_dashboard || aligned_workspace;
+    const aligned_workspace = is_dashboard || is_inventory || is_aircraft || is_maintenance || is_logbook || is_personnel || is_user_accounts || is_profile || is_notifications || is_help;
+    const workspace_background = aligned_workspace;
     const content_width = aligned_workspace
         ? WORKSPACE_CONTENT_WIDTH
-        : `mx-auto w-full max-w-[1440px] px-4 md:px-6 ${is_dashboard ? "xl:px-9" : "xl:px-8"}`;
+        : "mx-auto w-full max-w-[1440px] px-4 md:px-6 xl:px-8";
     const report_print_style = print_report
         ? "print:block print:min-h-0 print:bg-white print:bg-none print:[&>aside]:hidden print:[&>nav]:hidden print:[&>div>header]:hidden"
         : "";
     return (
         <div
-            className={`flex min-h-dvh ${workspace_background ? "bg-linear-to-br from-[#f3f6f9] via-[#f6f8fa] to-[#edf0f3]" : "bg-[#f4f6f9]"} ${report_print_style}`}
+            className={`grid min-h-dvh grid-cols-[minmax(0,1fr)] md:grid-cols-[auto_minmax(0,1fr)] ${workspace_background ? "bg-linear-to-br from-[#f3f6f9] via-[#f6f8fa] to-[#edf0f3]" : "bg-[#f4f6f9]"} ${report_print_style}`}
         >
             <a
                 href="#main_content"
@@ -37,7 +37,7 @@ export default function AppLayout() {
 
             <Sidebar />
 
-            <div className="min-w-0 flex-1">
+            <div className="@container/workspace min-w-0">
                 <AppHeader />
 
                 <main

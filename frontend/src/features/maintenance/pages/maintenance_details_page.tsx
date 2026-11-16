@@ -1,3 +1,5 @@
+import { useContext } from "react";
+import { AuthContext } from "../../auth/hooks/auth_context";
 import { Link, Navigate, useParams, useSearchParams } from "react-router";
 import PageHeader from "../../../shared/components/ui/page_header";
 import Card from "../../../shared/components/ui/card";
@@ -12,6 +14,7 @@ export default function MaintenanceDetailsPage() {
     const { maintenance_id } = useParams();
     const [params] = useSearchParams();
     const rows = useMaintenance();
+    const can_open_aircraft = useContext(AuthContext)?.user?.features.includes("Aircraft") ?? true;
     const aircraft = useAircraft();
     const record = rows.find((row) => row.id === maintenance_id);
     if (!record)
@@ -73,9 +76,9 @@ export default function MaintenanceDetailsPage() {
                         {
                             id: "aircraft",
                             label: "Aircraft",
-                            value: associated ? (
+                            value: associated && can_open_aircraft ? (
                                 <Link
-                                    className="text-[#1d4ed8] underline"
+                                    className="text-link"
                                     to={`/aircraft/${associated.id}`}
                                 >
                                     {record.aircraft}

@@ -12,7 +12,7 @@ import { aircraft_config } from "../config/aircraft_config";
 import useAircraft from "../hooks/use_aircraft";
 
 const select_field =
-    "mt-2 min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 focus-visible:outline-2 focus-visible:outline-[#1d4ed8]";
+    "min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 focus-visible:outline-2 focus-visible:outline-[#1d4ed8]";
 
 export default function AircraftPage() {
     const rows = useAircraft();
@@ -47,9 +47,9 @@ export default function AircraftPage() {
             <AircraftBreadcrumbs />
             <h1 id="page_title" className="sr-only">Aircraft</h1>
             <Card>
-                <div className="mb-4 grid gap-4 rounded-lg bg-slate-50 p-3 sm:grid-cols-[minmax(0,1fr)_220px]">
-                    <div>
-                        <p className="mb-2 text-sm font-normal text-slate-700">
+                <div className="filter-toolbar mb-4 rounded-lg bg-slate-50 p-3">
+                    <div className="filter-toolbar-search grid gap-1.5">
+                        <p aria-hidden="true" className="text-sm text-slate-700">
                             Search aircraft
                         </p>
                         <SearchInput
@@ -62,7 +62,7 @@ export default function AircraftPage() {
                             placeholder="Registration / tail no. or aircraft type"
                         />
                     </div>
-                    <label className="block text-sm font-normal text-slate-700">
+                    <label className="filter-toolbar-field grid gap-1.5 text-sm text-slate-700">
                         Status
                         <select
                             value={status}
@@ -100,7 +100,7 @@ export default function AircraftPage() {
                             render: (row) => (
                                 <Link
                                     to={`/aircraft/${row.id}`}
-                                    className="font-medium text-[#1d4ed8] underline underline-offset-4"
+                                    className="font-medium text-link"
                                 >
                                     {row.registration || "Not recorded"}
                                 </Link>
@@ -134,7 +134,7 @@ export default function AircraftPage() {
                                     <Link
                                         to={`/aircraft/${row.id}`}
                                         aria-label={`View ${row.registration}`}
-                                        className="inline-flex min-h-11 items-center font-medium text-slate-600 underline underline-offset-4 hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-600"
+                                        className="inline-flex min-h-11 items-center font-medium text-link"
                                     >
                                         View
                                     </Link>

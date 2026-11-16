@@ -10,7 +10,6 @@ export default function AircraftStatusCard({
   return (
     <DashboardPanel
       title="Aircraft status"
-      sample
       footer={{ label: "View aircraft", to: "/aircraft" }}
     >
       {data.some((entry) => entry.value > 0) ? (

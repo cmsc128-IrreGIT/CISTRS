@@ -7,6 +7,7 @@ import {
     Package,
 } from "lucide-react";
 
+export const INVENTORY_REQUESTS_PATH = "/inventory/requests";
 export const INVENTORY_CORRECTIONS_PATH = "/inventory/corrections";
 
 export const INVENTORY_TABS = [
@@ -14,7 +15,7 @@ export const INVENTORY_TABS = [
     { label: "Stock History", to: "/inventory/history", icon: History },
     {
         label: "Restock Requests",
-        to: "/inventory/requests",
+        to: INVENTORY_REQUESTS_PATH,
         icon: ClipboardList,
     },
     {

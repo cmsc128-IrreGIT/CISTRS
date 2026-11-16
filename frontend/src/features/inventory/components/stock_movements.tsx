@@ -1,4 +1,5 @@
 import { Link } from "react-router";
+import { employee_name } from "../../../shared/utils/employee_name";
 import DataTable, {
     type TableColumn,
     type TableRowHighlight,
@@ -24,6 +25,7 @@ export function StockMovementTable({
     has_history,
     show_reference,
     show_item = true,
+    bounded = false,
     on_view,
     highlight_row,
 }: {
@@ -31,6 +33,7 @@ export function StockMovementTable({
     has_history: boolean;
     show_reference: boolean;
     show_item?: boolean;
+    bounded?: boolean;
     on_view: (row: InventoryTransaction) => void;
     highlight_row?: TableRowHighlight;
 }) {
@@ -57,7 +60,7 @@ export function StockMovementTable({
             header: "Item",
             render: (row) => (
                 <Link
-                    className="hover:underline focus-visible:outline-2"
+                    className="text-link"
                     to={`/inventory/${row.status.part.part_UUID}`}
                 >
                     {row.status.part.part_name}
@@ -138,6 +141,7 @@ export function StockMovementTable({
         <DataTable
             inventory
             caption="Stock movements"
+            bounded={bounded}
             columns={columns.filter(
                 (column) =>
                     (show_reference || column.id !== "reference") &&
@@ -223,7 +227,7 @@ export function StockMovementDetails({
                             {
                                 id: "staff",
                                 label: "Recorded by",
-                                value: `${selected.updater.f_name} ${selected.updater.l_name}`,
+                                value: employee_name(selected.updater) || "Not recorded",
                             },
                             {
                                 id: "remarks",

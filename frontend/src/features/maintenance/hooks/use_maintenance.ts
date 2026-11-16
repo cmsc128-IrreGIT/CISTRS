@@ -1,8 +1,8 @@
 import { useSyncExternalStore } from "react";
-import { maintenance_store } from "../data/maintenance_store";
+import { maintenance_service } from "../services/maintenance_service";
 export default function useMaintenance() {
     return useSyncExternalStore(
-        maintenance_store.subscribe,
-        maintenance_store.get_snapshot,
+        maintenance_service.subscribe,
+        maintenance_service.list,
     );
 }

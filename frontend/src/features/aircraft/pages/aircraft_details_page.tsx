@@ -1,4 +1,7 @@
+import WorkspaceTabs from "../../../shared/components/navigation/workspace_tabs";
 import { ClipboardCheck, FileText, History, Info, Pencil, Plane, Wrench } from "lucide-react";
+import { useContext } from "react";
+import { AuthContext } from "../../auth/hooks/auth_context";
 import { Link, useParams, useSearchParams } from "react-router";
 import Card from "../../../shared/components/ui/card";
 import DetailsList from "../../../shared/components/ui/details_list";
@@ -25,6 +28,7 @@ export default function AircraftDetailsPage() {
     const [params] = useSearchParams();
     const rows = useAircraft();
     const maintenance = useMaintenance();
+    const can_view_maintenance = useContext(AuthContext)?.user?.features.includes("Maintenance") ?? true;
     const record = rows.find((row) => row.id === aircraft_id);
 
     if (!record) {
@@ -42,7 +46,8 @@ export default function AircraftDetailsPage() {
         );
     }
 
-    const active = sections.find((section) => section.id === params.get("tab")) ?? sections[0];
+    const available_sections = sections.filter(({ id }) => id !== "maintenance" || can_view_maintenance);
+    const active = available_sections.find((section) => section.id === params.get("tab")) ?? sections[0];
     const path = `/aircraft/${record.id}`;
     const tasks = maintenance.filter((row) => record.registration && row.aircraft === record.registration);
     const maintenance_url = `/maintenance?${new URLSearchParams({ aircraft: record.registration, view: "work-history" })}`;
@@ -54,8 +59,8 @@ export default function AircraftDetailsPage() {
                 {record.registration || "Aircraft details"}
             </h1>
             <Card>
-                <nav aria-label="Aircraft record sections" className="mb-5 flex flex-wrap gap-1 border-b border-slate-200">
-                    {sections.map(({ id, label, icon: Icon }) => (
+                <WorkspaceTabs label="Aircraft record sections" className="mb-5">
+                    {available_sections.map(({ id, label, icon: Icon }) => (
                         <Link
                             key={id}
                             to={id === "information" ? path : `${path}?tab=${id}`}
@@ -66,7 +71,7 @@ export default function AircraftDetailsPage() {
                             {label}
                         </Link>
                     ))}
-                </nav>
+                </WorkspaceTabs>
                 {active.id === "information" && (
                     <div className="space-y-5">
                         <div className="flex flex-wrap items-center justify-between gap-2">
@@ -90,20 +95,20 @@ export default function AircraftDetailsPage() {
                                 { id: "notes", label: "Status notes", value: record.notes || record.reason || "No status notes recorded" },
                             ]} />
                         </div>
-                        <div className="space-y-2 border-t border-slate-200 pt-4">
+                        {can_view_maintenance && <div className="space-y-2 border-t border-slate-200 pt-4">
                             <h2 className="font-semibold text-[#0b2238]">Next tasks</h2>
                             <MaintenanceTable inventory
                                 rows={tasks.filter((task) => task.status !== "Completed").slice(0, 3)}
                                 caption={`Next tasks for ${record.registration}`}
                             />
-                        </div>
+                        </div>}
                     </div>
                 )}
                 {active.id === "maintenance" && (
                     <div className="space-y-3">
                         <div className="flex flex-wrap items-center justify-between gap-2">
                             <h2 className="font-semibold text-[#0b2238]">Related maintenance</h2>
-                            <Link to={maintenance_url} className="text-sm underline underline-offset-4">View work history</Link>
+                            <Link to={maintenance_url} className="text-sm text-link">View work history</Link>
                         </div>
                         <MaintenanceTable inventory rows={tasks} caption={`Maintenance for ${record.registration}`} />
                     </div>

@@ -5,7 +5,7 @@ import RecordForm from "../../../shared/components/records/record_form";
 import FormDialog from "../../../shared/components/ui/form_dialog";
 import type { PreviewRecord, RecordField } from "../../../shared/types/record_types";
 import { aircraft_config } from "../config/aircraft_config";
-import { aircraft_status_history, aircraft_store } from "../data/aircraft_store";
+import { aircraft_service } from "../services/aircraft_service";
 import useAircraft from "../hooks/use_aircraft";
 import AircraftDetailsPage from "./aircraft_details_page";
 
@@ -24,19 +24,8 @@ export default function AircraftStatusPage() {
     const destination = aircraft_id ? `/aircraft/${aircraft_id}` : "/aircraft";
 
     function save(values: Omit<PreviewRecord, "id">) {
-        const existing = aircraft_store.get_snapshot().find((row) => row.id === aircraft_id);
-        if (!existing) {
-            toast.error("Aircraft not found.");
-            return;
-        }
-
         try {
-            aircraft_status_history.save({
-                ...values,
-                aircraft_id: existing.id,
-                previous_status: existing.status,
-            });
-            aircraft_store.save({ ...existing, ...values }, existing.id);
+            aircraft_service.update_status(aircraft_id, values);
         } catch (error) {
             toast.error(error instanceof Error ? error.message : "Could not save status.");
             return;

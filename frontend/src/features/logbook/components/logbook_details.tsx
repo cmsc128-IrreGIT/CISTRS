@@ -1,4 +1,6 @@
 import { ChevronDown, Pencil } from "lucide-react";
+import { useContext } from "react";
+import { AuthContext } from "../../auth/hooks/auth_context";
 import { Link } from "react-router";
 import Card from "../../../shared/components/ui/card";
 import DetailsList from "../../../shared/components/ui/details_list";
@@ -10,6 +12,7 @@ import type { LogbookEntry } from "../types/logbook_types";
 import { entry_aircraft_hours, entry_date, entry_reference, entry_updated_at, logbook_condition } from "../utils/logbook_entries";
 
 export default function LogbookDetails({ entry }: { entry: LogbookEntry }) {
+    const can_open_maintenance = useContext(AuthContext)?.user?.features.includes("Maintenance") ?? true;
     const maintenance = useMaintenance().find(
         (record) => record.id === entry.maintenance_id && record.aircraft === entry.aircraft,
     );
@@ -20,9 +23,11 @@ export default function LogbookDetails({ entry }: { entry: LogbookEntry }) {
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                 <h2 className="wrap-anywhere text-lg font-semibold text-[#0b2238]">{entry_reference(entry)}</h2>
                 <div className="flex flex-wrap items-center gap-2">
-                    <StatusBadge tone={condition === "Defect reported" ? "danger" : "neutral"}>
-                        {condition}
-                    </StatusBadge>
+                    <span className="inline-flex">
+                        <StatusBadge tone={condition === "Defect reported" ? "danger" : "neutral"}>
+                            {condition}
+                        </StatusBadge>
+                    </span>
                     <Link to={`/logbook/${entry.id}/edit`} className={button_styles("secondary")}>
                         <Pencil size={16} aria-hidden="true" />
                         Edit entry
@@ -49,8 +54,8 @@ export default function LogbookDetails({ entry }: { entry: LogbookEntry }) {
                 )}
                 <p className="text-slate-600">
                     Linked maintenance{" · "}
-                    {maintenance ? (
-                        <Link to={`/maintenance/${maintenance.id}`} className="font-medium underline underline-offset-2">
+                    {maintenance && can_open_maintenance ? (
+                        <Link to={`/maintenance/${maintenance.id}`} className="font-medium text-link">
                             {maintenance.work_order || maintenance.title || "View maintenance record"}
                         </Link>
                     ) : entry.maintenance_id ? "Linked record unavailable." : "No record linked to this entry."}

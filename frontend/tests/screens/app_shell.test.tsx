@@ -2,6 +2,7 @@ vi.mock("../../src/features/auth/hooks/auth_context", () => ({
   useAuth: () => ({
     user: {
       username: "adrian.reyes",
+      full_name: "Adrian Miguel Reyes",
       position: { position_name: "President / CEO" },
       features: ["Inventory"],
     },
@@ -30,6 +31,8 @@ it("keeps navigation accessible when the whole sidebar is collapsed", async () =
       <Sidebar />
     </MemoryRouter>,
   );
+  expect(screen.getByText("Administrator")).toBeInTheDocument();
+  expect(screen.queryByText("President / CEO")).not.toBeInTheDocument();
   expect(screen.getByRole("link", { name: "Help & guides" })).toHaveAttribute(
     "href",
     "/help",
@@ -66,7 +69,8 @@ it("preserves notification and profile controls in the header", async () => {
   expect(
     screen.getByRole("link", { name: "Open notifications" }),
   ).toHaveAttribute("href", "/notifications");
-  await user.click(screen.getByRole("button", { name: /Profile options for/ }));
+  expect(screen.getByText("President / CEO")).toBeInTheDocument();
+  await user.click(screen.getByRole("button", { name: "Profile options for Adrian Miguel Reyes" }));
   expect(screen.getByRole("link", { name: "Profile" })).toHaveAttribute(
     "href",
     "/profile",

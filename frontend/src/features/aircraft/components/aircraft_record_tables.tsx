@@ -15,6 +15,7 @@ export function AircraftStatusHistory({ aircraft_id }: { aircraft_id: string }) 
     const history = useAircraftStatusHistory();
     return (
         <DataTable
+            bounded
             inventory
             caption="Status history"
             rows={history.filter((entry) => entry.aircraft_id === aircraft_id)}
@@ -34,6 +35,7 @@ export function AircraftStatusHistory({ aircraft_id }: { aircraft_id: string }) 
 export function AircraftCompliance() {
     return (
         <DataTable
+            bounded
             inventory
             caption="Aircraft compliance"
             rows={document_types}
@@ -52,6 +54,7 @@ export function AircraftDocuments({ registration }: { registration: string }) {
     return (
         <>
             <DataTable
+                bounded
                 inventory
                 caption="Aircraft documents"
                 rows={document_types}

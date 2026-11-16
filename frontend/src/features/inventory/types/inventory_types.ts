@@ -77,7 +77,9 @@ export type InventoryTransaction = {
     updater: {
         emp_number: string;
         f_name: string;
+        m_name?: string | null;
         l_name: string;
+        suffix?: string | null;
     };
 };
 

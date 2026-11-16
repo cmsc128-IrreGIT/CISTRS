@@ -11,6 +11,7 @@ type Metric =
     | "requests"
     | "work"
     | "availability"
+    | "staff_availability"
     | "checklists"
     | "logbook"
     | "personnel";
@@ -30,7 +31,7 @@ type DashboardConfig = {
 };
 
 const administrator: DashboardConfig = {
-    metrics: ["inventory", "stock", "aircraft", "pending"],
+    metrics: ["inventory", "stock", "aircraft", "pending", "staff_availability"],
     panels: ["stock", "aircraft", "maintenance"],
     activity: "inventory",
 };
@@ -86,6 +87,7 @@ const dashboards: Record<Workspace, DashboardConfig> = {
 export function get_dashboard_config(
     workspace: Workspace,
     features: string[],
+    can_manage_inventory: boolean,
 ): DashboardConfig {
     const allowed = (feature: string) => features.includes(feature);
     const inventory = allowed("Inventory");
@@ -100,12 +102,13 @@ export function get_dashboard_config(
     const metric_access: Record<Metric, boolean> = {
         inventory,
         stock: inventory,
-        requests: inventory,
+        requests: can_manage_inventory,
         aircraft,
         pending: maintenance,
         due: maintenance,
         work: maintenance,
         checklists: pilot && logbook,
+        staff_availability: workspace === "administrator" && (personnel || availability),
         logbook: logbook && !inventory_dashboard,
         personnel: personnel && !inventory_dashboard && !logbook,
         availability:
@@ -114,7 +117,7 @@ export function get_dashboard_config(
     const panel_access: Record<Panel, boolean> = {
         stock: inventory,
         requests:
-            inventory &&
+            can_manage_inventory &&
             (workspace !== "default" || (!aircraft && !maintenance)),
         aircraft,
         maintenance,

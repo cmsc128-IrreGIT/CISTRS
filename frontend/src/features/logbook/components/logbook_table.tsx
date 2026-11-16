@@ -1,4 +1,5 @@
 import { Link } from "react-router";
+import StatusBadge from "../../../shared/components/ui/status_badge";
 import DataTable from "../../../shared/components/ui/data_table";
 import type { TableColumn } from "../../../shared/components/ui/data_table";
 import type { LogbookEntry } from "../types/logbook_types";
@@ -21,9 +22,10 @@ const columns: TableColumn<LogbookEntry>[] = [
     {
         id: "condition",
         header: "Condition",
-        render: (row) => logbook_condition(row) === "Defect reported"
-            ? <span className="text-red-700">Defect reported</span>
-            : "No defect reported",
+        render: (row) => {
+            const condition = logbook_condition(row);
+            return <StatusBadge tone={condition === "Defect reported" ? "danger" : "neutral"}>{condition}</StatusBadge>;
+        },
     },
     { id: "author", header: "Author", render: (row) => row.recorded_by || "Not recorded" },
     {
@@ -31,7 +33,7 @@ const columns: TableColumn<LogbookEntry>[] = [
         header: "Action",
         render: (row) => (
             <Link to={`/logbook/${row.id}`} aria-label={`View entry for ${row.aircraft} on ${row.entry_date}`}
-                className="inline-flex min-h-8 items-center whitespace-nowrap font-medium underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-[#1d4ed8]">
+                className="inline-flex min-h-8 items-center whitespace-nowrap font-medium text-link">
                 View entry
             </Link>
         ),

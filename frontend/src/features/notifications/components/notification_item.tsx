@@ -12,11 +12,10 @@ const category_icons = {
     system: Bell,
 };
 
-export default function NotificationItem({ notification, now, disabled, can_open, on_read_change }: {
+export default function NotificationItem({ notification, now, disabled, on_read_change }: {
     notification: NotificationRecord;
     now: Date;
     disabled: boolean;
-    can_open: boolean;
     on_read_change: (id: string, is_read: boolean) => void;
 }) {
     const unread = notification.read_at === null;
@@ -35,9 +34,9 @@ export default function NotificationItem({ notification, now, disabled, can_open
             </span>
             <div className="min-w-0 flex-1 pt-0.5">
                 <h3 className={`wrap-anywhere text-sm text-[#0b2238] ${unread ? "font-semibold" : "font-medium"}`}>
-                    {notification.to && can_open ? (
+                    {notification.to ? (
                         <Link to={notification.record_id ? `${notification.to}#record=${encodeURIComponent(notification.record_id)}` : notification.to}
-                            className="rounded-sm underline decoration-slate-400 underline-offset-4 hover:text-[#1d4ed8] focus-visible:outline-2 focus-visible:outline-[#1d4ed8]">
+                            className="rounded-sm text-link">
                             {notification.title}
                         </Link>
                     ) : notification.title}

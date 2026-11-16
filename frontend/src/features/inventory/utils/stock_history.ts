@@ -3,6 +3,7 @@ import {
     STOCK_HISTORY_CSV_NAME,
     STOCK_MOVEMENT_LABELS,
 } from "../constants/stock_history_constants";
+import { employee_name } from "../../../shared/utils/employee_name";
 import type { InventoryTransaction } from "../types/inventory_types";
 
 export function format_movement(row: InventoryTransaction) {
@@ -38,7 +39,7 @@ export function export_stock_history(rows: InventoryTransaction[]) {
             row.transaction_UUID,
             row.recipient ?? "",
             row.status.location.location_name,
-            `${row.updater.f_name} ${row.updater.l_name}`,
+            employee_name(row.updater),
             row.remarks ?? "",
         ]),
     ];

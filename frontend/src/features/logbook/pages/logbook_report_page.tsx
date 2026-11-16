@@ -62,7 +62,7 @@ export default function LogbookReportPage() {
                     </div>
                 ) : (
                     <EmptyState title="No report prepared" description="Prepare a report from the aircraft logbook."
-                        action={<Link to="/logbook" className="underline underline-offset-4">Return to logbook</Link>} />
+                        action={<Link to="/logbook" className="text-link">Return to logbook</Link>} />
                 )}
             </Card>
         </section>

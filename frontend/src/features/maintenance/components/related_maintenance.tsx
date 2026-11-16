@@ -26,7 +26,7 @@ export default function RelatedMaintenance({
             action={
                 <Link
                     to={`/maintenance?${params}`}
-                    className="inline-flex min-h-11 items-center rounded text-sm font-medium text-[#1d4ed8] underline focus-visible:outline-2"
+                    className="inline-flex min-h-11 items-center rounded text-sm font-medium text-link"
                 >
                     View all related records
                 </Link>

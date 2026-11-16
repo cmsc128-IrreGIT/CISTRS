@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Check, ChevronDown, Settings2 } from "lucide-react";
 import { Link } from "react-router";
 import { toast } from "sonner";
+import { get_inventory_access } from "../../../shared/components/navigation/workspace";
 import WorkspaceBreadcrumbs from "../../../shared/components/navigation/workspace_breadcrumbs";
 import Button from "../../../shared/components/ui/button";
 import Card from "../../../shared/components/ui/card";
@@ -18,11 +19,21 @@ const group_order = ["Today", "Yesterday", "Earlier", "Other dates", "Date unava
 
 export default function NotificationsPage() {
     const { user } = useAuth();
-    return user && <Inbox key={user.account_UUID} account_id={user.account_UUID} features={user.features} />;
+    return user && <Inbox key={user.account_UUID} account_id={user.account_UUID} features={user.features}
+        can_view_stock_history={get_inventory_access(user) === "manage"} />;
 }
 
-function Inbox({ account_id, features }: { account_id: string; features: string[] }) {
-    const rows = useNotifications(account_id);
+function Inbox({ account_id, features, can_view_stock_history }: {
+    account_id: string; features: string[]; can_view_stock_history: boolean;
+}) {
+    const inbox = useNotifications(account_id);
+    const categories = notification_categories.filter(({ key, label }) =>
+        key === "all" || key === "system" || features.includes(label),
+    );
+    const rows = inbox.filter((row) =>
+        categories.some(({ key }) => key === row.category) &&
+        (row.to !== "/inventory/history" || can_view_stock_history),
+    );
     const [unread_only, set_unread_only] = useState(false);
     const [category, set_category] = useState<NotificationCategory | "all">("all");
     const [is_saving, set_is_saving] = useState(false);
@@ -90,11 +101,11 @@ function Inbox({ account_id, features }: { account_id: string; features: string[
                     <div className="relative">
                         <select aria-label="Filter by feature" value={category}
                             onChange={(event) => {
-                                const selected = notification_categories.find(({ key }) => key === event.currentTarget.value);
+                                const selected = categories.find(({ key }) => key === event.currentTarget.value);
                                 if (selected) set_category(selected.key);
                             }}
                             className="min-h-10 appearance-none rounded-md border border-slate-200 bg-slate-50 py-1 pl-3 pr-9 text-sm text-slate-700 focus-visible:outline-2 focus-visible:outline-[#1d4ed8]">
-                            {notification_categories.map(({ key, label }) => <option key={key} value={key}>{label}</option>)}
+                            {categories.map(({ key, label }) => <option key={key} value={key}>{label}</option>)}
                         </select>
                         <ChevronDown size={15} aria-hidden="true" className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-slate-600" />
                     </div>
@@ -110,21 +121,20 @@ function Inbox({ account_id, features }: { account_id: string; features: string[
                             <section key={label} aria-label={label}>
                                 <h2 className="mb-2 text-sm font-semibold text-[#0b2238]">{label}</h2>
                                 <ul className="space-y-2">
-                                    {group_rows.map((row) => {
-                                        const feature = notification_categories.find(({ key }) => key === row.category)?.label;
-                                        const can_open = row.category === "system" || (feature !== undefined && features.includes(feature));
-                                        return <NotificationItem key={row.id} notification={row} can_open={can_open} now={now} disabled={is_saving}
-                                            on_read_change={(id, is_read) => void update_read(id, is_read)} />;
-                                    })}
+                                    {group_rows.map((row) => (
+                                        <NotificationItem key={row.id} notification={row} now={now} disabled={is_saving}
+                                            on_read_change={(id, is_read) => void update_read(id, is_read)} />
+                                    ))}
                                 </ul>
                             </section>
                         ))}
                     </div>
                 ) : (
                     <div className="space-y-1 py-2">
-                        <h2 className="font-semibold text-[#0b2238]">{caught_up ? "All caught up" : "No matching notifications"}</h2>
+                        <h2 className="font-semibold text-[#0b2238]">{caught_up ? "All caught up" : rows.length ? "No matching notifications" : "No notifications yet"}</h2>
                         <p className="text-sm text-slate-600">
-                            {caught_up ? "All notifications are marked as read." : "No notifications match the selected filters."}
+                            {caught_up ? "All notifications are marked as read." : rows.length
+                                ? "No notifications match the selected filters." : "There are no alerts for your assigned features."}
                         </p>
                     </div>
                 )}

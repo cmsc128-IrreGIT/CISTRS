@@ -69,7 +69,7 @@ export default function RecordList({
             header: "Actions",
             render: (row) => (
                 <Link
-                    className="text-slate-600 underline underline-offset-4 hover:text-slate-900"
+                    className="text-link"
                     aria-label={`${config.details ? "View" : "Edit"} ${row[config.fields[0].key]}`}
                     to={`${config.base_path}/${row.id}${config.details ? "" : "/edit"}`}
                 >

@@ -2,6 +2,7 @@ import { cleanup, render, screen, waitFor, within } from "@testing-library/react
 import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
 import { MemoryRouter } from "react-router";
+import { InventoryTabs } from "../../src/features/inventory/components/inventory_workspace";
 import InventoryPage from "../../src/features/inventory/pages/inventory_page";
 const fixture = vi.hoisted(() => ({
     category: undefined as string | undefined,
@@ -19,6 +20,7 @@ vi.mock("../../src/features/inventory/hooks/use_inventory", () => ({
             total_quantity: i === 0 ? 1 : i === 1 ? 0 : 10,
             is_low_stock: i === 0,
             category: i === 0 ? fixture.category : undefined,
+            expiry_date: i === 1 ? null : i === 2 ? "2027-02-08" : undefined,
             locations:
                 i === 0
                     ? [
@@ -86,6 +88,21 @@ it("shows five rows by default, preserves pagination and resets when the page si
     expect(screen.getByRole("status")).toHaveTextContent(
         "Showing 1–10 of 12 items",
     );
+});
+
+it("uses a dash placeholder only when the expiry date is missing", () => {
+    render(
+        <MemoryRouter>
+            <InventoryPage />
+        </MemoryRouter>,
+    );
+    const table = screen.getByRole("table");
+    const cell = (part: string, expiry: string) =>
+        within(within(table).getByRole("row", { name: new RegExp(part) })).getByRole("cell", { name: expiry });
+
+    expect(cell("Part 01", "--")).toBeInTheDocument();
+    expect(cell("Part 02", "Not applicable")).toBeInTheDocument();
+    expect(cell("Part 03", "8 Feb 2027")).toBeInTheDocument();
 });
 
 it("filters low and out-of-stock items and recovers after an unmatched search", async () => {
@@ -171,4 +188,27 @@ it("opens the inventory page containing the notification target and highlights t
     expect(screen.getByRole("row", { name: /Part 12/ })).not.toHaveClass("record-highlight");
     await user.click(screen.getByRole("button", { name: "Previous page" }));
     expect(screen.getByRole("status")).toHaveTextContent("Showing 6–10 of 12 items");
+});
+
+
+it("scrolls the active inventory tab into view on a narrow strip", () => {
+    const bounds = vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(function (this: HTMLElement) {
+        return this.hasAttribute("aria-current")
+            ? new DOMRect(360, 0, 130, 44)
+            : new DOMRect(0, 0, 270, 44);
+    });
+    const width = vi.spyOn(HTMLElement.prototype, "clientWidth", "get").mockReturnValue(270);
+    try {
+        render(
+            <MemoryRouter initialEntries={["/inventory/corrections"]}>
+                <InventoryTabs />
+            </MemoryRouter>,
+        );
+        const tabs = screen.getByRole("navigation", { name: "Inventory sections" });
+        expect(tabs.scrollLeft).toBe(290);
+        expect(within(tabs).getByRole("link", { name: "Stock Corrections" })).toHaveAttribute("aria-current", "page");
+    } finally {
+        width.mockRestore();
+        bounds.mockRestore();
+    }
 });

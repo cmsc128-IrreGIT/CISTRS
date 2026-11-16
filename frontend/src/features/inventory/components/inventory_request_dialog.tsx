@@ -33,7 +33,7 @@ export function RequestStockDialog({
     on_close: () => void;
     on_preview: () => void;
 }) {
-    const username = useContext(AuthContext)?.user?.username ?? "Current user";
+    const actor_name = useContext(AuthContext)?.user?.full_name || "Current user";
     const [error, set_error] = useState<string | null>(null);
 
     function submit(event: SubmitEvent<HTMLFormElement>) {
@@ -55,7 +55,7 @@ export function RequestStockDialog({
             quantity: Number(values.get("quantity")),
             needed_by: String(values.get("needed_by")),
             reason,
-        }, username);
+        }, actor_name);
         on_preview();
     }
 
@@ -98,7 +98,7 @@ export function RequestDetailsDialog({
     on_reviewed: (status: InventoryRequestDecision["status"]) => void;
 }) {
     const [returning, set_returning] = useState(false);
-    const username = useContext(AuthContext)?.user?.username ?? "Current user";
+    const actor_name = useContext(AuthContext)?.user?.full_name || "Current user";
     const [error, set_error] = useState<string | null>(null);
     const correction = request.kind === "CORRECTION";
     const reviewable = can_review && request.status === "PENDING";
@@ -108,7 +108,7 @@ export function RequestDetailsDialog({
         : reviewable ? "Review restock request" : "Restock request details";
 
     function decide(decision: InventoryRequestDecision) {
-        review_inventory_request_preview(request.request_UUID, decision, username);
+        review_inventory_request_preview(request.request_UUID, decision, actor_name);
         on_reviewed(decision.status);
     }
 

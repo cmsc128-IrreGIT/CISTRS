@@ -3,24 +3,24 @@ import { Link } from "react-router";
 
 export default function DashboardPanel({
   title,
+  header_end,
   children,
   footer,
   className = "",
-  sample = false,
 }: {
   title: string;
+  header_end?: ReactNode;
   children: ReactNode;
   footer?: { label: string; to?: string };
   className?: string;
-  sample?: boolean;
 }) {
   return (
     <section
       className={`flex min-w-0 flex-col rounded-xl border border-[#dbe3ed] bg-white p-3.5 ${className}`}
     >
-      <div className="mb-2 flex flex-wrap items-baseline justify-between gap-x-2 border-b border-[#dbe3ed] pb-2">
+      <div className="mb-2 flex flex-wrap items-baseline justify-between gap-x-2 gap-y-1 border-b border-[#dbe3ed] pb-2">
         <h2 className="text-base font-semibold">{title}</h2>
-        {sample && <span className="text-xs text-slate-500">Sample data</span>}
+        {header_end}
       </div>
       <div className="flex-1">{children}</div>
       {footer && (

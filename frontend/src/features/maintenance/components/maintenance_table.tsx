@@ -10,7 +10,7 @@ const columns: TableColumn<PreviewRecord>[] = [
         render: (row) => (
             <Link
                 to={`/maintenance/${row.id}`}
-                className="inline-flex min-h-11 items-center rounded font-medium text-[#1d4ed8] underline focus-visible:outline-2"
+                className="inline-flex min-h-11 items-center rounded font-medium text-link"
             >
                 {row.title || "Untitled maintenance record"}
             </Link>
@@ -60,17 +60,19 @@ export default function MaintenanceTable({
     rows,
     caption = "Maintenance records",
     inventory = false,
+    bounded = true,
     highlight_row,
 }: {
     rows: PreviewRecord[];
     caption?: string;
     inventory?: boolean;
+    bounded?: boolean;
     highlight_row?: TableRowHighlight;
 }) {
     return (
         <DataTable
             inventory={inventory}
-            bounded
+            bounded={bounded}
             compact_empty
             caption={caption}
             rows={rows}

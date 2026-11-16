@@ -1,5 +1,5 @@
 import { CalendarDays } from "lucide-react";
-import { useState, useSyncExternalStore } from "react";
+import { useState } from "react";
 import { Navigate } from "react-router";
 import { toast } from "sonner";
 import Button from "../../../shared/components/ui/button";
@@ -15,14 +15,17 @@ import { useAuth } from "../../auth/hooks/auth_context";
 import PersonnelTabs from "../components/personnel_tabs";
 import PersonnelStatus from "../components/personnel_status";
 import RecordAvailabilityDialog from "../components/record_availability_dialog";
-import { availability_statuses, availability_store, record_availability } from "../data/availability_store";
+import useAvailability from "../hooks/use_availability";
+import { availability_service } from "../services/availability_service";
+import { availability_statuses } from "../types/availability_types";
+import type { AvailabilityValues } from "../types/availability_types";
 import usePersonnel from "../hooks/use_personnel";
 import { usePersonnelRecords } from "../hooks/use_personnel_directory";
 import { personnel_date } from "../utils/personnel_records";
 
 type RegisterRow = { id: string; name: string; position: string; recorded?: PreviewRecord };
 
-const filter_style = "mt-1.5 min-h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm focus-visible:outline-2 focus-visible:outline-[#1d4ed8]";
+const filter_style = "min-h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm focus-visible:outline-2 focus-visible:outline-[#1d4ed8]";
 const updated_format = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 const columns: TableColumn<RegisterRow>[] = [
     { id: "personnel", header: "Personnel", render: (row) => row.name },
@@ -65,7 +68,7 @@ function AvailabilityRegister({ account_id, directory_access, can_record }: {
     const personnel = live_directory ? directory.rows : preview_personnel.map(({ id, name, position }) => ({
         id, name, position,
     }));
-    const records = useSyncExternalStore(availability_store.subscribe, availability_store.get_snapshot);
+    const records = useAvailability();
     const selected_date = date || today;
     const daily_records = new Map(records.filter((row) => row.date === selected_date).map((row) => [row.personnel, row]));
     const positions = [...new Set(personnel.map((row) => row.position).filter(Boolean))].sort();
@@ -74,8 +77,8 @@ function AvailabilityRegister({ account_id, directory_access, can_record }: {
             (!status || (row.recorded?.status || "Not recorded") === status));
     const { visible_rows, footer } = useTablePagination(rows, JSON.stringify([selected_date, position, status]));
 
-    function save(values: Parameters<typeof record_availability>[0]) {
-        record_availability(values);
+    function save(values: AvailabilityValues) {
+        availability_service.save(values);
         set_date(values.date);
         if (status && status !== values.status) set_status("");
         if (position && personnel.find(({ id }) => id === values.personnel)?.position !== position) set_position("");
@@ -89,20 +92,20 @@ function AvailabilityRegister({ account_id, directory_access, can_record }: {
             <h1 id="page_title" className="sr-only">Personnel availability</h1>
             <Card>
                 <PersonnelTabs active="availability" directory_available={directory_access} />
-                <div className="mb-4 flex flex-wrap items-end gap-3 rounded-lg bg-slate-50 p-3">
-                    <label className="min-w-36 flex-1 basis-36 text-sm text-slate-700">
+                <div className="filter-toolbar mb-4 rounded-lg bg-slate-50 p-3">
+                    <label className="filter-toolbar-field grid gap-1.5 text-sm text-slate-700">
                         Date
                         <input type="date" className={filter_style} value={date}
                             onChange={(event) => set_date(event.currentTarget.value)} />
                     </label>
-                    <label className="min-w-36 flex-1 basis-36 text-sm text-slate-700">
+                    <label className="filter-toolbar-field grid gap-1.5 text-sm text-slate-700">
                         Position
                         <select className={filter_style} value={position} onChange={(event) => set_position(event.currentTarget.value)}>
                             <option value="">All positions</option>
                             {positions.map((option) => <option key={option}>{option}</option>)}
                         </select>
                     </label>
-                    <label className="min-w-36 flex-1 basis-36 text-sm text-slate-700">
+                    <label className="filter-toolbar-field grid gap-1.5 text-sm text-slate-700">
                         Availability
                         <select className={filter_style} value={status} onChange={(event) => set_status(event.currentTarget.value)}>
                             <option value="">All statuses</option>
@@ -110,10 +113,12 @@ function AvailabilityRegister({ account_id, directory_access, can_record }: {
                         </select>
                     </label>
                     {can_record && (
-                        <Button className="bg-[#0b2238]! hover:bg-[#193951]!" disabled={!personnel.length || directory.loading || Boolean(directory.error)}
-                            onClick={() => set_is_open(true)}>
-                            <CalendarDays size={16} aria-hidden="true" /> Record availability
-                        </Button>
+                        <div className="filter-toolbar-actions">
+                            <Button className="bg-[#0b2238]! hover:bg-[#193951]!" disabled={!personnel.length || directory.loading || Boolean(directory.error)}
+                                onClick={() => set_is_open(true)}>
+                                <CalendarDays size={16} aria-hidden="true" /> Record availability
+                            </Button>
+                        </div>
                     )}
                 </div>
                 {directory.error ? (

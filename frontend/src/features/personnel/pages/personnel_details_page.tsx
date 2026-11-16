@@ -1,3 +1,4 @@
+import WorkspaceTabs from "../../../shared/components/navigation/workspace_tabs";
 import { Activity, Award, Clock3, FileText, GraduationCap, HeartPulse, IdCard, Pencil } from "lucide-react";
 import { Link, Outlet, useParams, useSearchParams } from "react-router";
 import EmptyState from "../../../shared/components/feedback/empty_state";
@@ -61,14 +62,14 @@ export default function PersonnelDetailsPage() {
                 </div>
             </Card>
             <Card>
-                <nav aria-label="Personnel profile sections" className="mb-4 flex flex-wrap gap-1 border-b border-slate-200">
+                <WorkspaceTabs label="Personnel profile sections">
                     {visible_tabs.map(({ id, label, icon: Icon }) => (
                         <Link key={id} to={id === "overview" ? profile_path : `${profile_path}?tab=${id}`}
                             aria-current={id === active_tab.id ? "page" : undefined} className={workspace_tab_style(id === active_tab.id)}>
                             <Icon size={16} aria-hidden="true" /> {label}
                         </Link>
                     ))}
-                </nav>
+                </WorkspaceTabs>
                 {record.preview && <p className="mb-4 rounded-lg bg-blue-50 p-3 text-sm text-slate-700">Preview record · Changes reset on reload.</p>}
                 {overview ? (
                     <div className="space-y-4">
@@ -95,7 +96,7 @@ export default function PersonnelDetailsPage() {
                         </div>
                     </div>
                 ) : active_tab.id === "licenses" ? (
-                    <DataTable inventory caption="Personnel licenses" rows={record.licenses}
+                    <DataTable inventory bounded caption="Personnel licenses" rows={record.licenses}
                         get_row_key={(license) => license.emp_license_UUID} empty_title="No licenses recorded"
                         columns={[
                             { id: "type", header: "License type", render: (row) => row.license_type?.license_type_name || "Not recorded" },

@@ -23,8 +23,8 @@ export default function AppHeader() {
   const user_accounts = Boolean(useMatch("/users/*"));
   const profile = Boolean(useMatch("/profile"));
   const help = Boolean(useMatch("/help"));
-  const aligned_workspace = inventory || aircraft || maintenance || logbook || personnel || user_accounts || profile || notifications || help;
-  const workspace_header = dashboard || aligned_workspace;
+  const aligned_workspace = dashboard || inventory || aircraft || maintenance || logbook || personnel || user_accounts || profile || notifications || help;
+  const workspace_header = aligned_workspace;
   const title = dashboard
     ? "Dashboard"
     : aircraft
@@ -51,8 +51,8 @@ export default function AppHeader() {
     <header className="sticky top-0 z-30 h-16 border-b border-slate-200 bg-white">
       <div className={`flex h-full items-center justify-between gap-3 ${aligned_workspace ? WORKSPACE_CONTENT_WIDTH : "px-4 sm:px-6"}`}>
         {workspace_header && (
-          <div className={`flex min-w-0 items-center gap-2 ${aligned_workspace ? "" : "md:pl-6"}`}>
-            <span className="text-lg font-bold text-[#0b2238] sm:text-[1.375rem]">
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="min-w-0 text-lg leading-tight font-bold text-[#0b2238] sm:text-[1.375rem]">
               {title}
             </span>
             {guide_id && !notification_preferences && !lookup && pathname !== "/inventory/changes" && (
@@ -94,8 +94,8 @@ export default function AppHeader() {
             }
           >
             <ProfileMenu
-              display_name={user?.username ?? "Account"}
-              role={workspace_label(user)}
+              display_name={user?.full_name || "Account"}
+              role={user?.position?.position_name || workspace_label(user)}
               compact={workspace_header}
               on_logout={logout}
             />

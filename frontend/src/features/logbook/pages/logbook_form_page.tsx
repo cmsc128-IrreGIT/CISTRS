@@ -8,7 +8,7 @@ import FormDialog from "../../../shared/components/ui/form_dialog";
 import EmptyState from "../../../shared/components/feedback/empty_state";
 import { button_styles } from "../../../shared/styles/button_styles";
 import LogbookForm from "../components/logbook_form";
-import { logbook_store } from "../data/logbook_store";
+import { logbook_service } from "../services/logbook_service";
 import useLogbook from "../hooks/use_logbook";
 import type { LogbookFormValues } from "../types/logbook_types";
 
@@ -24,7 +24,7 @@ export default function LogbookFormPage() {
 
     function save(values: LogbookFormValues) {
         try {
-            const saved = logbook_store.save(values, entry_id, user?.username);
+            const saved = logbook_service.save_entry(values, entry_id, user?.full_name);
             void navigate(`/logbook/${saved.id}`, { replace: true });
             toast.success("Logbook entry saved", { position: "bottom-right" });
         } catch (error) {
@@ -42,7 +42,7 @@ export default function LogbookFormPage() {
                 <LogbookForm
                     key={entry_id ?? "new"}
                     initial_values={entry}
-                    recorded_by={user?.username}
+                    recorded_by={user?.full_name}
                     aircraft_options={aircraft.map(({ registration, model }) => ({ registration, model }))}
                     maintenance_options={maintenance.map((row) => ({
                         id: row.id,

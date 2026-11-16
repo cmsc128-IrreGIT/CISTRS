@@ -32,8 +32,8 @@ export default function InventoryListFilters({
     ].sort((first, second) => first[1].localeCompare(second[1]));
 
     return (
-        <div className="mb-5 flex flex-wrap items-end gap-3 rounded-md bg-[#f5f8fa] p-4">
-            <div className="min-w-0 flex-[2_1_13rem]">
+        <div className="filter-toolbar mb-5 rounded-md bg-[#f5f8fa] p-4">
+            <div className="filter-toolbar-search">
                 <p className="mb-1 text-sm font-medium text-[#0b2238]">
                     Search inventory
                 </p>
@@ -45,7 +45,7 @@ export default function InventoryListFilters({
                 />
             </div>
             {show_category && filters.categories.length > 0 && (
-                <div className="min-w-0 flex-[1_1_8rem]">
+                <div className="filter-toolbar-field">
                     <FormField id="inventory_category" label="Category">
                         {(props) => (
                             <select
@@ -67,7 +67,7 @@ export default function InventoryListFilters({
                     </FormField>
                 </div>
             )}
-            <div className="min-w-0 flex-[1_1_8rem]">
+            <div className="filter-toolbar-field">
                 <FormField id="inventory_location" label="Location">
                     {(props) => (
                         <select
@@ -88,7 +88,7 @@ export default function InventoryListFilters({
                     )}
                 </FormField>
             </div>
-            <div className="min-w-0 flex-[1_1_8rem]">
+            <div className="filter-toolbar-field">
                 <FormField id="stock_filter" label="Stock status">
                     {(props) => (
                         <select
@@ -113,7 +113,7 @@ export default function InventoryListFilters({
                     )}
                 </FormField>
             </div>
-            {action}
+            {action && <div className="filter-toolbar-actions">{action}</div>}
         </div>
     );
 }

@@ -17,7 +17,7 @@ import { usePersonnelDirectory } from "../hooks/use_personnel_directory";
 import type { PersonnelRecord } from "../types/personnel_types";
 import { personnel_options } from "../utils/personnel_records";
 
-const select_style = "mt-1.5 min-h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm focus-visible:outline-2 focus-visible:outline-[#1d4ed8]";
+const select_style = "min-h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm focus-visible:outline-2 focus-visible:outline-[#1d4ed8]";
 
 export default function PersonnelPage() {
     const directory = usePersonnelDirectory();
@@ -56,7 +56,7 @@ export default function PersonnelPage() {
         { id: "availability", header: "Availability", render: (row) => <PersonnelStatus availability status={availability.get(row.id)?.status} /> },
         { id: "action", header: "Action", render: (row) => (
             <Link to={`/personnel/${encodeURIComponent(row.id)}`} aria-label={`View ${row.name}`}
-                className="font-medium underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-[#1d4ed8]">View</Link>
+                className="font-medium text-link">View</Link>
         ) },
     ];
 
@@ -68,33 +68,35 @@ export default function PersonnelPage() {
             <h1 id="page_title" className="sr-only">Personnel</h1>
             <Card>
                 <PersonnelTabs active="directory" />
-                <div className="mb-4 flex flex-wrap items-end gap-3 rounded-lg bg-slate-50 p-3">
-                    <div className="min-w-0 flex-1 basis-56">
-                        <p className="mb-1.5 text-sm text-slate-700">Search personnel</p>
+                <div className="filter-toolbar mb-4 rounded-lg bg-slate-50 p-3">
+                    <div className="filter-toolbar-search grid gap-1.5">
+                        <p aria-hidden="true" className="text-sm text-slate-700">Search personnel</p>
                         <SearchInput label="Search personnel" value={search} on_change={set_search} placeholder="Name or employee ID" />
                     </div>
-                    <label className="min-w-36 flex-1 basis-36 text-sm text-slate-700">
+                    <label className="filter-toolbar-field grid gap-1.5 text-sm text-slate-700">
                         Department
                         <select className={select_style} value={department} onChange={(event) => set_department(event.currentTarget.value)}>
                             <option value="">All departments</option>
                             {personnel_options(rows, "department").map((option) => <option key={option}>{option}</option>)}
                         </select>
                     </label>
-                    <label className="min-w-36 flex-1 basis-36 text-sm text-slate-700">
+                    <label className="filter-toolbar-field grid gap-1.5 text-sm text-slate-700">
                         Position
                         <select className={select_style} value={position} onChange={(event) => set_position(event.currentTarget.value)}>
                             <option value="">All positions</option>
                             {personnel_options(rows, "position").map((option) => <option key={option}>{option}</option>)}
                         </select>
                     </label>
-                    {(term || department || position) && (
-                        <Button variant="ghost" onClick={() => { set_search(""); set_department(""); set_position(""); }}>Clear filters</Button>
-                    )}
-                    {can_manage && (
-                        <Link to="/personnel/new" className={button_styles("primary", "bg-[#0b2238]! hover:bg-[#193951]!")}>
-                            <Plus size={16} aria-hidden="true" /> Add personnel
-                        </Link>
-                    )}
+                    <div className="filter-toolbar-actions">
+                        {(term || department || position) && (
+                            <Button variant="ghost" onClick={() => { set_search(""); set_department(""); set_position(""); }}>Clear filters</Button>
+                        )}
+                        {can_manage && (
+                            <Link to="/personnel/new" className={button_styles("primary", "bg-[#0b2238]! hover:bg-[#193951]!")}>
+                                <Plus size={16} aria-hidden="true" /> Add personnel
+                            </Link>
+                        )}
+                    </div>
                 </div>
                 {highlight && !rows.some(employee_matches) && (
                     <p role="status" className="mb-3 text-sm text-slate-600">The employee linked from this notification is unavailable.</p>

@@ -1,3 +1,4 @@
+import WorkspaceTabs from "../../../shared/components/navigation/workspace_tabs";
 import { CalendarDays, UsersRound } from "lucide-react";
 import { Link } from "react-router";
 import { workspace_tab_style } from "../../../shared/styles/tab_styles";
@@ -10,7 +11,7 @@ export default function PersonnelTabs({
     directory_available?: boolean;
 }) {
     return (
-        <nav aria-label="Personnel sections" className="mb-4 flex flex-wrap gap-1 border-b border-slate-200">
+        <WorkspaceTabs label="Personnel sections">
             {directory_available && (
                 <Link to="/personnel" aria-current={active === "directory" ? "page" : undefined}
                     className={workspace_tab_style(active === "directory")}>
@@ -21,6 +22,6 @@ export default function PersonnelTabs({
                 className={workspace_tab_style(active === "availability")}>
                 <CalendarDays size={16} aria-hidden="true" /> Availability
             </Link>
-        </nav>
+        </WorkspaceTabs>
     );
 }

@@ -42,7 +42,7 @@ export default function DataTable<T>({
             role="region"
             aria-label={caption}
             tabIndex={0}
-            className={`overflow-auto rounded-lg border border-slate-200 focus-visible:outline-2 focus-visible:outline-[#1d4ed8] ${bounded ? "max-h-[min(55dvh,32rem)]" : ""}`}
+            className={`thin-scrollbar overflow-auto rounded-lg border border-slate-200 focus-visible:outline-2 focus-visible:outline-[#1d4ed8] ${bounded ? "max-h-[min(45dvh,24rem)] sm:max-h-[min(55dvh,32rem)]" : ""}`}
         >
             <table className="w-full text-left text-sm">
                 <caption className="sr-only">{caption}</caption>

@@ -1,3 +1,4 @@
+import WorkspaceTabs from "../../../shared/components/navigation/workspace_tabs";
 import { useState } from "react";
 import { Link, Outlet } from "react-router";
 import { BookOpen, Download, Plus } from "lucide-react";
@@ -45,29 +46,29 @@ export default function LogbookPage() {
             <WorkspaceBreadcrumbs current={logbook_breadcrumb_title} />
             <h1 id="page_title" className="sr-only">{logbook_breadcrumb_title}</h1>
             <Card>
-                <nav aria-label="Logbook sections" className="mb-4 flex border-b border-slate-200">
+                <WorkspaceTabs label="Logbook sections">
                     <Link to="/logbook" aria-current="page" className={workspace_tab_style(true)}>
                         <BookOpen size={16} aria-hidden="true" />
                         Logbook Entries
                     </Link>
-                </nav>
-                <div className="mb-4 flex flex-wrap items-end gap-3 rounded-lg bg-slate-50 p-3">
-                    <div className="min-w-0 flex-1 basis-56">
-                        <p className="mb-1.5 text-sm text-slate-700">Search entries</p>
+                </WorkspaceTabs>
+                <div className="filter-toolbar mb-4 rounded-lg bg-slate-50 p-3">
+                    <div className="filter-toolbar-search grid gap-1.5">
+                        <p aria-hidden="true" className="text-sm text-slate-700">Search entries</p>
                         <SearchInput label="Search entries" value={search} on_change={set_search} placeholder="Reference or remarks" />
                     </div>
-                    <label className="min-w-32 flex-1 basis-32 space-y-1.5 text-sm text-slate-700">
+                    <label className="filter-toolbar-field grid gap-1.5 text-sm text-slate-700">
                         Aircraft
                         <select className={filter_style} value={aircraft} onChange={(event) => set_aircraft(event.currentTarget.value)}>
                             <option value="">All aircraft</option>
                             {aircraft_options.map((registration) => <option key={registration}>{registration}</option>)}
                         </select>
                     </label>
-                    <label className="min-w-36 flex-1 basis-36 space-y-1.5 text-sm text-slate-700">
+                    <label className="filter-toolbar-field grid gap-1.5 text-sm text-slate-700">
                         Entry date
                         <input type="date" className={filter_style} value={date} onChange={(event) => set_date(event.currentTarget.value)} />
                     </label>
-                    <div className="flex flex-wrap items-center gap-2">
+                    <div className="filter-toolbar-actions">
                         {is_filtered && (
                             <Button variant="ghost" onClick={() => { set_search(""); set_aircraft(""); set_date(""); }}>
                                 Clear filters

@@ -1,3 +1,4 @@
+import WorkspaceTabs from "../../../shared/components/navigation/workspace_tabs";
 import { Archive, Pencil } from "lucide-react";
 import { useContext, useState } from "react";
 import { Link, Outlet, useLocation, useNavigate, useParams, useSearchParams } from "react-router";
@@ -133,7 +134,7 @@ function InventoryDetails({
             </Card>
 
             <Card>
-                <nav aria-label="Item detail sections" className="mb-4 flex flex-wrap gap-1 border-b border-slate-200">
+                <WorkspaceTabs label="Item detail sections">
                     {tabs.map(({ id, label, icon: Icon }) => {
                         const params = new URLSearchParams(search_params);
                         if (id === default_tab.id) params.delete(INVENTORY_DETAIL_TAB_PARAM);
@@ -151,7 +152,7 @@ function InventoryDetails({
                             </Link>
                         );
                     })}
-                </nav>
+                </WorkspaceTabs>
                 <section aria-label={active_tab.label}>
                     {active_tab.id === "information" && (
                         <>

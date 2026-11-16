@@ -1,7 +1,7 @@
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useState } from "react";
 import { useOutletContext } from "react-router";
 import { ApiError } from "../../../shared/api/client";
-import { availability_store } from "../data/availability_store";
+import useAvailability from "./use_availability";
 import { list_personnel } from "../services/personnel_service";
 import type { PersonnelFormValues, PersonnelRecord } from "../types/personnel_types";
 import { latest_availability } from "../utils/personnel_records";
@@ -13,7 +13,7 @@ export function usePersonnelRecords(account_id: string, enabled = true) {
     const [error, set_error] = useState<Error>();
     const [attempt, set_attempt] = useState(0);
     const [previews, set_previews] = useState(() => preview_by_account.get(account_id) ?? new Map<string, PersonnelFormValues>());
-    const availability = useSyncExternalStore(availability_store.subscribe, availability_store.get_snapshot);
+    const availability = useAvailability();
 
     useEffect(() => {
         if (!enabled) return;

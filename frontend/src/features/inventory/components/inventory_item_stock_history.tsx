@@ -53,6 +53,7 @@ export default function InventoryItemStockHistory({
     return (
         <>
             <StockMovementTable
+                bounded
                 rows={visible_rows}
                 has_history
                 show_item={false}

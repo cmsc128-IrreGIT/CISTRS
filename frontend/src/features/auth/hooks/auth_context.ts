@@ -3,6 +3,7 @@ export type SessionUser = {
     account_UUID: string;
     emp_UUID: string;
     username: string;
+    full_name?: string;
     roles?: string[];
     position?: {
         position_UUID: string;

@@ -45,28 +45,30 @@ export default function UsersPage() {
             <p className="text-sm text-slate-600">Manage sign-in accounts and their linked personnel.</p>
             <Card>
                 <h2 className="mb-4 font-semibold text-[#0b2238]">System accounts</h2>
-                <div className="mb-4 grid grid-cols-1 items-end gap-3 rounded-lg bg-slate-100 p-3 sm:grid-cols-2 xl:grid-cols-[2fr_1fr_1fr_auto]">
-                    <div>
-                        <p aria-hidden="true" className="mb-1 text-sm text-slate-700">Search accounts</p>
+                <div className="filter-toolbar mb-4 rounded-lg bg-slate-100 p-3">
+                    <div className="filter-toolbar-search grid gap-1.5">
+                        <p aria-hidden="true" className="text-sm text-slate-700">Search accounts</p>
                         <SearchInput label="Search accounts" placeholder="Search name or username" value={search} on_change={set_search} />
                     </div>
-                    <label className="grid gap-1 text-sm text-slate-700">
+                    <label className="filter-toolbar-field grid gap-1.5 text-sm text-slate-700">
                         System role
                         <select className={account_field_style} value={role} onChange={(event) => set_role(event.currentTarget.value)}>
                             <option value="">All roles</option>
                             {roles.map((value) => <option key={value}>{value}</option>)}
                         </select>
                     </label>
-                    <label className="grid gap-1 text-sm text-slate-700">
+                    <label className="filter-toolbar-field grid gap-1.5 text-sm text-slate-700">
                         Account status
                         <select className={account_field_style} value={status} onChange={(event) => set_status(event.currentTarget.value)}>
                             <option value="">All statuses</option>
                             {statuses.map((value) => <option key={value}>{value}</option>)}
                         </select>
                     </label>
-                    <Link to="/users/new" className={`${button_styles()} ${account_action_style}`}>
-                        <Plus size={16} aria-hidden="true" /> Add account
-                    </Link>
+                    <div className="filter-toolbar-actions">
+                        <Link to="/users/new" className={`${button_styles()} ${account_action_style}`}>
+                            <Plus size={16} aria-hidden="true" /> Add account
+                        </Link>
+                    </div>
                 </div>
                 <DataTable inventory caption="System accounts" rows={visible_rows} get_row_key={(row) => row.account.account_UUID}
                     empty_title="No matching accounts" columns={[
@@ -81,7 +83,7 @@ export default function UsersPage() {
                         } },
                         { id: "action", header: "Action", render: (row) => (
                             <Link to={`/users/${encodeURIComponent(row.account.account_UUID)}`} aria-label={`Manage ${row.name}`}
-                                className="font-medium underline underline-offset-4">Manage</Link>
+                                className="font-medium text-link">Manage</Link>
                         ) },
                     ]} />
                 {filtered.length > footer.default_page_size && <Pagination {...footer} item_label="account" />}

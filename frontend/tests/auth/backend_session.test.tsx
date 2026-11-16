@@ -28,6 +28,7 @@ function Workspace() {
     return (
         <>
             <p>{user?.username || "Signed out"}</p>
+            {user?.full_name && <p>{user.full_name}</p>}
             <p>{user?.roles.join(", ")}</p>
             <p role="alert">{error}</p>
             <button onClick={() => void logout()}>Log out</button>
@@ -40,11 +41,14 @@ afterEach(() => {
     vi.unstubAllGlobals();
 });
 it("logs in through the existing endpoint and shows all assigned roles", async () => {
-    const fetcher = vi
-        .fn()
-        .mockResolvedValue(
-            new Response(JSON.stringify({ token: "session-token", user })),
-        );
+    const fetcher = vi.fn<(url: string, options: RequestInit) => Promise<Response>>(async (url) => (
+        url.endsWith("/personnel/employees")
+            ? Response.json([
+                { emp_UUID: "other-employee", f_name: "Other", l_name: "Person" },
+                { emp_UUID: user.emp_UUID, f_name: "Adrian", m_name: "Miguel", l_name: "Reyes" },
+            ])
+            : Response.json({ token: "session-token", user })
+    ));
     vi.stubGlobal("fetch", fetcher);
     render(
         <MemoryRouter initialEntries={["/login"]}>
@@ -57,6 +61,9 @@ it("logs in through the existing endpoint and shows all assigned roles", async (
         </MemoryRouter>,
     );
     const person = userEvent.setup();
+    expect(screen.getByPlaceholderText("Enter your username")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("Enter your password")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Contact your Administrator" })).toHaveAttribute("href", "/signup");
     await person.type(screen.getByLabelText("Username"), "  adrian.reyes  ");
     await person.type(screen.getByLabelText("Password"), "test-password1");
     await person.click(screen.getByRole("button", { name: "Log in" }));
@@ -64,6 +71,7 @@ it("logs in through the existing endpoint and shows all assigned roles", async (
     expect(
         screen.getByText("Administrator, Inventory Staff"),
     ).toBeInTheDocument();
+    expect(await screen.findByText("Adrian Miguel Reyes")).toBeInTheDocument();
     expect(get_token()).toBe("session-token");
     expect(JSON.parse(fetcher.mock.calls[0][1].body)).toEqual({
         username: "adrian.reyes",
@@ -128,7 +136,7 @@ it("restores a session from the server and revokes it on logout", async () => {
         expect(screen.getByText("Signed out")).toBeInTheDocument(),
     );
     expect(get_token()).toBeNull();
-    expect(fetcher.mock.calls[1][0]).toMatch(/\/auth\/logout$/);
+    expect(fetcher.mock.calls.at(-1)?.[0]).toMatch(/\/auth\/logout$/);
 });
 it("attaches the token to inventory requests and preserves the CRUD payload", async () => {
     set_token("inventory-token");
@@ -233,3 +241,21 @@ it.each([
         ).toBeInTheDocument();
     },
 );
+
+it("shows inline errors and focuses the first missing sign-in field", async () => {
+    const fetcher = vi.fn();
+    vi.stubGlobal("fetch", fetcher);
+    render(
+        <MemoryRouter>
+            <AuthProvider><LoginPage /></AuthProvider>
+        </MemoryRouter>,
+    );
+
+    await userEvent.click(screen.getByRole("button", { name: "Log in" }));
+    const username = screen.getByLabelText("Username");
+    const password = screen.getByLabelText("Password");
+    expect(username).toHaveFocus();
+    expect(username).toHaveAccessibleDescription("Enter your username.");
+    expect(password).toHaveAccessibleDescription("Enter your password.");
+    expect(fetcher).not.toHaveBeenCalled();
+});

@@ -35,7 +35,7 @@ function Profile({ user }: { user: SessionUser }) {
         return () => controller.abort();
     }, [can_read_personnel, user.emp_UUID]);
 
-    const name = record?.name || user.username;
+    const name = record?.name || user.full_name || "Account";
     const initials = name.split(/[\s._-]+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
     const sections = [
         { title: "Account", entries: [
@@ -46,7 +46,7 @@ function Profile({ user }: { user: SessionUser }) {
         { title: "Work information", entries: [
             { label: "Position", value: user.position?.position_name || record?.position || "Not recorded" },
             { label: "Department", value: record?.department || "Not available" },
-            { label: "Assigned duties", value: user.roles?.join(" & ") || workspace_label(user) || "Not recorded" },
+            { label: "Assigned duties", value: workspace_label(user) },
         ] },
     ];
 

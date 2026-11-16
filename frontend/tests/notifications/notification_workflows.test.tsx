@@ -2,6 +2,7 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-li
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router";
 import { afterEach, expect, it, vi } from "vitest";
+import AppRoutes from "../../src/app/app_routes";
 import { AuthContext } from "../../src/features/auth/hooks/auth_context";
 import InventoryHistoryPage from "../../src/features/inventory/pages/inventory_history_page";
 import InventoryPage from "../../src/features/inventory/pages/inventory_page";
@@ -12,11 +13,11 @@ import NotificationPreferencesPage from "../../src/features/notifications/pages/
 import NotificationsPage from "../../src/features/notifications/pages/notifications_page";
 import ToastProvider from "../../src/shared/components/feedback/toast_provider";
 
-function mount(account: string) {
+function mount(account: string, features = ["Inventory", "Maintenance", "Personnel"]) {
     return render(
         <MemoryRouter initialEntries={["/notifications"]}>
             <AuthContext value={{
-                user: { account_UUID: account, emp_UUID: "person", username: account, features: ["Inventory", "Maintenance", "Personnel"] },
+                user: { account_UUID: account, emp_UUID: "person", username: account, features },
                 loading: false, error: "", retry: vi.fn(), login: vi.fn(), logout: vi.fn(),
             }}>
                 <ToastProvider />
@@ -144,4 +145,26 @@ it("explains when the linked transaction is outside the available history", asyn
     const user = userEvent.setup();
     await user.click(screen.getByRole("link", { name: "Stock adjustment" }));
     expect(await screen.findByText("The linked transaction is unavailable in recent Stock History.")).toBeInTheDocument();
+});
+
+it("shows only preview alerts for the signed-in account's features", () => {
+    mount("personnel-only-preview", ["Personnel", "Notifications"]);
+    expect(screen.getByRole("link", { name: "License expiry reminder" })).toBeInTheDocument();
+    expect(screen.queryByText("Maintenance reminder")).not.toBeInTheDocument();
+    expect(screen.queryByText("Stock adjustment")).not.toBeInTheDocument();
+    expect(screen.queryByRole("option", { name: "Inventory" })).not.toBeInTheDocument();
+});
+
+it.each(["/aircraft", "/maintenance", "/logbook/new"])("denies direct access to %s without the required feature", (path) => {
+    render(
+        <MemoryRouter initialEntries={[path]}>
+            <AuthContext value={{
+                user: { account_UUID: "limited", emp_UUID: "person", username: "limited", features: ["Inventory"] },
+                loading: false, error: "", retry: vi.fn(), login: vi.fn(), logout: vi.fn(),
+            }}>
+                <AppRoutes />
+            </AuthContext>
+        </MemoryRouter>,
+    );
+    expect(screen.getByRole("heading", { name: "Access restricted" })).toBeInTheDocument();
 });

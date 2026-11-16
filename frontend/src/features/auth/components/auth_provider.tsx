@@ -11,6 +11,7 @@ import {
     set_token,
     ApiError,
 } from "../../../shared/api/client";
+import { list_personnel } from "../../personnel/services/personnel_service";
 import { AuthContext, type SessionUser } from "../hooks/auth_context";
 export default function AuthProvider({ children }: { children: ReactNode }) {
     const [user, set_user] = useState<SessionUser | null>(null);
@@ -62,6 +63,24 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
             window.removeEventListener("cistrs:session-expired", expired);
         };
     }, [restore]);
+    const employee_id = user?.emp_UUID;
+    const account_id = user?.account_UUID;
+    const may_read_personnel = user?.features.includes("Personnel");
+    const has_name = Boolean(user?.full_name);
+    useEffect(() => {
+        if (!employee_id || !account_id || !may_read_personnel || has_name) return;
+        const controller = new AbortController();
+        void list_personnel(controller.signal).then((employees) => {
+            const full_name = employees.find(({ id }) => id === employee_id)?.name;
+            if (!full_name || controller.signal.aborted) return;
+            set_user((current) => current?.account_UUID === account_id && current.emp_UUID === employee_id
+                ? { ...current, full_name } : current);
+        }).catch(() => {
+            // An unavailable directory does not invalidate an authenticated session.
+        });
+        return () => controller.abort();
+    }, [account_id, employee_id, has_name, may_read_personnel]);
+
     async function login(username: string, password: string) {
         const current = ++generation.current;
         const data = await api<{ token: string; user: SessionUser }>(

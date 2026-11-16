@@ -63,7 +63,7 @@ export default function LogbookExportDialog({
         set_state({ stage: "preparing" });
         pending.current = window.setTimeout(() => {
             try {
-                const report = prepare_logbook_report(rows, settings, user?.username ?? "Not recorded", maintenance);
+                const report = prepare_logbook_report(rows, settings, user?.full_name ?? "Not recorded", maintenance);
                 set_state(report.rows.length ? { stage: "ready", report } : { stage: "empty" });
             } catch {
                 set_state({ stage: "failed" });

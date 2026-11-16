@@ -1,12 +1,13 @@
 import { afterEach, expect, it, vi } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";
 import { DECOMMISSIONED_STORAGE_KEY } from "../../src/features/inventory/constants/inventory_constants";
+import { add_inventory_request_preview } from "../../src/features/inventory/hooks/use_inventory_request_previews";
 import DashboardPage from "../../src/features/dashboard/pages/dashboard_page";
 import Sidebar from "../../src/shared/components/navigation/sidebar";
 import useInventory from "../../src/features/inventory/hooks/use_inventory";
-import { get_inventory } from "../../src/features/inventory/services/inventory_services";
+import { get_inventory, get_inventory_history } from "../../src/features/inventory/services/inventory_services";
 const state = vi.hoisted(() => ({
   position: "Test position",
   features: [
@@ -143,6 +144,43 @@ it("keeps the collapsed preference after remount", async () => {
     screen.getByRole("link", { name: "Dashboard", exact: true }),
   ).toHaveAttribute("aria-current", "page");
 });
+it("shows who processed the inventory movement in recent activity", async () => {
+  state.features = ["Dashboard", "Inventory"];
+  vi.mocked(get_inventory_history).mockResolvedValueOnce([{
+    transaction_UUID: "movement-1",
+    transaction_type: "RECEIVE",
+    quantity_change: 2,
+    updated_by: "employee-1",
+    created_at: "2026-10-26T08:00:00Z",
+    remarks: null,
+    status: {
+      status_UUID: "status-1",
+      current_quantity: 2,
+      part: { part_UUID: "brake", part_number: "PN-1", part_name: "Brake assembly" },
+      location: { location_UUID: "location-1", location_name: "Main store", storage_area: null },
+    },
+    updater: { emp_number: "EMP-01", f_name: "Joshua", m_name: "Pascual", l_name: "Garcia" },
+  }]);
+  show();
+
+  const activity = within(await screen.findByRole("table", { name: "Recent activity" }));
+  expect(activity.getByRole("columnheader", { name: "Processed by" })).toBeInTheDocument();
+  const row = within(activity.getByRole("row", { name: /Received 2 Brake assembly/ }));
+  expect(row.getByRole("cell", { name: "Joshua Pascual Garcia" })).toBeInTheDocument();
+});
+
+it.each([
+  ["Mechanic", ["Dashboard", "Aircraft", "Maintenance"], "Demo Technician"],
+  ["Pilot", ["Dashboard", "Aircraft", "Logbook"], "Demo Pilot"],
+])("shows the recorded person in %s recent activity", (position, features, name) => {
+  state.position = position;
+  state.features = features;
+  show();
+
+  const activity = within(screen.getByRole("table", { name: "Recent activity" }));
+  expect(activity.getAllByRole("cell", { name }).length).toBeGreaterThan(0);
+});
+
 it("does not fetch inventory when the hook is disabled", () => {
   function Disabled() {
     useInventory(false);
@@ -253,4 +291,42 @@ it("excludes decommissioned parts from the Inventory count and stock alerts", as
   expect(
     screen.queryByRole("link", { name: "Oil filter", exact: true }),
   ).not.toBeInTheDocument();
+});
+
+it("shows today beside Overview and identifies the combined workspace", async () => {
+  state.position = "Chief Aircraft Mechanic";
+  state.features = ["Dashboard", "Inventory", "Maintenance"];
+  show();
+  expect(screen.getByText("Inventory + Mechanic")).toBeInTheDocument();
+  const overview = await screen.findByRole("heading", { name: "Overview" });
+  const date = new Intl.DateTimeFormat("en-GB", { dateStyle: "full" }).format(new Date());
+  expect(overview.parentElement).toContainElement(screen.getByText(date));
+});
+
+it.each([
+  [["Dashboard", "Personnel"], true],
+  [["Dashboard", "Availability"], true],
+  [["Dashboard"], false],
+] as const)("shows the admin availability shortcut only with an allowed feature", (features, allowed) => {
+  state.position = "President / CEO";
+  state.features = [...features];
+  show();
+  const shortcut = screen.queryByRole("link", { name: "Personnel availability" });
+  if (allowed) expect(shortcut).toHaveAttribute("href", "/personnel/availability");
+  else expect(shortcut).not.toBeInTheDocument();
+});
+
+it("links the dashboard to Restock Requests and counts only open restock previews", async () => {
+  state.position = "Inventory Officer";
+  state.features = ["Dashboard", "Inventory"];
+  show();
+  expect(screen.getByRole("link", { name: /^Open stock requests\s*0$/ })).toHaveAttribute("href", "/inventory/requests");
+  expect(screen.getByRole("link", { name: "View requests" })).toHaveAttribute("href", "/inventory/requests");
+  const part = { part_UUID: "test-part", part_number: "P-1", part_name: "Test item", unit_of_measure: "unit" };
+  act(() => {
+    add_inventory_request_preview({ kind: "CORRECTION", part, quantity: 1, reason: "Count" }, "Preview reviewer");
+    add_inventory_request_preview({ kind: "RESTOCK", part, quantity: 3, reason: "Low stock" }, "Preview requester");
+  });
+  expect(screen.getByRole("link", { name: /^Open stock requests\s*1$/ })).toBeInTheDocument();
+  expect(screen.getByText("1 open restock request in this session.")).toBeInTheDocument();
 });

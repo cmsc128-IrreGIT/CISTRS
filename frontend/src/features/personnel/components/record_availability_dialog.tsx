@@ -4,8 +4,8 @@ import type { SubmitEvent } from "react";
 import FormField from "../../../shared/components/forms/form_field";
 import Button from "../../../shared/components/ui/button";
 import FormDialog from "../../../shared/components/ui/form_dialog";
-import { availability_statuses } from "../data/availability_store";
-import type { AvailabilityValues } from "../data/availability_store";
+import { availability_statuses } from "../types/availability_types";
+import type { AvailabilityValues } from "../types/availability_types";
 import type { PreviewRecord } from "../../../shared/types/record_types";
 
 const field_style = "min-h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-[#1d4ed8]";

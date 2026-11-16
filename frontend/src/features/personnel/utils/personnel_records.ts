@@ -1,3 +1,4 @@
+import { employee_name } from "../../../shared/utils/employee_name";
 import type { PreviewRecord } from "../../../shared/types/record_types";
 import { seeded_positions } from "../config/seeded_positions";
 import type { PersonnelEmployeeResponse, PersonnelRecord } from "../types/personnel_types";
@@ -10,7 +11,7 @@ export function normalize_personnel(employee: PersonnelEmployeeResponse): Person
     return {
         id: employee.emp_UUID,
         employee_number: employee.emp_number,
-        name: [employee.f_name, employee.m_name, employee.l_name, employee.suffix].filter(Boolean).join(" "),
+        name: employee_name(employee),
         position: position?.trim() || seeded_positions.get(employee.position_UUID?.toLowerCase() ?? "") || "",
         department: employee.department?.trim() ?? "",
         category: employee.personnel_category ?? "",

@@ -40,18 +40,20 @@ export const workspace_labels: Record<Workspace, string> = {
     inventory: "Inventory",
     mechanic: "Mechanic",
     pilot: "Pilot",
-    inventory_mechanic: "Inventory & Mechanic",
-    pilot_mechanic: "Pilot & Mechanic",
+    inventory_mechanic: "Inventory + Mechanic",
+    pilot_mechanic: "Pilot + Mechanic",
     default: "",
 };
 
 export function workspace_label(user: SessionUser | null) {
-    return (
-        user?.position?.position_name ||
-        workspace_labels[get_workspace(user)] ||
-        user?.roles?.join(" & ") ||
-        ""
-    );
+    const workspace = get_workspace(user);
+    const features = user?.features ?? [];
+    if (workspace === "mechanic" && features.includes("Inventory") && features.includes("Maintenance"))
+        return workspace_labels.inventory_mechanic;
+    if (workspace !== "default") return workspace_labels[workspace];
+    if (features.includes("Logbook")) return workspace_labels.pilot;
+    if (features.includes("Personnel")) return "Personnel";
+    return user?.roles?.join(" + ") || "Account";
 }
 
 export function get_inventory_access(user: SessionUser | null) {

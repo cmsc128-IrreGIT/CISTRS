@@ -48,7 +48,7 @@ export default function InventoryStockWorkflowDialog({
     items: InventoryItem[];
     on_close: () => void;
 }) {
-    const username = useContext(AuthContext)?.user?.username ?? "Current user";
+    const actor_name = useContext(AuthContext)?.user?.full_name || "Current user";
     const [save_error, set_save_error] = useState<string | null>(null);
     const [location_id, set_location_id] = useState("");
     const [draft, set_draft] = useState<Draft>();
@@ -96,7 +96,7 @@ export default function InventoryStockWorkflowDialog({
                 recorded_quantity: balance,
                 reason: values.remarks,
                 reference: values.reference || null,
-            }, username);
+            }, actor_name);
             toast.success("Stock correction preview added.", { position: "bottom-right" });
             on_close();
         } else {

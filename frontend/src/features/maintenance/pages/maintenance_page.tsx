@@ -1,3 +1,4 @@
+import WorkspaceTabs from "../../../shared/components/navigation/workspace_tabs";
 import { Activity, ClipboardCheck, FileText, History, Plus, Wrench } from "lucide-react";
 import { useContext, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
@@ -17,7 +18,7 @@ import { AircraftDocuments } from "../../aircraft/components/aircraft_record_tab
 import useAircraft from "../../aircraft/hooks/use_aircraft";
 import MaintenanceTable from "../components/maintenance_table";
 import { MaintenanceWorkDetails, MaintenanceWorkDialog } from "../components/maintenance_work_dialog";
-import { maintenance_store } from "../data/maintenance_store";
+import { maintenance_service } from "../services/maintenance_service";
 import useMaintenance from "../hooks/use_maintenance";
 import { filter_maintenance_records } from "../utils/filter_maintenance_records";
 import { format_work_date, work_button_style } from "../utils/maintenance_work";
@@ -82,7 +83,7 @@ export default function MaintenancePage({ create_on_load = false }: { create_on_
     }
 
     function save(record: Omit<PreviewRecord, "id">) {
-        maintenance_store.save({ ...record, recorded_by: user?.username ?? "" });
+        maintenance_service.add_work_record(record, user?.full_name);
         close_dialog();
         toast.success("Maintenance work record saved", { position: "bottom-right" });
     }
@@ -101,7 +102,7 @@ export default function MaintenancePage({ create_on_load = false }: { create_on_
             </h1>
             <Card>
                 {scoped ? (
-                    <nav aria-label="Aircraft maintenance sections" className="mb-5 flex flex-wrap gap-1 border-b border-slate-200">
+                    <WorkspaceTabs label="Aircraft maintenance sections" className="mb-5">
                         {scoped_tabs.map(({ id, label, icon: Icon }) => (
                             <Link key={id} to={`/maintenance?${new URLSearchParams({ aircraft: selected, view: "work-history", tab: id })}`}
                                 aria-current={id === tab.id ? "page" : undefined}
@@ -109,16 +110,16 @@ export default function MaintenancePage({ create_on_load = false }: { create_on_
                                 <Icon size={16} aria-hidden="true" /> {label}
                             </Link>
                         ))}
-                    </nav>
+                    </WorkspaceTabs>
                 ) : (
                     <>
                         <h2 className="mb-4 font-semibold text-[#0b2238]">{task_view ? "Maintenance tasks" : "Work records"}</h2>
-                        <div className="mb-4 grid items-end gap-3 rounded-lg bg-slate-50 p-3 sm:grid-cols-2 xl:grid-cols-[minmax(12rem,1.4fr)_1fr_1fr_auto]">
-                            <div>
-                                <p className="mb-1.5 text-sm font-normal text-slate-700">Search maintenance</p>
+                        <div className="filter-toolbar mb-4 rounded-lg bg-slate-50 p-3">
+                            <div className="filter-toolbar-search grid gap-1.5">
+                                <p aria-hidden="true" className="text-sm text-slate-700">Search maintenance</p>
                                 <SearchInput value={search} on_change={set_search} label="Search maintenance" placeholder="Work order or work performed" />
                             </div>
-                            <label className="space-y-1.5 text-sm font-normal text-slate-700">
+                            <label className="filter-toolbar-field grid gap-1.5 text-sm text-slate-700">
                                 Aircraft
                                 <select value={selected} onChange={(event) => set_filter("aircraft", event.currentTarget.value)} className={filter_style}>
                                     <option value="">All aircraft</option>
@@ -126,7 +127,7 @@ export default function MaintenancePage({ create_on_load = false }: { create_on_
                                 </select>
                             </label>
                             {task_view ? (
-                                <label className="space-y-1.5 text-sm font-normal text-slate-700">
+                                <label className="filter-toolbar-field grid gap-1.5 text-sm text-slate-700">
                                     Status
                                     <select value={status} onChange={(event) => set_filter("status", event.currentTarget.value)} className={filter_style}>
                                         <option value="">All statuses</option>
@@ -136,12 +137,12 @@ export default function MaintenancePage({ create_on_load = false }: { create_on_
                                     </select>
                                 </label>
                             ) : (
-                                <label className="space-y-1.5 text-sm font-normal text-slate-700">
+                                <label className="filter-toolbar-field grid gap-1.5 text-sm text-slate-700">
                                     Date performed
                                     <input type="date" value={date} onChange={(event) => set_filter("date", event.currentTarget.value)} className={filter_style} />
                                 </label>
                             )}
-                            <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+                            <div className="filter-toolbar-actions">
                                 {(selected || part || status || date || term) && (
                                     <Button variant="ghost" onClick={() => { set_params({}); set_search(""); }}>
                                         Clear filters
@@ -160,8 +161,8 @@ export default function MaintenancePage({ create_on_load = false }: { create_on_
                 {(!scoped || tab.id === "work-history") && (
                     <>
                         {scoped && <div className="mb-4 flex justify-end">{add_button}</div>}
-                        {task_view ? <MaintenanceTable inventory rows={visible_rows} highlight_row={highlight} /> : (
-                            <DataTable inventory caption={scoped ? "Maintenance work history" : "Maintenance work records"}
+                        {task_view ? <MaintenanceTable inventory rows={visible_rows} bounded={false} highlight_row={highlight} /> : (
+                            <DataTable inventory bounded={scoped} caption={scoped ? "Maintenance work history" : "Maintenance work records"}
                                 rows={visible_rows} get_row_key={(row) => row.id} highlight_row={highlight} empty_title="No maintenance work records"
                                 columns={[
                                     { id: "date", header: "Date", render: (row) => format_work_date(row.performed_date) },
@@ -170,7 +171,7 @@ export default function MaintenancePage({ create_on_load = false }: { create_on_
                                     { id: "work", header: "Work performed", render: (row) => row.description || row.title },
                                     { id: "recorder", header: "Recorded by", render: (row) => row.recorded_by || row.performed_by || "Not recorded" },
                                     { id: "action", header: "Action", render: (row) => (
-                                        <Button variant="ghost" className="whitespace-nowrap underline underline-offset-4" onClick={() => set_filter("record", row.id)}>View record</Button>
+                                        <Button variant="ghost" className="whitespace-nowrap text-link" onClick={() => set_filter("record", row.id)}>View record</Button>
                                     ) },
                                 ]}
                             />

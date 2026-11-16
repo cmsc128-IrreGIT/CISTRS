@@ -37,7 +37,7 @@ function mock_api() {
     let accounts = [account];
     const fetcher = vi.fn(async (url: string, request?: RequestInit) => {
         if (url.endsWith("/personnel/employees")) return Response.json([
-            { ...account.employee, record_status: "Active" },
+            { ...account.employee, m_name: "Mario", record_status: "Active" },
             employee,
             {
                 emp_UUID: session.emp_UUID, emp_number: "E-3", f_name: "Demo", l_name: "Admin", department: "Operations",
@@ -106,9 +106,9 @@ it("shows live positions, filters accounts, and opens the manage screen", async 
     expect(screen.getByText("No matching accounts")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Clear search accounts" }));
     await user.selectOptions(screen.getByLabelText("System role"), "Inventory Officer");
-    await user.click(screen.getByRole("link", { name: "Manage Saved Employee" }));
+    await user.click(screen.getByRole("link", { name: "Manage Saved Mario Employee" }));
     expect(screen.getByRole("heading", { name: "Manage account" })).toBeInTheDocument();
-    expect(screen.getByText("Saved Employee · E-1")).toBeInTheDocument();
+    expect(screen.getByText("Saved Mario Employee · E-1")).toBeInTheDocument();
 });
 
 it("does not fetch accounts without feature access", async () => {
@@ -124,7 +124,7 @@ it("creates a live account with the linked employee and refreshes the directory"
     const user = userEvent.setup();
     const dialog = within(await screen.findByRole("dialog", { name: "Create user account" }));
     const personnel = await dialog.findByLabelText(/Linked personnel/);
-    expect(dialog.queryByRole("option", { name: "Saved Employee · E-1" })).not.toBeInTheDocument();
+    expect(dialog.queryByRole("option", { name: "Saved Mario Employee · E-1" })).not.toBeInTheDocument();
     expect(dialog.queryByRole("option", { name: "New Employee · E-4" })).not.toBeInTheDocument();
     await user.selectOptions(personnel, "employee-one");
     expect(dialog.getByText("Mechanic")).toBeInTheDocument();
@@ -151,7 +151,7 @@ it("previews permission edits and deactivation without writing to the server", a
     expect(screen.getByText("Preview duties: Inventory")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Deactivate account" }));
-    const confirmation = within(screen.getByRole("dialog", { name: "Deactivate Saved Employee?" }));
+    const confirmation = within(screen.getByRole("dialog", { name: "Deactivate Saved Mario Employee?" }));
     await user.click(confirmation.getByRole("button", { name: "Cancel" }));
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Deactivate account" }));
@@ -179,6 +179,6 @@ it("uses only the signed-in employee on My Profile", async () => {
 it("shows the session profile without calling Personnel when access is absent", async () => {
     const fetcher = mock_api();
     mount("/profile", []);
-    expect(screen.getByRole("heading", { name: "admin" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Account", level: 2 })).toBeInTheDocument();
     await waitFor(() => expect(fetcher).not.toHaveBeenCalled());
 });

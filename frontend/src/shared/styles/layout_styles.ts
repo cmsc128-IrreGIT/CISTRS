@@ -1,1 +1,1 @@
-export const WORKSPACE_CONTENT_WIDTH = "mx-auto w-full max-w-[1440px] px-4 md:px-6 xl:px-9";
+export const WORKSPACE_CONTENT_WIDTH = "w-full min-w-0 px-4 @min-[42rem]/workspace:px-6 @min-[72rem]/workspace:px-9";

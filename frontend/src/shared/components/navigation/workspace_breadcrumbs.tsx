@@ -10,12 +10,12 @@ export default function WorkspaceBreadcrumbs({
 }) {
     return (
         <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-2 text-sm text-[#0b2238]">
-            <Link to="/dashboard" className="underline underline-offset-2">Dashboard</Link>
+            <Link to="/dashboard" className="text-link">Dashboard</Link>
             {parents.map(({ label, to }) => (
                 <Fragment key={label}>
                     <span aria-hidden="true">›</span>
                     {to ? (
-                        <Link to={to} className="wrap-anywhere underline underline-offset-2">{label}</Link>
+                        <Link to={to} className="wrap-anywhere text-link">{label}</Link>
                     ) : (
                         <span className="wrap-anywhere">{label}</span>
                     )}
