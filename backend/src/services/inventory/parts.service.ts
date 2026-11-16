@@ -1,15 +1,15 @@
 import { z } from "zod";
-import type { Prisma } from "../generated/prisma/client.js";
-import { HttpError } from "../lib/httpError.js";
-import { prisma } from "../lib/prisma.js";
+import type { Prisma } from "../../generated/prisma/client.js";
+import { HttpError } from "../../lib/httpError.js";
+import { prisma } from "../../lib/prisma.js";
+import { locationAvailability, partAvailability } from "./shared.js";
 
 // =============================================================================
-// Inventory service
+// Inventory parts service
 //   Shared      : field rules, query shape, response mapper
 //   BE-02       : create an inventory record (part, with optional initial stock)
 //   BE-03       : retrieve inventory records (list + single)
 //   BE-04       : update an inventory record
-//   Supporting  : stock transaction history
 // =============================================================================
 
 // -----------------------------------------------------------------------------
@@ -69,12 +69,14 @@ function toPartResponse(part: PartWithRelations) {
         description: part.description,
         total_quantity,
         is_low_stock: total_quantity < part.min_stock_level,
+        availability: partAvailability(total_quantity, part.min_stock_level),
         locations: part.inventory_status.map((row) => ({
             status_UUID: row.status_UUID,
             location_UUID: row.location_UUID,
             location_name: row.location.location_name,
             storage_area: row.location.storage_area,
             current_quantity: row.current_quantity,
+            availability: locationAvailability(row.current_quantity),
         })),
         suppliers: part.suppliers.map(
             (link) => link.supplier.organization.organization_name,
@@ -240,21 +242,4 @@ export async function updatePart(part_UUID: string, input: UpdatePartInput) {
 
     // Return the same shape as retrieval.
     return getPart(part_UUID);
-}
-
-// -----------------------------------------------------------------------------
-// SUPPORTING: stock transaction history
-//   GET /api/inventory/transactions
-
-export async function listTransactions() {
-    return prisma.inventoryTransaction.findMany({
-        orderBy: { created_at: "desc" },
-        take: 50,
-        include: {
-            status: { include: { part: true, location: true } },
-            updater: {
-                select: { emp_number: true, f_name: true, l_name: true },
-            },
-        },
-    });
 }

@@ -46,6 +46,33 @@
             "description": "Owner or company proprietor."
         }
     ],
+    "PERSONNEL_CATEGORY": [
+        {
+            "personnel_category_UUID": "12000000-0000-4000-8000-000000000001",
+            "category_name": "Pilot",
+            "description": "Flight crew: captains and first officers."
+        },
+        {
+            "personnel_category_UUID": "12000000-0000-4000-8000-000000000002",
+            "category_name": "Operations Personnel",
+            "description": "Flight operations and dispatch staff."
+        },
+        {
+            "personnel_category_UUID": "12000000-0000-4000-8000-000000000003",
+            "category_name": "Aircraft Maintenance Technician",
+            "description": "Licensed technicians who maintain and certify aircraft."
+        },
+        {
+            "personnel_category_UUID": "12000000-0000-4000-8000-000000000004",
+            "category_name": "Inventory Personnel",
+            "description": "Staff who manage parts and stock."
+        },
+        {
+            "personnel_category_UUID": "12000000-0000-4000-8000-000000000005",
+            "category_name": "Quality / Safety Personnel",
+            "description": "Quality assurance and safety staff."
+        }
+    ],
     "EMPLOYEE": [
         {
             "emp_UUID": "20000000-0000-4000-8000-000000000001",
@@ -60,7 +87,7 @@
             "photo": null,
             "date_hired": "2005-01-10",
             "department": "Pilot",
-            "personnel_category": "Pilot",
+            "personnel_category_UUID": "12000000-0000-4000-8000-000000000001",
             "record_status": "Active",
             "supervisor_emp_UUID": null,
             "base_UUID": "10000000-0000-4000-8000-000000000001",
@@ -80,7 +107,7 @@
             "photo": null,
             "date_hired": "2010-03-01",
             "department": "Operations Personnel",
-            "personnel_category": "Operations Personnel",
+            "personnel_category_UUID": "12000000-0000-4000-8000-000000000002",
             "record_status": "Active",
             "supervisor_emp_UUID": "20000000-0000-4000-8000-000000000001",
             "base_UUID": "10000000-0000-4000-8000-000000000001",
@@ -100,7 +127,7 @@
             "photo": null,
             "date_hired": "2012-06-18",
             "department": "Aircraft Maintenance Technician",
-            "personnel_category": "Aircraft Maintenance Technician",
+            "personnel_category_UUID": "12000000-0000-4000-8000-000000000003",
             "record_status": "Active",
             "supervisor_emp_UUID": "20000000-0000-4000-8000-000000000002",
             "base_UUID": "10000000-0000-4000-8000-000000000001",
@@ -120,7 +147,7 @@
             "photo": null,
             "date_hired": "2019-02-04",
             "department": "Pilot",
-            "personnel_category": "Pilot",
+            "personnel_category_UUID": "12000000-0000-4000-8000-000000000001",
             "record_status": "Active",
             "supervisor_emp_UUID": "20000000-0000-4000-8000-000000000007",
             "base_UUID": "10000000-0000-4000-8000-000000000002",
@@ -140,7 +167,7 @@
             "photo": null,
             "date_hired": "2016-09-12",
             "department": "Quality / Safety Personnel",
-            "personnel_category": "Quality / Safety Personnel",
+            "personnel_category_UUID": "12000000-0000-4000-8000-000000000005",
             "record_status": "Active",
             "supervisor_emp_UUID": "20000000-0000-4000-8000-000000000002",
             "base_UUID": "10000000-0000-4000-8000-000000000002",
@@ -160,7 +187,7 @@
             "photo": null,
             "date_hired": "2023-04-17",
             "department": "Inventory Personnel",
-            "personnel_category": "Inventory Personnel",
+            "personnel_category_UUID": "12000000-0000-4000-8000-000000000004",
             "record_status": "Active",
             "supervisor_emp_UUID": "20000000-0000-4000-8000-000000000003",
             "base_UUID": "10000000-0000-4000-8000-000000000001",
@@ -180,7 +207,7 @@
             "photo": null,
             "date_hired": "2014-11-03",
             "department": "Pilot",
-            "personnel_category": "Pilot",
+            "personnel_category_UUID": "12000000-0000-4000-8000-000000000001",
             "record_status": "Active",
             "supervisor_emp_UUID": "20000000-0000-4000-8000-000000000002",
             "base_UUID": "10000000-0000-4000-8000-000000000003",
@@ -200,7 +227,7 @@
             "photo": null,
             "date_hired": "2024-08-05",
             "department": "Quality / Safety Personnel",
-            "personnel_category": "Quality / Safety Personnel",
+            "personnel_category_UUID": "12000000-0000-4000-8000-000000000005",
             "record_status": "Inactive",
             "supervisor_emp_UUID": "20000000-0000-4000-8000-000000000005",
             "base_UUID": "10000000-0000-4000-8000-000000000002",
@@ -288,6 +315,16 @@
             "contact_UUID": "30000000-0000-4000-8000-000000000016",
             "contact_type": "Phone",
             "contact_value": "+63-917-555-0108"
+        },
+        {
+            "contact_UUID": "30000000-0000-4000-8000-000000000017",
+            "contact_type": "Phone",
+            "contact_value": "+63-917-555-0201"
+        },
+        {
+            "contact_UUID": "30000000-0000-4000-8000-000000000018",
+            "contact_type": "Phone",
+            "contact_value": "+63-917-555-0202"
         },
         {
             "contact_UUID": "70000000-0000-4000-8000-000000000001",
@@ -1434,12 +1471,12 @@
         {
             "employee_UUID": "20000000-0000-4000-8000-000000000001",
             "contact_person_name": "Elena Reyes",
-            "contact_UUID": "30000000-0000-4000-8000-000000000002"
+            "contact_UUID": "30000000-0000-4000-8000-000000000017"
         },
         {
             "employee_UUID": "20000000-0000-4000-8000-000000000003",
             "contact_person_name": "Maria Villanueva",
-            "contact_UUID": "30000000-0000-4000-8000-000000000006"
+            "contact_UUID": "30000000-0000-4000-8000-000000000018"
         }
     ],
     "MEDICAL_CERTIFICATE": [
