@@ -32,7 +32,10 @@ function mount(path: string, account: string, role = "Administrator", features =
     const fetch_employees = vi.fn(async () => Response.json(employees));
     vi.stubGlobal("fetch", fetch_employees);
     const session = {
-        user: { account_UUID: account, emp_UUID: "staff-1", username: "demo", roles: [role], features },
+        user: {
+            account_UUID: account, emp_UUID: "staff-1", username: "demo", roles: [role], features,
+            position: { position_UUID: `position-${role.toLowerCase()}`, position_name: role },
+        },
         loading: false, error: "", retry: vi.fn(), login: vi.fn(), logout: vi.fn(),
     };
     render(
@@ -81,6 +84,42 @@ it("filters live staff and shows pilot-only Flight Hours to a read-only viewer",
     expect(screen.getByText("P-100")).toBeInTheDocument();
     await user.click(screen.getByRole("link", { name: "Flight Hours" }));
     expect(screen.getByText("No monthly flight hours available")).toBeInTheDocument();
+});
+
+it("shows staff availability in the read-only directory without an Action column", async () => {
+    const fetch_employees = mount("/personnel", "inventory-staff", "Inventory Officer", ["Inventory"]);
+    const table = within(await screen.findByRole("table", { name: "Personnel directory" }));
+    expect(fetch_employees).toHaveBeenCalledWith(expect.stringContaining("/personnel/directory"), expect.anything());
+    expect(fetch_employees).not.toHaveBeenCalledWith(expect.stringContaining("/personnel/employees"), expect.anything());
+    expect(table.getByRole("columnheader", { name: "Availability" })).toBeInTheDocument();
+    expect(table.getByRole("row", { name: /Demo Pilot/ })).toHaveTextContent("Not recorded");
+    expect(table.queryByRole("columnheader", { name: "Action" })).not.toBeInTheDocument();
+    expect(table.queryByRole("link", { name: /View Demo/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Add personnel" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Availability" })).not.toBeInTheDocument();
+});
+
+it("loads real staff records for Availability-only recorders", async () => {
+    const fetch_employees = mount("/personnel/availability", "availability-recorder", "Records Staff", ["Availability"]);
+    const register = within(await screen.findByRole("table", { name: "Personnel availability" }));
+    expect(register.getByRole("row", { name: /Demo Pilot/ })).toBeInTheDocument();
+    expect(register.getByRole("row", { name: /Demo Technician/ })).toBeInTheDocument();
+    expect(fetch_employees).toHaveBeenCalledWith(expect.stringContaining("/personnel/directory"), expect.anything());
+    expect(fetch_employees).not.toHaveBeenCalledWith(expect.stringContaining("/personnel/employees"), expect.anything());
+    expect(screen.getByRole("button", { name: "Record availability" })).toBeEnabled();
+    expect(screen.getByRole("link", { name: "Directory" })).toHaveAttribute("href", "/personnel");
+});
+
+it("redirects staff without Availability permission from the recording tab", async () => {
+    mount("/personnel/availability", "inventory-availability-direct", "Inventory Officer", ["Inventory"]);
+    // The recording page is closed, while the directory remains available.
+    expect(screen.queryByRole("button", { name: "Record availability" })).not.toBeInTheDocument();
+    expect(await screen.findByRole("table", { name: "Personnel directory" })).toBeInTheDocument();
+});
+
+it("rejects private Personnel URLs for staff with directory-only access", async () => {
+    mount("/personnel/pilot-1/documents", "inventory-direct", "Inventory Officer", ["Inventory"]);
+    expect(await screen.findByText("Access denied")).toBeInTheDocument();
 });
 
 it("blocks direct edit routes for read-only personnel viewers", async () => {
@@ -171,14 +210,14 @@ it("filters personnel documents and shows the browser-session save and dismissal
     await user.type(dialog.getByLabelText(/Document name/), "Safety training certificate");
     await user.type(dialog.getByLabelText("Issue date"), "2090-06-15");
     await user.type(dialog.getByLabelText("Expiry date"), "2090-06-01");
-    await user.click(dialog.getByRole("button", { name: "Save", exact: true }));
+    await user.click(dialog.getByRole("button", { name: "Save" }));
     expect(dialog.getByText("Expiry date must be on or after the issue date.")).toBeInTheDocument();
 
     await user.clear(dialog.getByLabelText("Expiry date"));
     await user.type(dialog.getByLabelText("Expiry date"), "2091-06-15");
     const file = new File(["certificate"], "training.pdf", { type: "application/pdf" });
     await user.upload(dialog.getByLabelText("Credential file"), file);
-    await user.click(dialog.getByRole("button", { name: "Save", exact: true }));
+    await user.click(dialog.getByRole("button", { name: "Save" }));
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(await screen.findByText("Document saved")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "View file for Safety training certificate" })).toHaveAttribute("href", "blob:credentials");

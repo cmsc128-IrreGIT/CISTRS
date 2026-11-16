@@ -19,7 +19,11 @@ const user = {
     account_UUID: "account",
     emp_UUID: "employee",
     username: "adrian.reyes",
-    roles: ["Administrator", "Inventory Staff"],
+    full_name: "Adrian Miguel Reyes",
+    position: {
+        position_UUID: "position",
+        position_name: "Inventory Officer",
+    },
     features: ["Inventory", "Personnel", "User Accounts"],
 };
 function Workspace() {
@@ -29,7 +33,7 @@ function Workspace() {
         <>
             <p>{user?.username || "Signed out"}</p>
             {user?.full_name && <p>{user.full_name}</p>}
-            <p>{user?.roles.join(", ")}</p>
+            <p>{user?.position.position_name}</p>
             <p role="alert">{error}</p>
             <button onClick={() => void logout()}>Log out</button>
             <button onClick={retry}>Retry</button>
@@ -40,14 +44,13 @@ afterEach(() => {
     sessionStorage.clear();
     vi.unstubAllGlobals();
 });
-it("logs in through the existing endpoint and shows all assigned roles", async () => {
+it("logs in with the assigned position and resolves the signed-in employee’s name", async () => {
     const fetcher = vi.fn<(url: string, options: RequestInit) => Promise<Response>>(async (url) => (
-        url.endsWith("/personnel/employees")
-            ? Response.json([
-                { emp_UUID: "other-employee", f_name: "Other", l_name: "Person" },
-                { emp_UUID: user.emp_UUID, f_name: "Adrian", m_name: "Miguel", l_name: "Reyes" },
-            ])
-            : Response.json({ token: "session-token", user })
+        url.endsWith("/personnel/employees/employee")
+            ? Response.json({
+                emp_UUID: user.emp_UUID, f_name: "Adrian", m_name: "Miguel", l_name: "Reyes",
+            })
+            : Response.json({ token: "session-token", user: { ...user, full_name: undefined } })
     ));
     vi.stubGlobal("fetch", fetcher);
     render(
@@ -69,16 +72,43 @@ it("logs in through the existing endpoint and shows all assigned roles", async (
     await person.click(screen.getByRole("button", { name: "Log in" }));
     expect(await screen.findByText("adrian.reyes")).toBeInTheDocument();
     expect(
-        screen.getByText("Administrator, Inventory Staff"),
+        screen.getByText("Inventory Officer"),
     ).toBeInTheDocument();
     expect(await screen.findByText("Adrian Miguel Reyes")).toBeInTheDocument();
     expect(get_token()).toBe("session-token");
-    expect(JSON.parse(fetcher.mock.calls[0][1].body)).toEqual({
+    expect(JSON.parse(String(fetcher.mock.calls[0][1].body))).toEqual({
         username: "adrian.reyes",
         password: "test-password1",
     });
     expect(fetcher.mock.calls[0][0]).toMatch(/\/auth\/login$/);
 });
+it("uses the full name returned at login even without Personnel access", async () => {
+    const inventory_user = { ...user, features: ["Inventory"] };
+    const fetcher = vi.fn(async (url: string) => {
+        if (url.endsWith("/auth/login")) {
+            return Response.json({ token: "inventory-token", user: inventory_user });
+        }
+        throw new Error(`Unexpected request: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetcher);
+    render(
+        <MemoryRouter initialEntries={["/login"]}>
+            <AuthProvider>
+                <Routes>
+                    <Route path="/login" element={<LoginPage />} />
+                    <Route path="/dashboard" element={<Workspace />} />
+                </Routes>
+            </AuthProvider>
+        </MemoryRouter>,
+    );
+    const person = userEvent.setup();
+    await person.type(screen.getByLabelText("Username"), "adrian.reyes");
+    await person.type(screen.getByLabelText("Password"), "test-password1");
+    await person.click(screen.getByRole("button", { name: "Log in" }));
+    expect(await screen.findByText("Adrian Miguel Reyes")).toBeInTheDocument();
+    await waitFor(() => expect(fetcher).toHaveBeenCalledTimes(1));
+});
+
 it("shows invalid credentials without creating a session", async () => {
     vi.stubGlobal(
         "fetch",
@@ -193,14 +223,14 @@ it("keeps a saved token when the server is temporarily unreachable", async () =>
 
 it.each([
     ["/users", "Dashboard"],
-    ["/personnel/employee-1/edit", "Dashboard"],
+    ["/personnel/employee-1/edit", "Personnel directory"],
     ["/inventory/part-1/edit", "Stock availability"],
 ])(
     "resumes a mechanic's sign-in from %s at an allowed screen",
     async (from, destination) => {
         const mechanic = {
             ...user,
-            roles: ["Mechanic"],
+            position: { position_UUID: "mechanic-position", position_name: "Mechanic" },
             features: ["Inventory", "Maintenance"],
         };
         vi.stubGlobal(
@@ -224,6 +254,7 @@ it.each([
                     <Routes>
                         <Route path="/login" element={<LoginPage />} />
                         <Route path="/dashboard" element={<h1>Dashboard</h1>} />
+                        <Route path="/personnel" element={<h1>Personnel directory</h1>} />
                         <Route
                             path="/inventory"
                             element={<h1>Stock availability</h1>}

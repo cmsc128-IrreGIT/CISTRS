@@ -5,7 +5,7 @@ export type SessionUser = {
     username: string;
     full_name?: string;
     roles?: string[];
-    position?: {
+    position: {
         position_UUID: string;
         position_name: string;
     };

@@ -4,6 +4,9 @@ import { MemoryRouter, Route, Routes } from "react-router";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import ProfilePage from "../../src/features/account/pages/profile_page";
 import { AuthContext } from "../../src/features/auth/hooks/auth_context";
+import PersonnelWorkspace from "../../src/features/personnel/pages/personnel_workspace";
+import PersonnelPage from "../../src/features/personnel/pages/personnel_page";
+import PersonnelDetailsPage from "../../src/features/personnel/pages/personnel_details_page";
 import UserAccountsWorkspace from "../../src/features/user_management/pages/user_accounts_workspace";
 import UserDetailsPage from "../../src/features/user_management/pages/user_details_page";
 import UserFormPage from "../../src/features/user_management/pages/user_form_page";
@@ -23,19 +26,25 @@ const account = {
     account_status: "Active",
     last_login_at: null,
     employee: {
-        emp_UUID: "existing-employee", emp_number: "E-1", f_name: "Saved", l_name: "Employee",
+        emp_UUID: "existing-employee", emp_number: "E-1", f_name: "Saved", m_name: "Mario", l_name: "Employee",
         position: { position_UUID: "p1", position_name: "Inventory Officer" },
     },
 };
 
 const employee = {
     emp_UUID: "employee-one", emp_number: "E-2", f_name: "New", l_name: "Employee",
-    position: "Mechanic", record_status: "Active", licenses: [],
+    position: { position_UUID: "p2", position_name: "Mechanic" },
+    personnel_category: "Maintenance",
+    record_status: "Active", licenses: [],
 };
 
 function mock_api() {
     let accounts = [account];
     const fetcher = vi.fn(async (url: string, request?: RequestInit) => {
+        if (url.endsWith(`/personnel/employees/${session.emp_UUID}`)) return Response.json({
+            emp_UUID: session.emp_UUID, emp_number: "E-3", f_name: "Demo", l_name: "Admin", department: "Operations",
+            contacts: [{ contact: { contact_type: "Work Email", contact_value: "admin@example.test" } }],
+        });
         if (url.endsWith("/personnel/employees")) return Response.json([
             { ...account.employee, m_name: "Mario", record_status: "Active" },
             employee,
@@ -52,7 +61,7 @@ function mock_api() {
                 employee: {
                     ...account.employee, emp_UUID, emp_number: employee.emp_number,
                     f_name: employee.f_name, l_name: employee.l_name,
-                    position: { position_UUID: "p2", position_name: employee.position },
+                    position: employee.position,
                 },
             }];
             return Response.json(accounts.at(-1), { status: 201 });
@@ -80,6 +89,10 @@ function mount(path: string, features = session.features) {
                             <Route path="edit" element={<UserFormPage />} />
                         </Route>
                     </Route>
+                    <Route element={<PersonnelWorkspace />}>
+                        <Route path="/personnel" element={<PersonnelPage />} />
+                        <Route path="/personnel/:personnel_id" element={<PersonnelDetailsPage />} />
+                    </Route>
                     <Route path="/profile" element={<ProfilePage />} />
                     <Route path="/403" element={<p>Access denied</p>} />
                 </Routes>
@@ -97,7 +110,7 @@ beforeEach(() => {
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
 
 it("shows live positions, filters accounts, and opens the manage screen", async () => {
-    mock_api();
+    const fetcher = mock_api();
     mount("/users");
     const user = userEvent.setup();
     expect(await screen.findByText("saved.user")).toBeInTheDocument();
@@ -109,6 +122,26 @@ it("shows live positions, filters accounts, and opens the manage screen", async 
     await user.click(screen.getByRole("link", { name: "Manage Saved Mario Employee" }));
     expect(screen.getByRole("heading", { name: "Manage account" })).toBeInTheDocument();
     expect(screen.getByText("Saved Mario Employee · E-1")).toBeInTheDocument();
+    expect(fetcher.mock.calls.every(([url]) => !url.includes("/personnel/employees"))).toBe(true);
+});
+
+it("uses the account employee name without Personnel feature access", async () => {
+    const fetcher = mock_api();
+    mount("/users", ["User Accounts"]);
+    expect(await screen.findByText("Saved Mario Employee")).toBeInTheDocument();
+    expect(fetcher.mock.calls.every(([url]) => !url.includes("/personnel"))).toBe(true);
+});
+
+it("shows backend positions in the personnel list and details", async () => {
+    mock_api();
+    mount("/personnel");
+
+    const row = await screen.findByRole("row", { name: /New Employee E-2/ });
+    expect(within(row).getByRole("cell", { name: "Mechanic" })).toBeInTheDocument();
+    await userEvent.click(within(row).getByRole("link", { name: /View/ }));
+
+    expect(await screen.findByRole("heading", { name: "New Employee" })).toBeInTheDocument();
+    expect(screen.getByText("Mechanic", { exact: true })).toBeInTheDocument();
 });
 
 it("does not fetch accounts without feature access", async () => {
@@ -161,12 +194,13 @@ it("previews permission edits and deactivation without writing to the server", a
 });
 
 it("uses only the signed-in employee on My Profile", async () => {
-    mock_api();
+    const fetcher = mock_api();
     mount("/profile");
     const user = userEvent.setup();
     expect(await screen.findByRole("heading", { name: "Demo Admin" })).toBeInTheDocument();
     expect(screen.getByText("admin@example.test")).toBeInTheDocument();
     expect(screen.getByText("Operations")).toBeInTheDocument();
+    expect(fetcher.mock.calls.some(([url]) => url.endsWith(`/personnel/employees/${session.emp_UUID}`))).toBe(true);
     expect(screen.queryByText("Saved Employee")).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Request correction" }));
     const dialog = within(screen.getByRole("dialog", { name: "Request profile correction" }));
@@ -179,6 +213,6 @@ it("uses only the signed-in employee on My Profile", async () => {
 it("shows the session profile without calling Personnel when access is absent", async () => {
     const fetcher = mock_api();
     mount("/profile", []);
-    expect(screen.getByRole("heading", { name: "Account", level: 2 })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Account", level: 3 })).toBeInTheDocument();
     await waitFor(() => expect(fetcher).not.toHaveBeenCalled());
 });

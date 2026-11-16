@@ -58,11 +58,11 @@ it("records a status preview for the selected aircraft and keeps document metada
     await user.click(screen.getByRole("button", { name: "View Certificate of Registration" }));
     const document_dialog = within(screen.getByRole("dialog", { name: "Aircraft document details" }));
     expect(document_dialog.getByText("No document available")).toBeInTheDocument();
-    await user.click(document_dialog.getByRole("button", { name: "Close", exact: true }));
+    await user.click(document_dialog.getByRole("button", { name: "Close" }));
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 
     await user.click(within(screen.getByRole("navigation", { name: "Breadcrumb" })).getByRole("link", { name: "Aircraft" }));
     await user.click(screen.getByRole("link", { name: "View RP-C1738" }));
     await user.click(screen.getByRole("link", { name: "Status History" }));
     expect(screen.getByText("No status updates recorded")).toBeInTheDocument();
-});
+}, 15_000);

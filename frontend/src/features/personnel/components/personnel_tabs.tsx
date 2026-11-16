@@ -6,9 +6,11 @@ import { workspace_tab_style } from "../../../shared/styles/tab_styles";
 export default function PersonnelTabs({
     active,
     directory_available = true,
+    availability_visible = true,
 }: {
     active: "directory" | "availability";
     directory_available?: boolean;
+    availability_visible?: boolean;
 }) {
     return (
         <WorkspaceTabs label="Personnel sections">
@@ -18,10 +20,12 @@ export default function PersonnelTabs({
                     <UsersRound size={16} aria-hidden="true" /> Directory
                 </Link>
             )}
-            <Link to="/personnel/availability" aria-current={active === "availability" ? "page" : undefined}
-                className={workspace_tab_style(active === "availability")}>
-                <CalendarDays size={16} aria-hidden="true" /> Availability
-            </Link>
+            {availability_visible && (
+                <Link to="/personnel/availability" aria-current={active === "availability" ? "page" : undefined}
+                    className={workspace_tab_style(active === "availability")}>
+                    <CalendarDays size={16} aria-hidden="true" /> Availability
+                </Link>
+            )}
         </WorkspaceTabs>
     );
 }

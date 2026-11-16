@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
 import { useOutletContext } from "react-router";
-import { list_personnel } from "../../personnel/services/personnel_service";
 import { account_previews, save_account_preview } from "../data/user_management_store";
 import { list_accounts } from "../services/user_account_service";
 import type { AccountAccessPreview, UserAccount } from "../types/user_account";
 
-export function useUserAccounts(owner: string, can_read_personnel: boolean) {
+export function useUserAccounts(owner: string) {
     const [accounts, set_accounts] = useState<UserAccount[]>([]);
     const [previews, set_previews] = useState(() => account_previews(owner));
     const [loading, set_loading] = useState(true);
@@ -14,12 +13,9 @@ export function useUserAccounts(owner: string, can_read_personnel: boolean) {
 
     useEffect(() => {
         const controller = new AbortController();
-        const directory = can_read_personnel ? list_personnel(controller.signal).catch(() => []) : Promise.resolve([]);
-        void Promise.all([list_accounts(controller.signal), directory])
-            .then(([rows, employees]) => {
-                if (controller.signal.aborted) return;
-                const names = new Map(employees.map(({ id, name }) => [id, name]));
-                set_accounts(rows.map((row) => ({ ...row, full_name: names.get(row.employee.emp_UUID) })));
+        void list_accounts(controller.signal)
+            .then((rows) => {
+                if (!controller.signal.aborted) set_accounts(rows);
             })
             .catch((cause: unknown) => {
                 if (!controller.signal.aborted) set_error(cause instanceof Error ? cause : new Error("Unable to load accounts."));
@@ -28,7 +24,7 @@ export function useUserAccounts(owner: string, can_read_personnel: boolean) {
                 if (!controller.signal.aborted) set_loading(false);
             });
         return () => controller.abort();
-    }, [can_read_personnel, version]);
+    }, [version]);
 
     function reload() {
         set_error(undefined);

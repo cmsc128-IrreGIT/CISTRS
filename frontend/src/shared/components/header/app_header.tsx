@@ -94,7 +94,7 @@ export default function AppHeader() {
             }
           >
             <ProfileMenu
-              display_name={user?.full_name || "Account"}
+              display_name={user?.full_name?.trim() || user?.username || "Account"}
               role={user?.position?.position_name || workspace_label(user)}
               compact={workspace_header}
               on_logout={logout}

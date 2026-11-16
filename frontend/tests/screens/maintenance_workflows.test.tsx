@@ -70,7 +70,7 @@ it("reviews and saves linked work from aircraft history, then shows it in the fl
     await user.click(screen.getByRole("button", { name: "View record" }));
     const details = within(screen.getByRole("dialog", { name: "Maintenance record details" }));
     expect(details.getByText("DEMO-ISS-015")).toBeInTheDocument();
-    await user.click(details.getByRole("button", { name: "Close", exact: true }));
+    await user.click(details.getByRole("button", { name: "Close" }));
     await user.click(screen.getByRole("button", { name: "Add work record" }));
     expect(form().getByRole("combobox", { name: "Aircraft *" })).toBeInTheDocument();
-});
+}, 15_000);

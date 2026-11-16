@@ -8,8 +8,10 @@ import { useAuth } from "../../auth/hooks/auth_context";
 import { usePersonnelRecords } from "../hooks/use_personnel_directory";
 import type { PersonnelDirectoryContext } from "../hooks/use_personnel_directory";
 
-function DirectoryOutlet({ account_id, can_manage }: { account_id: string; can_manage: boolean }) {
-    const directory = usePersonnelRecords(account_id);
+function DirectoryOutlet({ account_id, can_manage, full_access, can_view_availability }: {
+    account_id: string; can_manage: boolean; full_access: boolean; can_view_availability: boolean;
+}) {
+    const directory = usePersonnelRecords(account_id, true, full_access);
     if (directory.denied) return <Navigate to="/403" replace />;
 
     if (directory.loading || directory.error) {
@@ -28,13 +30,16 @@ function DirectoryOutlet({ account_id, can_manage }: { account_id: string; can_m
         );
     }
 
-    const context: PersonnelDirectoryContext = { ...directory, can_manage };
+    const context: PersonnelDirectoryContext = { ...directory, can_manage, full_access, can_view_availability };
     return <Outlet context={context} />;
 }
 
 export default function PersonnelWorkspace() {
     const { user } = useAuth();
-    if (!user?.features.includes("Personnel")) return <Navigate to="/403" replace />;
+    if (!user) return <Navigate to="/403" replace />;
+    const full_access = user.features.includes("Personnel");
     return <DirectoryOutlet key={user.account_UUID} account_id={user.account_UUID}
-        can_manage={get_workspace(user) === "administrator"} />;
+        full_access={full_access}
+        can_view_availability={user.features.includes("Availability")}
+        can_manage={full_access && get_workspace(user) === "administrator"} />;
 }

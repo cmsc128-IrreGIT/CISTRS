@@ -20,22 +20,19 @@ export default function NavigationLinks({
 }: NavigationLinksProps) {
   const { user } = useAuth();
   const workspace = get_workspace(user);
-  const availability_only = user?.features?.includes("Availability") && !user.features.includes("Personnel");
   const pilot = workspace === "pilot" || workspace === "pilot_mechanic";
   const features: Record<string, string> = {
     "/inventory": "Inventory",
     "/aircraft": "Aircraft",
     "/maintenance": "Maintenance",
     "/logbook": "Logbook",
-    "/personnel": "Personnel",
     "/users": "User Accounts",
   };
   const items = navigation_items
     .filter(
       (item) =>
         (support ? item.to === "/help" : item.to !== "/help") &&
-        (!features[item.to] || user?.features?.includes(features[item.to]) ||
-          (item.to === "/personnel" && availability_only)),
+        (!features[item.to] || user?.features?.includes(features[item.to])),
     )
     .map((item) =>
       item.to === "/inventory" && get_inventory_access(user) === "read"
@@ -53,7 +50,7 @@ export default function NavigationLinks({
             />
           )}
           <NavLink
-            to={to === "/personnel" && availability_only ? "/personnel/availability" : to}
+            to={to}
             onClick={on_navigate}
             title={collapsed ? label : undefined}
             aria-label={collapsed ? label : undefined}

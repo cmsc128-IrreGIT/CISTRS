@@ -39,7 +39,8 @@ export default function PersonnelDetailsPage() {
     }
 
     const profile_path = `/personnel/${encodeURIComponent(record.id)}`;
-    const visible_tabs = tabs.filter(({ id }) => id !== "flight-hours" || is_pilot(record));
+    const visible_tabs = tabs.filter(({ id }) =>
+        id === "overview" || (directory.full_access && (id !== "flight-hours" || is_pilot(record))));
     const active_tab = visible_tabs.find(({ id }) => id === params.get("tab")) ?? tabs[0];
     const overview = active_tab.id === "overview";
     const available = directory.availability.get(record.id);
@@ -52,9 +53,11 @@ export default function PersonnelDetailsPage() {
                 <div className="flex flex-wrap items-center justify-between gap-3">
                     <h1 id="page_title" className="min-w-0 wrap-anywhere text-2xl font-semibold text-[#0b2238]">{record.name}</h1>
                     <div className="flex flex-wrap gap-2">
-                        <Link to={`${profile_path}/documents`} className={button_styles("secondary")}>
-                            <FileText size={16} aria-hidden="true" /> Documents
-                        </Link>
+                        {directory.full_access && (
+                            <Link to={`${profile_path}/documents`} className={button_styles("secondary")}>
+                                <FileText size={16} aria-hidden="true" /> Documents
+                            </Link>
+                        )}
                         {directory.can_manage && <Link to={`${profile_path}/edit${overview ? "" : `?tab=${active_tab.id}`}`} className={button_styles("secondary")}>
                             <Pencil size={16} aria-hidden="true" /> Edit personnel
                         </Link>}
@@ -79,21 +82,23 @@ export default function PersonnelDetailsPage() {
                                 { id: "position", label: "Position", value: record.position || "Not recorded" },
                                 { id: "department", label: "Department", value: record.department || "Not recorded" },
                                 { id: "base", label: "Assigned base", value: record.base || "Not recorded" },
-                                { id: "employment", label: "Employment status", value: <PersonnelStatus status={record.employment_status} /> },
-                                ...(record.record_status && record.record_status !== record.employment_status ? [
-                                    { id: "status", label: "Record status", value: <PersonnelStatus status={record.record_status} /> },
+                                ...(directory.full_access ? [
+                                    { id: "employment", label: "Employment status", value: <PersonnelStatus status={record.employment_status} /> },
+                                    ...(record.record_status && record.record_status !== record.employment_status ? [
+                                        { id: "status", label: "Record status", value: <PersonnelStatus status={record.record_status} /> },
+                                    ] : []),
+                                    { id: "email", label: "Work email", value: record.email || "Not recorded" },
+                                    { id: "phone", label: "Contact number", value: record.phone || "Not recorded" },
                                 ] : []),
-                                { id: "email", label: "Work email", value: record.email || "Not recorded" },
-                                { id: "phone", label: "Contact number", value: record.phone || "Not recorded" },
                             ]} />
                         </div>
-                        <div className="rounded-lg bg-slate-100 p-4">
+                        {directory.full_access && <div className="rounded-lg bg-slate-100 p-4">
                             <h2 className="mb-3 font-semibold text-[#0b2238]">Availability</h2>
                             <DetailsList entries={[
                                 { id: "availability", label: "Last recorded availability", value: <PersonnelStatus availability status={available?.status} /> },
                                 { id: "date", label: "Date", value: personnel_date(available?.date) },
                             ]} />
-                        </div>
+                        </div>}
                     </div>
                 ) : active_tab.id === "licenses" ? (
                     <DataTable inventory bounded caption="Personnel licenses" rows={record.licenses}

@@ -54,10 +54,10 @@ export default function PersonnelPage() {
         { id: "position", header: "Position", render: (row) => row.position || "Not recorded" },
         { id: "department", header: "Department", render: (row) => row.department || "Not recorded" },
         { id: "availability", header: "Availability", render: (row) => <PersonnelStatus availability status={availability.get(row.id)?.status} /> },
-        { id: "action", header: "Action", render: (row) => (
+        ...(directory.full_access ? [{ id: "action", header: "Action", render: (row: PersonnelRecord) => (
             <Link to={`/personnel/${encodeURIComponent(row.id)}`} aria-label={`View ${row.name}`}
                 className="font-medium text-link">View</Link>
-        ) },
+        ) }] : []),
     ];
 
     if (params.get("tab") === "availability") return <Navigate to="/personnel/availability" replace />;
@@ -67,7 +67,7 @@ export default function PersonnelPage() {
             <WorkspaceBreadcrumbs current="Personnel" />
             <h1 id="page_title" className="sr-only">Personnel</h1>
             <Card>
-                <PersonnelTabs active="directory" />
+                <PersonnelTabs active="directory" availability_visible={directory.can_view_availability} />
                 <div className="filter-toolbar mb-4 rounded-lg bg-slate-50 p-3">
                     <div className="filter-toolbar-search grid gap-1.5">
                         <p aria-hidden="true" className="text-sm text-slate-700">Search personnel</p>

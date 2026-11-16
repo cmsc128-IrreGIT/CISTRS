@@ -1,7 +1,7 @@
 import WorkspaceTabs from "../../../shared/components/navigation/workspace_tabs";
 import { Plus } from "lucide-react";
 import { useCallback, useState } from "react";
-import { Link, useNavigate, useParams, useSearchParams } from "react-router";
+import { Link, Navigate, useNavigate, useParams, useSearchParams } from "react-router";
 import { toast } from "sonner";
 import EmptyState from "../../../shared/components/feedback/empty_state";
 import WorkspaceBreadcrumbs from "../../../shared/components/navigation/workspace_breadcrumbs";
@@ -62,6 +62,8 @@ export default function PersonnelDocumentsPage() {
     const [previews, set_previews] = useState(() => previews_by_account.get(account) ?? []);
     const person = directory.rows.find(({ id }) => id === personnel_id);
     const active_tab = document_tabs.find(({ id }) => id === params.get("type"))?.id ?? "all";
+
+    if (!directory.full_access) return <Navigate to="/403" replace />;
 
     if (!person) {
         return (

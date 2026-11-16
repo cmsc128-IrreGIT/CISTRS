@@ -19,7 +19,6 @@ import useAvailability from "../hooks/use_availability";
 import { availability_service } from "../services/availability_service";
 import { availability_statuses } from "../types/availability_types";
 import type { AvailabilityValues } from "../types/availability_types";
-import usePersonnel from "../hooks/use_personnel";
 import { usePersonnelRecords } from "../hooks/use_personnel_directory";
 import { personnel_date } from "../utils/personnel_records";
 
@@ -46,7 +45,9 @@ export default function AvailabilityPage() {
     const { user } = useAuth();
     const directory_access = Boolean(user?.features.includes("Personnel"));
     const can_record = Boolean(user?.features.includes("Availability"));
-    if (!directory_access && !can_record) return <Navigate to="/403" replace />;
+    // The Availability tab is for recording. All other staff can see the
+    // current status in the read-only Personnel directory.
+    if (!can_record) return <Navigate to="/personnel" replace />;
 
     return <AvailabilityRegister key={user?.account_UUID} account_id={user?.account_UUID}
         directory_access={directory_access} can_record={can_record} />;
@@ -62,12 +63,10 @@ function AvailabilityRegister({ account_id, directory_access, can_record }: {
     const [position, set_position] = useState("");
     const [status, set_status] = useState("");
     const [is_open, set_is_open] = useState(false);
-    const preview_personnel = usePersonnel();
-    const live_directory = Boolean(account_id && directory_access);
-    const directory = usePersonnelRecords(account_id ?? "", live_directory);
-    const personnel = live_directory ? directory.rows : preview_personnel.map(({ id, name, position }) => ({
-        id, name, position,
-    }));
+    // Use real employee records for both full Personnel users and Availability-only
+    // recorders. The latter access only the limited staff-directory endpoint.
+    const directory = usePersonnelRecords(account_id ?? "", Boolean(account_id), directory_access);
+    const personnel = directory.rows.map(({ id, name, position }) => ({ id, name, position }));
     const records = useAvailability();
     const selected_date = date || today;
     const daily_records = new Map(records.filter((row) => row.date === selected_date).map((row) => [row.personnel, row]));
@@ -88,10 +87,10 @@ function AvailabilityRegister({ account_id, directory_access, can_record }: {
 
     return (
         <section className="space-y-4" aria-labelledby="page_title">
-            <WorkspaceBreadcrumbs parents={[{ label: "Personnel", to: directory_access ? "/personnel" : undefined }]} current="Availability" />
+            <WorkspaceBreadcrumbs parents={[{ label: "Personnel", to: "/personnel" }]} current="Availability" />
             <h1 id="page_title" className="sr-only">Personnel availability</h1>
             <Card>
-                <PersonnelTabs active="availability" directory_available={directory_access} />
+                <PersonnelTabs active="availability" />
                 <div className="filter-toolbar mb-4 rounded-lg bg-slate-50 p-3">
                     <label className="filter-toolbar-field grid gap-1.5 text-sm text-slate-700">
                         Date
@@ -134,7 +133,7 @@ function AvailabilityRegister({ account_id, directory_access, can_record }: {
                     </>
                 )}
             </Card>
-            {is_open && <RecordAvailabilityDialog date={selected_date} people={personnel} records={records}
+            {can_record && is_open && <RecordAvailabilityDialog date={selected_date} people={personnel} records={records}
                 on_close={() => set_is_open(false)} on_save={save} />}
         </section>
     );

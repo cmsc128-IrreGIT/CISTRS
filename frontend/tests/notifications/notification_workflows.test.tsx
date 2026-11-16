@@ -17,7 +17,10 @@ function mount(account: string, features = ["Inventory", "Maintenance", "Personn
     return render(
         <MemoryRouter initialEntries={["/notifications"]}>
             <AuthContext value={{
-                user: { account_UUID: account, emp_UUID: "person", username: account, features },
+                user: {
+                    account_UUID: account, emp_UUID: "person", username: account, features,
+                    position: { position_UUID: "position", position_name: "Inventory Officer" },
+                },
                 loading: false, error: "", retry: vi.fn(), login: vi.fn(), logout: vi.fn(),
             }}>
                 <ToastProvider />
@@ -86,7 +89,7 @@ it("validates delivery contacts and keeps saved switch choices after leaving the
     fireEvent.click(within(notification).getByRole("button", { name: "Close toast" }));
     await waitFor(() => expect(screen.queryByText("Notification preferences updated")).not.toBeInTheDocument());
 
-    await user.click(screen.getByRole("link", { name: "Notifications", exact: true }));
+    await user.click(screen.getByRole("link", { name: "Notifications" }));
     await user.click(screen.getByRole("link", { name: "Notification preferences" }));
     await user.click(screen.getByRole("button", { name: "Edit preferences" }));
     expect(screen.getByRole("switch", { name: email_stock })).toHaveAttribute("aria-checked", "true");
@@ -159,7 +162,11 @@ it.each(["/aircraft", "/maintenance", "/logbook/new"])("denies direct access to 
     render(
         <MemoryRouter initialEntries={[path]}>
             <AuthContext value={{
-                user: { account_UUID: "limited", emp_UUID: "person", username: "limited", features: ["Inventory"] },
+                user: {
+                    account_UUID: "limited", emp_UUID: "person", username: "limited",
+                    features: ["Inventory"],
+                    position: { position_UUID: "position", position_name: "Inventory Officer" },
+                },
                 loading: false, error: "", retry: vi.fn(), login: vi.fn(), logout: vi.fn(),
             }}>
                 <AppRoutes />

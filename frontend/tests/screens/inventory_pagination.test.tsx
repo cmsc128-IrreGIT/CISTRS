@@ -131,7 +131,7 @@ it("filters low and out-of-stock items and recovers after an unmatched search", 
         screen.getByRole("heading", { name: "No matching items" }),
     ).toBeInTheDocument();
     await user.click(
-        screen.getByRole("button", { name: "Clear filters", exact: true }),
+        screen.getByRole("button", { name: "Clear filters" }),
     );
     expect(screen.getByRole("status")).toHaveTextContent(
         "Showing 1–5 of 12 items",

@@ -2,7 +2,7 @@ import { Pencil } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth } from "../../auth/hooks/auth_context";
 import type { SessionUser } from "../../auth/hooks/auth_context";
-import { list_personnel } from "../../personnel/services/personnel_service";
+import { get_personnel } from "../../personnel/services/personnel_service";
 import type { PersonnelRecord } from "../../personnel/types/personnel_types";
 import FormField from "../../../shared/components/forms/form_field";
 import WorkspaceBreadcrumbs from "../../../shared/components/navigation/workspace_breadcrumbs";
@@ -27,19 +27,21 @@ function Profile({ user }: { user: SessionUser }) {
     useEffect(() => {
         if (!can_read_personnel) return;
         const controller = new AbortController();
-        void list_personnel(controller.signal).then((people) => {
-            if (!controller.signal.aborted) set_record(people.find(({ id }) => id === user.emp_UUID));
+        void get_personnel(user.emp_UUID, controller.signal).then((person) => {
+            if (!controller.signal.aborted) set_record(person);
         }).catch(() => {
             // The authenticated account fields remain available if the directory is unreachable.
         });
         return () => controller.abort();
     }, [can_read_personnel, user.emp_UUID]);
 
-    const name = record?.name || user.full_name || "Account";
+    const full_name = record?.name || user.full_name?.trim() || "";
+    const name = full_name || user.username;
     const initials = name.split(/[\s._-]+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
     const sections = [
         { title: "Account", entries: [
             { label: "Username", value: user.username },
+            { label: "Full name", value: full_name || "Unavailable from the current session" },
             { label: "Work email", value: record?.email || "Not available" },
             { label: "Account status", value: <StatusBadge tone="success">Active</StatusBadge> },
         ] },
@@ -47,6 +49,7 @@ function Profile({ user }: { user: SessionUser }) {
             { label: "Position", value: user.position?.position_name || record?.position || "Not recorded" },
             { label: "Department", value: record?.department || "Not available" },
             { label: "Assigned duties", value: workspace_label(user) },
+            { label: "Access", value: user.features.join(", ") || "Not assigned" },
         ] },
     ];
 

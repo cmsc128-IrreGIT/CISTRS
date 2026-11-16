@@ -102,9 +102,9 @@ it.each([
     state.features = features as string[];
     show();
     if (stock)
-      await screen.findByRole("link", { name: "Brake assembly", exact: true });
+      await screen.findByRole("link", { name: "Brake assembly" });
     expect(
-      !!screen.queryByRole("heading", { name: "Stock alerts", exact: true }),
+      !!screen.queryByRole("heading", { name: "Stock alerts" }),
     ).toBe(stock);
     expect(!!screen.queryByRole("heading", { name: /^Aircraft status/ })).toBe(
       aircraft,
@@ -115,19 +115,19 @@ it.each([
     if (!stock) expect(get_inventory).not.toHaveBeenCalled();
     const nav = screen.getByRole("navigation", { name: "Main navigation" });
     expect(
-      !!within(nav).queryByRole("link", { name: "Inventory", exact: true }),
+      !!within(nav).queryByRole("link", { name: "Inventory" }),
     ).toBe(stock);
   },
 );
 it.each([
   [["Personnel", "Availability"], "/personnel"],
-  [["Availability"], "/personnel/availability"],
+  [["Availability"], "/personnel"],
 ] as const)("keeps one Personnel sidebar entry with %j access", (features, href) => {
   state.features = [...features];
   show();
   const nav = within(screen.getByRole("navigation", { name: "Main navigation" }));
-  expect(nav.queryByRole("link", { name: "Availability", exact: true })).not.toBeInTheDocument();
-  expect(nav.getByRole("link", { name: "Personnel", exact: true })).toHaveAttribute("href", href);
+  expect(nav.queryByRole("link", { name: "Availability" })).not.toBeInTheDocument();
+  expect(nav.getByRole("link", { name: "Personnel" })).toHaveAttribute("href", href);
 });
 
 it("keeps the collapsed preference after remount", async () => {
@@ -141,7 +141,7 @@ it("keeps the collapsed preference after remount", async () => {
     screen.getByRole("button", { name: "Expand sidebar" }),
   ).toHaveAttribute("aria-expanded", "false");
   expect(
-    screen.getByRole("link", { name: "Dashboard", exact: true }),
+    screen.getByRole("link", { name: "Dashboard" }),
   ).toHaveAttribute("aria-current", "page");
 });
 it("shows who processed the inventory movement in recent activity", async () => {
@@ -281,7 +281,7 @@ it("excludes decommissioned parts from the Inventory count and stock alerts", as
   state.position = "Inventory Staff";
   localStorage.setItem(DECOMMISSIONED_STORAGE_KEY, JSON.stringify(["oil"]));
   show();
-  await screen.findByRole("link", { name: "Brake assembly", exact: true });
+  await screen.findByRole("link", { name: "Brake assembly" });
   expect(
     screen.getByRole("link", { name: /^Inventory items\s*1$/ }),
   ).toBeInTheDocument();
@@ -289,7 +289,7 @@ it("excludes decommissioned parts from the Inventory count and stock alerts", as
     screen.getByRole("link", { name: /^Stock alerts\s*1$/ }),
   ).toBeInTheDocument();
   expect(
-    screen.queryByRole("link", { name: "Oil filter", exact: true }),
+    screen.queryByRole("link", { name: "Oil filter" }),
   ).not.toBeInTheDocument();
 });
 

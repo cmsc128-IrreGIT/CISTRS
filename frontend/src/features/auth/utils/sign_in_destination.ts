@@ -21,9 +21,14 @@ export function get_sign_in_destination(user: SessionUser, requested: unknown) {
     if (section === "users" && !features.includes("User Accounts"))
         return DASHBOARD;
     if (section === "personnel") {
-        const feature =
-            path === "/personnel/availability" ? "Availability" : "Personnel";
-        if (!features.includes(feature)) return DASHBOARD;
+        // Every signed-in user may view the basic directory.
+        if (path === "/personnel") return requested;
+        // Availability is the dedicated recording workspace, not a public tab.
+        if (path === "/personnel/availability") {
+            return features.includes("Availability") ? requested : "/personnel";
+        }
+        // Record details and editing still require Personnel access.
+        if (!features.includes("Personnel")) return "/personnel";
     }
     if (section === "inventory") {
         const access = get_inventory_access(user);

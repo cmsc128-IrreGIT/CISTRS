@@ -2,6 +2,7 @@ vi.mock("../../src/features/auth/hooks/auth_context", () => ({
   useAuth: () => ({
     user: {
       username: "test",
+      account_UUID: "test-account",
       features: [
         "Inventory",
         "Aircraft",
@@ -83,7 +84,7 @@ afterAll(() => {
     Object.defineProperty(HTMLDialogElement.prototype, "close", original_close);
   else Reflect.deleteProperty(HTMLDialogElement.prototype, "close");
 });
-afterEach(cleanup);
+afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
 describe("preview records", () => {
   it("adds records and updates them without changing the previous snapshot", () => {
     const store = create_preview_store([{ id: "1", name: "Original" }]);
@@ -165,11 +166,16 @@ describe("preview records", () => {
   });
   it("replaces availability for the same person and date", async () => {
     const user = userEvent.setup();
+    vi.stubGlobal("fetch", vi.fn(async () => Response.json([
+      { emp_UUID: "personnel-demo-1", emp_number: "EMP-01", f_name: "Demo", l_name: "Employee", position: { position_name: "Technician" } },
+      { emp_UUID: "personnel-demo-2", emp_number: "EMP-02", f_name: "Demo", l_name: "Pilot", position: { position_name: "Pilot" } },
+    ])));
     render(
       <MemoryRouter>
         <AvailabilityPage />
       </MemoryRouter>,
     );
+    await screen.findByRole("table", { name: "Personnel availability" });
     for (const value of ["Available", "Unavailable"]) {
       await user.click(screen.getByRole("button", { name: "Record availability" }));
       const dialog = within(screen.getByRole("dialog", { name: "Record availability" }));

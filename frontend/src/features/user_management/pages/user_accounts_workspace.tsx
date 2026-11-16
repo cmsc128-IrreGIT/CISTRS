@@ -10,11 +10,11 @@ import { useUserAccounts } from "../hooks/use_user_management";
 export default function UserAccountsWorkspace() {
     const { user } = useAuth();
     if (!user?.features.includes("User Accounts")) return <Navigate to="/403" replace />;
-    return <AccountsOutlet key={user.account_UUID} owner={user.account_UUID} can_read_personnel={user.features.includes("Personnel")} />;
+    return <AccountsOutlet key={user.account_UUID} owner={user.account_UUID} />;
 }
 
-function AccountsOutlet({ owner, can_read_personnel }: { owner: string; can_read_personnel: boolean }) {
-    const accounts = useUserAccounts(owner, can_read_personnel);
+function AccountsOutlet({ owner }: { owner: string }) {
+    const accounts = useUserAccounts(owner);
     if (accounts.error instanceof ApiError && accounts.error.status === 403) return <Navigate to="/403" replace />;
     if (accounts.error || accounts.loading) return (
         <section className="space-y-4">
