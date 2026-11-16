@@ -2,12 +2,14 @@ import type { NextFunction, Request, Response } from "express";
 import type { FeatureName } from "../config/permissions.js";
 import { isRevoked } from "../lib/tokenBlacklist.js";
 import { prisma } from "../lib/prisma.js";
+import { employeeFullName } from "../lib/employeeName.js";
 import { collectAccess, verifyToken } from "../services/auth.service.js";
 
 export interface AuthUser {
     account_UUID: string;
     emp_UUID: string;
     username: string;
+    full_name: string;
     position: {
         position_UUID: string;
         position_name: string;
@@ -68,6 +70,10 @@ export async function requireAuth(
                 employee: {
                     select: {
                         record_status: true,
+                        f_name: true,
+                        m_name: true,
+                        l_name: true,
+                        suffix: true,
                         position: {
                             select: {
                                 position_UUID: true,
@@ -129,6 +135,7 @@ export async function requireAuth(
             account_UUID: account.account_UUID,
             emp_UUID: account.emp_UUID,
             username: account.username,
+            full_name: employeeFullName(account.employee),
             position: {
                 position_UUID: position.position_UUID,
                 position_name: position.position_name,

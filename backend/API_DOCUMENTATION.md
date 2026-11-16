@@ -168,6 +168,7 @@ Public.
     "account_UUID": "…",
     "emp_UUID": "…",
     "username": "adrian.reyes",
+    "full_name": "Adrian Miguel Reyes",
     "position": { "position_UUID": "…", "position_name": "President / CEO" },
     "features": ["Dashboard", "Inventory", "Aircraft"]
   }
@@ -187,7 +188,7 @@ Public.
 
 ### GET `/api/auth/me`
 
-Returns the same `user` object as login (`account_UUID`, `emp_UUID`, `username`, `position`, `features`). Call it on app start to restore a session from a stored token.
+Returns the same `user` object as login (`account_UUID`, `emp_UUID`, `username`, `full_name`, `position`, `features`). `full_name` uses the first, optional middle, last, and optional suffix fields of the account's linked employee. Any authenticated user can read their own name without Personnel or User Accounts access. Call this endpoint on app start to restore a session from a stored token.
 
 ### POST `/api/auth/logout`
 
@@ -211,7 +212,7 @@ All accounts ordered by username. Passwords are never returned.
     "account_status": "Active",
     "last_login_at": "2026-11-11T02:15:00.000Z",
     "employee": {
-      "emp_UUID": "…", "emp_number": "SA-0001", "f_name": "Adrian", "l_name": "Reyes",
+      "emp_UUID": "…", "emp_number": "SA-0001", "f_name": "Adrian", "m_name": "Miguel", "l_name": "Reyes", "suffix": null,
       "position": { "position_UUID": "…", "position_name": "President / CEO" }
     }
   }

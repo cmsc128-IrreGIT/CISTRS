@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import jwt, { type SignOptions } from "jsonwebtoken";
 import { env } from "../config/env.js";
 import { HttpError } from "../lib/httpError.js";
+import { employeeFullName } from "../lib/employeeName.js";
 import { prisma } from "../lib/prisma.js";
 
 export interface TokenPayload {
@@ -24,6 +25,10 @@ const accountWithAccess = {
     employee: {
         select: {
             record_status: true,
+            f_name: true,
+            m_name: true,
+            l_name: true,
+            suffix: true,
             position: {
                 select: {
                     position_UUID: true,
@@ -141,6 +146,7 @@ export async function login(username: string, password: string) {
             account_UUID: account.account_UUID,
             emp_UUID: account.emp_UUID,
             username: account.username,
+            full_name: employeeFullName(account.employee),
             position: {
                 position_UUID: position.position_UUID,
                 position_name: position.position_name,
