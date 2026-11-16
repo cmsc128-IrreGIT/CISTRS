@@ -1,6 +1,9 @@
 vi.mock("../../src/features/auth/hooks/auth_context", () => ({
     useAuth: () => ({
-        user: { username: "adrian.reyes", roles: ["Administrator"] },
+        user: {
+            username: "adrian.reyes",
+            position: { position_name: "Administrator" },
+        },
         logout: vi.fn(),
     }),
 }));

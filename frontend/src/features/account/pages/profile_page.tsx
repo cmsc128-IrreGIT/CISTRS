@@ -15,7 +15,10 @@ export default function ProfilePage() {
                 <dl className="grid gap-5 sm:grid-cols-2">
                     {[
                         { label: "Username", value: user.username },
-                        { label: "Roles", value: user.roles.join(", ") },
+                        {
+                            label: "Position",
+                            value: user.position.position_name,
+                        },
                         { label: "Access", value: user.features.join(", ") },
                     ].map((item) => (
                         <div key={item.label}>

@@ -38,7 +38,7 @@ export default function AppHeader() {
                 <div className="border-l border-slate-200 pl-2 sm:pl-3">
                     <ProfileMenu
                         display_name={user?.username ?? "Account"}
-                        role={user?.roles.join(" · ") ?? ""}
+                        role={user?.position.position_name ?? ""}
                         on_logout={logout}
                     />
                 </div>

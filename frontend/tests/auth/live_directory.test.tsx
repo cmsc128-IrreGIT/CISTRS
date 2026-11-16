@@ -8,7 +8,10 @@ const session = {
     account_UUID: "admin",
     emp_UUID: "admin-employee",
     username: "admin",
-    roles: ["Administrator"],
+    position: {
+        position_UUID: "position-admin",
+        position_name: "Administrator",
+    },
     features: ["Personnel", "User Accounts"],
 };
 const role = { role_UUID: "role-one", role_name: "Inventory Staff" };
