@@ -11,6 +11,9 @@ import {
     set_token,
     ApiError,
 } from "../../../shared/api/client";
+import { get_personnel } from "../../personnel/services/personnel_service";
+import { list_accounts } from "../../user_management/services/user_account_service";
+import { employee_name } from "../../../shared/utils/employee_name";
 import { AuthContext, type SessionUser } from "../hooks/auth_context";
 export default function AuthProvider({ children }: { children: ReactNode }) {
     const [user, set_user] = useState<SessionUser | null>(null);
@@ -62,6 +65,53 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
             window.removeEventListener("cistrs:session-expired", expired);
         };
     }, [restore]);
+    const employee_id = user?.emp_UUID;
+    const account_id = user?.account_UUID;
+    const may_read_personnel = user?.features.includes("Personnel") ?? false;
+    const may_read_accounts = user?.features.includes("User Accounts") ?? false;
+    const has_name = Boolean(user?.full_name?.trim());
+
+    useEffect(() => {
+        if (!employee_id || !account_id || has_name) return;
+        if (!may_read_personnel && !may_read_accounts) return;
+
+        const controller = new AbortController();
+        const load_name = async () => {
+            let full_name = "";
+            if (may_read_personnel) {
+                try {
+                    const employee = await get_personnel(employee_id, controller.signal);
+                    full_name = employee.name;
+                } catch {
+                    // A failed Personnel request can still fall back to User Accounts,
+                    // but only when the signed-in account holds that feature.
+                }
+            }
+            if (!full_name && may_read_accounts && !controller.signal.aborted) {
+                try {
+                    const accounts = await list_accounts(controller.signal);
+                    const match = accounts.find((account) =>
+                        account.account_UUID === account_id &&
+                        account.employee.emp_UUID === employee_id,
+                    );
+                    if (match) full_name = match.full_name?.trim() || employee_name(match.employee);
+                } catch {
+                    // Profile names are optional; failed lookups must not end a session.
+                }
+            }
+            if (!full_name.trim() || controller.signal.aborted) return;
+            set_user((current) =>
+                current?.account_UUID === account_id &&
+                current.emp_UUID === employee_id &&
+                !current.full_name?.trim()
+                    ? { ...current, full_name: full_name.trim() }
+                    : current,
+            );
+        };
+        void load_name();
+        return () => controller.abort();
+    }, [account_id, employee_id, has_name, may_read_accounts, may_read_personnel]);
+
     async function login(username: string, password: string) {
         const current = ++generation.current;
         const data = await api<{ token: string; user: SessionUser }>(

@@ -1,9 +1,11 @@
 import MaintenanceDetailsPage from "../features/maintenance/pages/maintenance_details_page";
 import HelpPage from "../shared/pages/help_page";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, type ReactNode } from "react";
 import ScreenLoading from "../shared/components/feedback/screen_loading";
 import ForbiddenPage from "../shared/pages/forbidden_page";
-import { Navigate, Route, Routes } from "react-router";
+import { Navigate, Outlet, Route, Routes } from "react-router";
+import { useAuth } from "../features/auth/hooks/auth_context";
+import { get_inventory_access } from "../shared/components/navigation/workspace";
 import RequireSession from "../features/auth/components/require_session";
 
 import LoginPage from "../features/auth/pages/login_page";
@@ -16,7 +18,10 @@ import NotFoundPage from "../shared/pages/not_found_page";
 import InventoryPage from "../features/inventory/pages/inventory_page";
 import InventoryDetailsPage from "../features/inventory/pages/inventory_details_page";
 import InventoryFormPage from "../features/inventory/pages/inventory_form_page";
+import InventoryUnavailablePage from "../features/inventory/pages/inventory_unavailable_page";
+import DecommissionedPartsPage from "../features/inventory/pages/inventory_decommissioned_parts_page";
 import InventoryHistoryPage from "../features/inventory/pages/inventory_history_page";
+import { INVENTORY_CORRECTIONS_PATH, INVENTORY_REQUESTS_PATH } from "../features/inventory/constants/inventory_constants";
 
 const AircraftPage = lazy(
     () => import("../features/aircraft/pages/aircraft_page"),
@@ -35,16 +40,24 @@ const MaintenanceFormPage = lazy(
     () => import("../features/maintenance/pages/maintenance_form_page"),
 );
 
+import PersonnelWorkspace from "../features/personnel/pages/personnel_workspace";
 import PersonnelPage from "../features/personnel/pages/personnel_page";
 import PersonnelDetailsPage from "../features/personnel/pages/personnel_details_page";
+import PersonnelDocumentsPage from "../features/personnel/pages/personnel_documents_page";
 import PersonnelFormPage from "../features/personnel/pages/personnel_form_page";
 import AvailabilityPage from "../features/personnel/pages/availability_page";
 
+import NotificationPreferencesPage from "../features/notifications/pages/notification_preferences_page";
 import NotificationsPage from "../features/notifications/pages/notifications_page";
 
+import UserAccountsWorkspace from "../features/user_management/pages/user_accounts_workspace";
 import UsersPage from "../features/user_management/pages/users_page";
 import UserDetailsPage from "../features/user_management/pages/user_details_page";
 import UserFormPage from "../features/user_management/pages/user_form_page";
+
+const InventoryRequestsPage = lazy(
+    () => import("../features/inventory/pages/inventory_requests_page"),
+);
 
 const DashboardPage = lazy(
     () => import("../features/dashboard/pages/dashboard_page"),
@@ -53,9 +66,35 @@ const DashboardPage = lazy(
 const LogbookPage = lazy(
     () => import("../features/logbook/pages/logbook_page"),
 );
+const LogbookDetailsPage = lazy(
+    () => import("../features/logbook/pages/logbook_details_page"),
+);
+const LogbookReportPage = lazy(
+    () => import("../features/logbook/pages/logbook_report_page"),
+);
 const LogbookFormPage = lazy(
     () => import("../features/logbook/pages/logbook_form_page"),
 );
+
+function InventoryAccess({
+    children,
+    manage = false,
+}: {
+    children: ReactNode;
+    manage?: boolean;
+}) {
+    const { user } = useAuth();
+    const access = get_inventory_access(user);
+    if (access === "none") return <Navigate to="/403" replace />;
+    if (manage && access === "read")
+        return <Navigate to="/inventory" replace />;
+    return children;
+}
+
+function FeatureAccess({ feature }: { feature: string }) {
+    const { user } = useAuth();
+    return user?.features.includes(feature) ? <Outlet /> : <Navigate to="/403" replace />;
+}
 
 export default function AppRoutes() {
     return (
@@ -78,121 +117,184 @@ export default function AppRoutes() {
                 <Route path="/settings" element={<SettingsPage />} />
                 <Route path="/help" element={<HelpPage />} />
 
-                <Route path="/inventory" element={<InventoryPage />} />
-                <Route path="/inventory/new" element={<InventoryFormPage />} />
+                <Route
+                    path="/inventory"
+                    element={
+                        <InventoryAccess>
+                            <InventoryPage />
+                        </InventoryAccess>
+                    }
+                >
+                    <Route
+                        path="new"
+                        element={
+                            <InventoryAccess manage>
+                                <InventoryFormPage />
+                            </InventoryAccess>
+                        }
+                    />
+                </Route>
+                <Route
+                    path="/inventory/decommissioned"
+                    element={
+                        <InventoryAccess manage>
+                            <DecommissionedPartsPage />
+                        </InventoryAccess>
+                    }
+                />
+                <Route
+                    path="/inventory/changes"
+                    element={
+                        <InventoryAccess manage>
+                            <InventoryUnavailablePage title="Change History" />
+                        </InventoryAccess>
+                    }
+                />
+                <Route
+                    path={INVENTORY_REQUESTS_PATH}
+                    element={
+                        <InventoryAccess manage>
+                            <Suspense fallback={<ScreenLoading />}>
+                                <InventoryRequestsPage />
+                            </Suspense>
+                        </InventoryAccess>
+                    }
+                />
+                <Route
+                    path={INVENTORY_CORRECTIONS_PATH}
+                    element={
+                        <InventoryAccess manage>
+                            <Suspense fallback={<ScreenLoading />}>
+                                <InventoryRequestsPage key="corrections" correction />
+                            </Suspense>
+                        </InventoryAccess>
+                    }
+                />
                 <Route
                     path="/inventory/history"
-                    element={<InventoryHistoryPage />}
+                    element={
+                        <InventoryAccess manage>
+                            <InventoryHistoryPage />
+                        </InventoryAccess>
+                    }
                 />
                 <Route
                     path="/inventory/:item_id"
-                    element={<InventoryDetailsPage />}
-                />
-                <Route
-                    path="/inventory/:item_id/edit"
-                    element={<InventoryFormPage />}
-                />
+                    element={
+                        <InventoryAccess>
+                            <InventoryDetailsPage />
+                        </InventoryAccess>
+                    }
+                >
+                    <Route
+                        path="edit"
+                        element={
+                            <InventoryAccess manage>
+                                <InventoryFormPage />
+                            </InventoryAccess>
+                        }
+                    />
+                </Route>
 
-                <Route
-                    path="/aircraft"
-                    element={
-                        <Suspense fallback={<ScreenLoading />}>
-                            <AircraftPage />
-                        </Suspense>
-                    }
-                />
-                <Route
-                    path="/aircraft/:aircraft_id"
-                    element={
-                        <Suspense fallback={<ScreenLoading />}>
-                            <AircraftDetailsPage />
-                        </Suspense>
-                    }
-                />
-                <Route
-                    path="/aircraft/:aircraft_id/status"
-                    element={
-                        <Suspense fallback={<ScreenLoading />}>
-                            <AircraftStatusPage />
-                        </Suspense>
-                    }
-                />
+                <Route element={<FeatureAccess feature="Aircraft" />}>
+                    <Route
+                        path="/aircraft"
+                        element={
+                            <Suspense fallback={<ScreenLoading />}>
+                                <AircraftPage />
+                            </Suspense>
+                        }
+                    />
+                    <Route
+                        path="/aircraft/:aircraft_id"
+                        element={
+                            <Suspense fallback={<ScreenLoading />}>
+                                <AircraftDetailsPage />
+                            </Suspense>
+                        }
+                    />
+                    <Route
+                        path="/aircraft/:aircraft_id/status"
+                        element={
+                            <Suspense fallback={<ScreenLoading />}>
+                                <AircraftStatusPage />
+                            </Suspense>
+                        }
+                    />
+                </Route>
 
-                <Route
-                    path="/maintenance"
-                    element={
-                        <Suspense fallback={<ScreenLoading />}>
-                            <MaintenancePage />
-                        </Suspense>
-                    }
-                />
-                <Route
-                    path="/maintenance/:maintenance_id"
-                    element={<MaintenanceDetailsPage />}
-                />
-                <Route
-                    path="/maintenance/new"
-                    element={
-                        <Suspense fallback={<ScreenLoading />}>
-                            <MaintenanceFormPage />
-                        </Suspense>
-                    }
-                />
-                <Route
-                    path="/maintenance/:maintenance_id/edit"
-                    element={
-                        <Suspense fallback={<ScreenLoading />}>
-                            <MaintenanceFormPage />
-                        </Suspense>
-                    }
-                />
+                <Route element={<FeatureAccess feature="Maintenance" />}>
+                    <Route
+                        path="/maintenance"
+                        element={
+                            <Suspense fallback={<ScreenLoading />}>
+                                <MaintenancePage />
+                            </Suspense>
+                        }
+                    />
+                    <Route
+                        path="/maintenance/:maintenance_id"
+                        element={<MaintenanceDetailsPage />}
+                    />
+                    <Route
+                        path="/maintenance/new"
+                        element={
+                            <Suspense fallback={<ScreenLoading />}>
+                                <MaintenancePage create_on_load />
+                            </Suspense>
+                        }
+                    />
+                    <Route
+                        path="/maintenance/:maintenance_id/edit"
+                        element={
+                            <Suspense fallback={<ScreenLoading />}>
+                                <MaintenanceFormPage />
+                            </Suspense>
+                        }
+                    />
+                </Route>
 
-                <Route
-                    path="/logbook"
-                    element={
-                        <Suspense fallback={<ScreenLoading />}>
-                            <LogbookPage />
-                        </Suspense>
-                    }
-                />
-                <Route
-                    path="/logbook/new"
-                    element={
-                        <Suspense fallback={<ScreenLoading />}>
-                            <LogbookFormPage />
-                        </Suspense>
-                    }
-                />
-                <Route
-                    path="/logbook/:entry_id/edit"
-                    element={
-                        <Suspense fallback={<ScreenLoading />}>
-                            <LogbookFormPage />
-                        </Suspense>
-                    }
-                />
+                <Route element={<FeatureAccess feature="Logbook" />}>
+                    <Route
+                        path="/logbook"
+                        element={<Suspense fallback={<ScreenLoading />}><LogbookPage /></Suspense>}
+                    >
+                        <Route path="new" element={<Suspense fallback={<ScreenLoading />}><LogbookFormPage /></Suspense>} />
+                    </Route>
+                    <Route
+                        path="/logbook/report"
+                        element={<Suspense fallback={<ScreenLoading />}><LogbookReportPage /></Suspense>}
+                    />
+                    <Route
+                        path="/logbook/:entry_id"
+                        element={<Suspense fallback={<ScreenLoading />}><LogbookDetailsPage /></Suspense>}
+                    >
+                        <Route path="edit" element={<Suspense fallback={<ScreenLoading />}><LogbookFormPage /></Suspense>} />
+                    </Route>
+                </Route>
 
-                <Route path="/personnel" element={<PersonnelPage />} />
-                <Route path="/personnel/new" element={<PersonnelFormPage />} />
-                <Route
-                    path="/personnel/availability"
-                    element={<AvailabilityPage />}
-                />
-                <Route
-                    path="/personnel/:personnel_id"
-                    element={<PersonnelDetailsPage />}
-                />
-                <Route
-                    path="/personnel/:personnel_id/edit"
-                    element={<PersonnelFormPage />}
-                />
+                <Route element={<PersonnelWorkspace />}>
+                    <Route path="/personnel" element={<PersonnelPage />}>
+                        <Route path="new" element={<PersonnelFormPage />} />
+                    </Route>
+                    <Route path="/personnel/:personnel_id" element={<PersonnelDetailsPage />}>
+                        <Route path="edit" element={<PersonnelFormPage />} />
+                    </Route>
+                    <Route path="/personnel/:personnel_id/documents" element={<PersonnelDocumentsPage />} />
+                </Route>
+                <Route path="/personnel/availability" element={<AvailabilityPage />} />
 
                 <Route path="/notifications" element={<NotificationsPage />} />
+                <Route path="/notifications/preferences" element={<NotificationPreferencesPage />} />
 
-                <Route path="/users" element={<UsersPage />} />
-                <Route path="/users/new" element={<UserFormPage />} />
-                <Route path="/users/:user_id" element={<UserDetailsPage />} />
-                <Route path="/users/:user_id/edit" element={<UserFormPage />} />
+                <Route element={<UserAccountsWorkspace />}>
+                    <Route path="/users" element={<UsersPage />}>
+                        <Route path="new" element={<UserFormPage />} />
+                    </Route>
+                    <Route path="/users/:user_id" element={<UserDetailsPage />}>
+                        <Route path="edit" element={<UserFormPage />} />
+                    </Route>
+                </Route>
             </Route>
 
             <Route path="/403" element={<ForbiddenPage />} />

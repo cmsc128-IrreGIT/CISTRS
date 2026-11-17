@@ -19,6 +19,7 @@ const user = {
     account_UUID: "account",
     emp_UUID: "employee",
     username: "adrian.reyes",
+    full_name: "Adrian Miguel Reyes",
     position: {
         position_UUID: "position",
         position_name: "Inventory Officer",
@@ -31,6 +32,7 @@ function Workspace() {
     return (
         <>
             <p>{user?.username || "Signed out"}</p>
+            {user?.full_name && <p>{user.full_name}</p>}
             <p>{user?.position.position_name}</p>
             <p role="alert">{error}</p>
             <button onClick={() => void logout()}>Log out</button>
@@ -42,12 +44,14 @@ afterEach(() => {
     sessionStorage.clear();
     vi.unstubAllGlobals();
 });
-it("logs in through the existing endpoint and shows the assigned position", async () => {
-    const fetcher = vi
-        .fn()
-        .mockResolvedValue(
-            new Response(JSON.stringify({ token: "session-token", user })),
-        );
+it("logs in with the assigned position and resolves the signed-in employee’s name", async () => {
+    const fetcher = vi.fn<(url: string, options: RequestInit) => Promise<Response>>(async (url) => (
+        url.endsWith("/personnel/employees/employee")
+            ? Response.json({
+                emp_UUID: user.emp_UUID, f_name: "Adrian", m_name: "Miguel", l_name: "Reyes",
+            })
+            : Response.json({ token: "session-token", user: { ...user, full_name: undefined } })
+    ));
     vi.stubGlobal("fetch", fetcher);
     render(
         <MemoryRouter initialEntries={["/login"]}>
@@ -60,6 +64,9 @@ it("logs in through the existing endpoint and shows the assigned position", asyn
         </MemoryRouter>,
     );
     const person = userEvent.setup();
+    expect(screen.getByPlaceholderText("Enter your username")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("Enter your password")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Contact your Administrator" })).toHaveAttribute("href", "/signup");
     await person.type(screen.getByLabelText("Username"), "  adrian.reyes  ");
     await person.type(screen.getByLabelText("Password"), "test-password1");
     await person.click(screen.getByRole("button", { name: "Log in" }));
@@ -67,13 +74,41 @@ it("logs in through the existing endpoint and shows the assigned position", asyn
     expect(
         screen.getByText("Inventory Officer"),
     ).toBeInTheDocument();
+    expect(await screen.findByText("Adrian Miguel Reyes")).toBeInTheDocument();
     expect(get_token()).toBe("session-token");
-    expect(JSON.parse(fetcher.mock.calls[0][1].body)).toEqual({
+    expect(JSON.parse(String(fetcher.mock.calls[0][1].body))).toEqual({
         username: "adrian.reyes",
         password: "test-password1",
     });
     expect(fetcher.mock.calls[0][0]).toMatch(/\/auth\/login$/);
 });
+it("uses the full name returned at login even without Personnel access", async () => {
+    const inventory_user = { ...user, features: ["Inventory"] };
+    const fetcher = vi.fn(async (url: string) => {
+        if (url.endsWith("/auth/login")) {
+            return Response.json({ token: "inventory-token", user: inventory_user });
+        }
+        throw new Error(`Unexpected request: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetcher);
+    render(
+        <MemoryRouter initialEntries={["/login"]}>
+            <AuthProvider>
+                <Routes>
+                    <Route path="/login" element={<LoginPage />} />
+                    <Route path="/dashboard" element={<Workspace />} />
+                </Routes>
+            </AuthProvider>
+        </MemoryRouter>,
+    );
+    const person = userEvent.setup();
+    await person.type(screen.getByLabelText("Username"), "adrian.reyes");
+    await person.type(screen.getByLabelText("Password"), "test-password1");
+    await person.click(screen.getByRole("button", { name: "Log in" }));
+    expect(await screen.findByText("Adrian Miguel Reyes")).toBeInTheDocument();
+    await waitFor(() => expect(fetcher).toHaveBeenCalledTimes(1));
+});
+
 it("shows invalid credentials without creating a session", async () => {
     vi.stubGlobal(
         "fetch",
@@ -131,7 +166,7 @@ it("restores a session from the server and revokes it on logout", async () => {
         expect(screen.getByText("Signed out")).toBeInTheDocument(),
     );
     expect(get_token()).toBeNull();
-    expect(fetcher.mock.calls[1][0]).toMatch(/\/auth\/logout$/);
+    expect(fetcher.mock.calls.at(-1)?.[0]).toMatch(/\/auth\/logout$/);
 });
 it("attaches the token to inventory requests and preserves the CRUD payload", async () => {
     set_token("inventory-token");
@@ -184,4 +219,74 @@ it("keeps a saved token when the server is temporarily unreachable", async () =>
         "Cannot reach the server",
     );
     expect(get_token()).toBe("saved-token");
+});
+
+it.each([
+    ["/users", "Dashboard"],
+    ["/personnel/employee-1/edit", "Personnel directory"],
+    ["/inventory/part-1/edit", "Stock availability"],
+])(
+    "resumes a mechanic's sign-in from %s at an allowed screen",
+    async (from, destination) => {
+        const mechanic = {
+            ...user,
+            position: { position_UUID: "mechanic-position", position_name: "Mechanic" },
+            features: ["Inventory", "Maintenance"],
+        };
+        vi.stubGlobal(
+            "fetch",
+            vi
+                .fn()
+                .mockResolvedValue(
+                    new Response(
+                        JSON.stringify({
+                            token: "mechanic-token",
+                            user: mechanic,
+                        }),
+                    ),
+                ),
+        );
+        render(
+            <MemoryRouter
+                initialEntries={[{ pathname: "/login", state: { from } }]}
+            >
+                <AuthProvider>
+                    <Routes>
+                        <Route path="/login" element={<LoginPage />} />
+                        <Route path="/dashboard" element={<h1>Dashboard</h1>} />
+                        <Route path="/personnel" element={<h1>Personnel directory</h1>} />
+                        <Route
+                            path="/inventory"
+                            element={<h1>Stock availability</h1>}
+                        />
+                    </Routes>
+                </AuthProvider>
+            </MemoryRouter>,
+        );
+        const person = userEvent.setup();
+        await person.type(screen.getByLabelText("Username"), "mechanic");
+        await person.type(screen.getByLabelText("Password"), "test-password1");
+        await person.click(screen.getByRole("button", { name: "Log in" }));
+        expect(
+            await screen.findByRole("heading", { name: destination }),
+        ).toBeInTheDocument();
+    },
+);
+
+it("shows inline errors and focuses the first missing sign-in field", async () => {
+    const fetcher = vi.fn();
+    vi.stubGlobal("fetch", fetcher);
+    render(
+        <MemoryRouter>
+            <AuthProvider><LoginPage /></AuthProvider>
+        </MemoryRouter>,
+    );
+
+    await userEvent.click(screen.getByRole("button", { name: "Log in" }));
+    const username = screen.getByLabelText("Username");
+    const password = screen.getByLabelText("Password");
+    expect(username).toHaveFocus();
+    expect(username).toHaveAccessibleDescription("Enter your username.");
+    expect(password).toHaveAccessibleDescription("Enter your password.");
+    expect(fetcher).not.toHaveBeenCalled();
 });

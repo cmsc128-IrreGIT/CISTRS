@@ -2,9 +2,9 @@ import { Pencil } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router";
 import SearchInput from "../../../shared/components/forms/search_input";
-import PageHeader from "../../../shared/components/ui/page_header";
 import Card from "../../../shared/components/ui/card";
 import DataTable from "../../../shared/components/ui/data_table";
+import useTablePagination from "../../../shared/hooks/use_table_pagination";
 import Pagination from "../../../shared/components/ui/pagination";
 import AircraftBreadcrumbs from "../components/aircraft_breadcrumbs";
 import AircraftStatusBadge from "../components/aircraft_status_badge";
@@ -12,13 +12,12 @@ import { aircraft_config } from "../config/aircraft_config";
 import useAircraft from "../hooks/use_aircraft";
 
 const select_field =
-    "mt-2 min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 focus-visible:outline-2 focus-visible:outline-[#1d4ed8]";
+    "min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 focus-visible:outline-2 focus-visible:outline-[#1d4ed8]";
 
 export default function AircraftPage() {
     const rows = useAircraft();
     const [search, set_search] = useState("");
     const [status, set_status] = useState("");
-    const [requested_page, set_page] = useState(1);
     const statuses = [
         ...new Set([
             ...(
@@ -38,41 +37,38 @@ export default function AircraftPage() {
                 (value) => value?.toLowerCase().includes(term),
             ),
     );
-    const total_pages = Math.max(1, Math.ceil(filtered.length / 5));
-    const page = Math.min(requested_page, total_pages);
+    const { visible_rows, footer } = useTablePagination(
+        filtered,
+        JSON.stringify([search, status]),
+    );
 
     return (
         <section aria-labelledby="page_title" className="space-y-4">
             <AircraftBreadcrumbs />
-            <PageHeader
-                title="Aircraft"
-                title_id="page_title"
-                description="Review aircraft information, recorded status, and related maintenance."
-                help="Search by registration, aircraft type, or current aircraft hours. Open an aircraft for its details and maintenance records. Update status opens the existing status form."
-            />
-            <Card compact>
-                <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_220px]">
-                    <div>
-                        <p className="mb-2 text-sm font-medium text-slate-700">
+            <h1 id="page_title" className="sr-only">Aircraft</h1>
+            <Card>
+                <div className="filter-toolbar mb-4 rounded-lg bg-slate-50 p-3">
+                    <div className="filter-toolbar-search grid gap-1.5">
+                        <p aria-hidden="true" className="text-sm text-slate-700">
                             Search aircraft
                         </p>
                         <SearchInput
                             value={search}
                             on_change={(value) => {
                                 set_search(value);
-                                set_page(1);
+                                footer.on_page_change(1);
                             }}
                             label="Search aircraft"
                             placeholder="Registration / tail no. or aircraft type"
                         />
                     </div>
-                    <label className="block text-sm font-medium text-slate-700">
+                    <label className="filter-toolbar-field grid gap-1.5 text-sm text-slate-700">
                         Status
                         <select
                             value={status}
                             onChange={(event) => {
                                 set_status(event.target.value);
-                                set_page(1);
+                                footer.on_page_change(1);
                             }}
                             className={select_field}
                         >
@@ -85,14 +81,11 @@ export default function AircraftPage() {
                         </select>
                     </label>
                 </div>
-                <div className="my-3 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
-                    <p role="status">{filtered.length} records shown</p>
-                    <p>Aircraft type, hours, and status are preview values.</p>
-                </div>
                 <DataTable
+                    inventory
                     bounded
                     caption="Aircraft records"
-                    rows={filtered.slice((page - 1) * 5, page * 5)}
+                    rows={visible_rows}
                     get_row_key={(row) => row.id}
                     empty_title={
                         search || status
@@ -107,7 +100,7 @@ export default function AircraftPage() {
                             render: (row) => (
                                 <Link
                                     to={`/aircraft/${row.id}`}
-                                    className="font-medium text-[#1d4ed8] underline underline-offset-4"
+                                    className="font-medium text-link"
                                 >
                                     {row.registration || "Not recorded"}
                                 </Link>
@@ -141,7 +134,7 @@ export default function AircraftPage() {
                                     <Link
                                         to={`/aircraft/${row.id}`}
                                         aria-label={`View ${row.registration}`}
-                                        className="inline-flex min-h-11 items-center font-medium text-slate-600 underline underline-offset-4 hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-600"
+                                        className="inline-flex min-h-11 items-center font-medium text-link"
                                     >
                                         View
                                     </Link>
@@ -158,15 +151,11 @@ export default function AircraftPage() {
                         },
                     ]}
                 />
-                {total_pages > 1 && (
-                    <div className="mt-3">
-                        <Pagination
-                            page={page}
-                            total_pages={total_pages}
-                            on_page_change={set_page}
-                        />
-                    </div>
-                )}
+                <Pagination
+                    {...footer}
+                    item_label="aircraft"
+                    plural_label="aircraft"
+                />
             </Card>
         </section>
     );

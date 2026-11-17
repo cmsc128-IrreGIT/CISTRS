@@ -15,6 +15,7 @@ import { inventoryRouter } from "./routes/inventory.js";
 import { logbookRouter } from "./routes/logbook.js";
 import { maintenanceRouter } from "./routes/maintenance.js";
 import { personnelRouter } from "./routes/personnel.js";
+import { staffDirectoryRouter } from "./routes/staff_directory.js";
 import { usersRouter } from "./routes/users.js";
 
 const app = express();
@@ -45,6 +46,9 @@ app.use("/api/inventory", requireFeature(FEATURE.Inventory), inventoryRouter);
 app.use("/api/aircraft", requireFeature(FEATURE.Aircraft), aircraftRouter);
 app.use("/api/logbook", requireFeature(FEATURE.Logbook), logbookRouter);
 app.use("/api/maintenance", requireFeature(FEATURE.Maintenance), maintenanceRouter);
+// Basic staff information is available to any authenticated account.
+// Full employee records remain protected by the Personnel feature.
+app.use("/api/personnel/directory", staffDirectoryRouter);
 app.use("/api/personnel", requireFeature(FEATURE.Personnel), personnelRouter);
 
 // Unknown /api paths answer with JSON instead of Express's HTML 404 page.

@@ -26,3 +26,5 @@ export const aircraft_store = create_preview_store([
         notes: "Preview status and hours only. Aircraft type is not confirmed in the supplied reference files.",
     },
 ]);
+
+export const aircraft_status_history = create_preview_store([]);

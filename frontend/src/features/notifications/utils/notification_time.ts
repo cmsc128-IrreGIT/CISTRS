@@ -21,6 +21,7 @@ export function notification_relative_time(value: string, now = new Date()) {
         return seconds <= 0 ? "Just now" : "In less than a minute";
     const formatter = new Intl.RelativeTimeFormat(undefined, {
         numeric: "auto",
+        style: "short",
     });
     if (Math.abs(seconds) < 3600)
         return formatter.format(Math.trunc(seconds / 60), "minute");

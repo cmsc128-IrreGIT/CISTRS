@@ -1,7 +1,84 @@
 @import "tailwindcss";
 
+.thin-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: #b8c6d6 transparent;
+}
+
+@supports not (scrollbar-width: thin) {
+    .thin-scrollbar::-webkit-scrollbar {
+        width: 5px;
+        height: 5px;
+    }
+
+    .thin-scrollbar::-webkit-scrollbar-thumb {
+        background-color: #b8c6d6;
+        border-radius: 9999px;
+    }
+}
+
+.filter-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 0.75rem;
+}
+
+.filter-toolbar-field,
+.filter-toolbar-search {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.filter-toolbar-field {
+    flex: 1 1 8.5rem;
+    min-width: min(100%, 8.5rem);
+}
+
+.filter-toolbar-search {
+    flex: 2 1 13rem;
+    min-width: min(100%, 13rem);
+}
+
+.filter-toolbar-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    max-width: 100%;
+    margin-inline-start: auto;
+}
+
+.filter-toolbar-actions:empty {
+    display: none;
+}
+
 /* Keep the labelled application toggle when Edge supplies its own reveal button. */
 .cistrs-password::-ms-reveal,
 .cistrs-password::-ms-clear {
     display: none;
+}
+
+.record-highlight > td {
+    background-color: #dbeafe;
+    box-shadow: inset 0 2px #60a5fa, inset 0 -2px #60a5fa;
+}
+
+.record-highlight > td:first-child {
+    box-shadow: inset 3px 0 #2563eb, inset 0 2px #60a5fa, inset 0 -2px #60a5fa;
+}
+
+.text-link {
+    color: #0b2238;
+    text-decoration: underline;
+    text-underline-offset: 0.25em;
+}
+
+.text-link:hover {
+    text-decoration-thickness: 2px;
+}
+
+.text-link:focus-visible {
+    outline: 2px solid #0b2238;
+    outline-offset: 2px;
 }

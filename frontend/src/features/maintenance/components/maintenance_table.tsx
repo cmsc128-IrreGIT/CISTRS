@@ -1,6 +1,6 @@
 import { Link } from "react-router";
 import DataTable from "../../../shared/components/ui/data_table";
-import type { TableColumn } from "../../../shared/components/ui/data_table";
+import type { TableColumn, TableRowHighlight } from "../../../shared/components/ui/data_table";
 import StatusBadge from "../../../shared/components/ui/status_badge";
 import type { PreviewRecord } from "../../../shared/types/record_types";
 const columns: TableColumn<PreviewRecord>[] = [
@@ -10,7 +10,7 @@ const columns: TableColumn<PreviewRecord>[] = [
         render: (row) => (
             <Link
                 to={`/maintenance/${row.id}`}
-                className="inline-flex min-h-11 items-center rounded font-medium text-[#1d4ed8] underline focus-visible:outline-2"
+                className="inline-flex min-h-11 items-center rounded font-medium text-link"
             >
                 {row.title || "Untitled maintenance record"}
             </Link>
@@ -59,18 +59,26 @@ const columns: TableColumn<PreviewRecord>[] = [
 export default function MaintenanceTable({
     rows,
     caption = "Maintenance records",
+    inventory = false,
+    bounded = true,
+    highlight_row,
 }: {
     rows: PreviewRecord[];
     caption?: string;
+    inventory?: boolean;
+    bounded?: boolean;
+    highlight_row?: TableRowHighlight;
 }) {
     return (
         <DataTable
-            bounded
+            inventory={inventory}
+            bounded={bounded}
             compact_empty
             caption={caption}
             rows={rows}
             columns={columns}
             get_row_key={(row) => row.id}
+            highlight_row={highlight_row}
             empty_title="No related maintenance records"
             empty_description="No maintenance information is recorded for this selection."
         />

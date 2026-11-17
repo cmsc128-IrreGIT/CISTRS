@@ -41,14 +41,22 @@ describe("notification read state", () => {
             "Notification not found.",
         );
     });
+    it("keeps read changes scoped to the preview account", async () => {
+        const first = notification_service("first-account");
+        const other = notification_service("other-account");
+        await first.mark_all_read();
+        expect((await first.list()).every((row) => row.read_at !== null)).toBe(true);
+        expect((await other.list()).some((row) => row.read_at === null)).toBe(true);
+    });
     it("returns list copies and rejects an unknown notification through the service", async () => {
-        const rows = await notification_service.list();
+        const inbox = notification_service("copy-test");
+        const rows = await inbox.list();
         rows[0].title = "Mutated copy";
-        expect((await notification_service.list())[0].title).not.toBe(
+        expect((await inbox.list())[0].title).not.toBe(
             "Mutated copy",
         );
         await expect(
-            notification_service.set_read("missing", true),
+            inbox.set_read("missing", true),
         ).rejects.toThrow("Notification not found.");
     });
 });

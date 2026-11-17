@@ -1,8 +1,8 @@
 import { useSyncExternalStore } from "react";
-import { logbook_store } from "../data/logbook_store";
+import { logbook_service } from "../services/logbook_service";
 export default function useLogbook() {
     return useSyncExternalStore(
-        logbook_store.subscribe,
-        logbook_store.get_snapshot,
+        logbook_service.subscribe,
+        logbook_service.list,
     );
 }

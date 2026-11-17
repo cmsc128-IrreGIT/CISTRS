@@ -5,6 +5,7 @@ import Card from "../ui/card";
 import PageHeader from "../ui/page_header";
 import DataTable from "../ui/data_table";
 import type { TableColumn } from "../ui/data_table";
+import useTablePagination from "../../hooks/use_table_pagination";
 import Pagination from "../ui/pagination";
 import StatusBadge from "../ui/status_badge";
 import SearchInput from "../forms/search_input";
@@ -24,7 +25,6 @@ export default function RecordList({
 }) {
     const [search, set_search] = useState("");
     const [status, set_status] = useState("");
-    const [pagination, set_pagination] = useState({ key: "", page: 1 });
     const statuses = Array.from(
         new Set(rows.map((row) => row.status).filter(Boolean)),
     ).sort();
@@ -36,13 +36,10 @@ export default function RecordList({
                 (row[key] ?? "").toLowerCase().includes(term),
             ),
     );
-    const filter_key = `${term}|${status}`;
-    const total_pages = Math.max(1, Math.ceil(filtered.length / 5));
-    const page =
-        pagination.key === filter_key
-            ? Math.min(pagination.page, total_pages)
-            : 1;
-    const visible = filtered.slice((page - 1) * 5, page * 5);
+    const { visible_rows, footer } = useTablePagination(
+        filtered,
+        JSON.stringify([term, status]),
+    );
     const columns: TableColumn<PreviewRecord>[] = [
         ...config.fields.slice(0, 4).map(({ key, label }) => ({
             id: key,
@@ -72,7 +69,7 @@ export default function RecordList({
             header: "Actions",
             render: (row) => (
                 <Link
-                    className="text-slate-600 underline underline-offset-4 hover:text-slate-900"
+                    className="text-link"
                     aria-label={`${config.details ? "View" : "Edit"} ${row[config.fields[0].key]}`}
                     to={`${config.base_path}/${row.id}${config.details ? "" : "/edit"}`}
                 >
@@ -127,12 +124,9 @@ export default function RecordList({
                         </label>
                     )}
                 </div>
-                <p role="status" className="mb-3 text-sm text-slate-500">
-                    {filtered.length} records shown
-                </p>
                 <DataTable
                     caption={config.title}
-                    rows={visible}
+                    rows={visible_rows}
                     bounded
                     columns={columns}
                     get_row_key={(row) => row.id}
@@ -140,15 +134,7 @@ export default function RecordList({
                         term ? "No matching records" : "No records yet"
                     }
                 />
-                <div className="mt-3">
-                    <Pagination
-                        page={page}
-                        total_pages={total_pages}
-                        on_page_change={(next) =>
-                            set_pagination({ key: filter_key, page: next })
-                        }
-                    />
-                </div>
+                <Pagination {...footer} />
             </Card>
         </section>
     );

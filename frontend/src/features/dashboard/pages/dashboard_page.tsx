@@ -1,102 +1,485 @@
-import ScreenLoading from "../../../shared/components/feedback/screen_loading";
+import {
+  BookOpen,
+  CalendarDays,
+  CircleAlert,
+  ClipboardCheck,
+  Package,
+  Plane,
+  TriangleAlert,
+  Wrench,
+  Users,
+} from "lucide-react";
+import { Fragment } from "react";
 import { Link } from "react-router";
-import Card from "../../../shared/components/ui/card";
-import PageHeader from "../../../shared/components/ui/page_header";
+import { useAuth } from "../../auth/hooks/auth_context";
+import ScreenLoading from "../../../shared/components/feedback/screen_loading";
+import StatusBadge from "../../../shared/components/ui/status_badge";
+import { employee_name } from "../../../shared/utils/employee_name";
+import { get_inventory_access, get_workspace } from "../../../shared/components/navigation/workspace";
+import { INVENTORY_REQUESTS_PATH } from "../../inventory/constants/inventory_constants";
+import { useInventoryRequestPreviews } from "../../inventory/hooks/use_inventory_request_previews";
 import AircraftStatusCard from "../components/aircraft_status_card";
-import DashboardOverview from "../components/dashboard_overview";
-import OutOfStockCard from "../components/out_of_stock_card";
+import DashboardDate from "../components/dashboard_date";
+import DashboardOverview, {
+  type DashboardSummary,
+} from "../components/dashboard_overview";
+import DashboardPanel from "../components/dashboard_panel";
 import PendingMaintenanceCard from "../components/pending_maintenance_card";
 import RecentActivityTable from "../components/recent_activity_table";
+import StockAlertsCard from "../components/out_of_stock_card";
+import {
+  dashboard_list_limit,
+  get_dashboard_config,
+} from "../config/dashboard_config";
 import useDashboardSummary from "../hooks/use_dashboard_summary";
+import usePilotReminders from "../hooks/use_pilot_reminders";
+import "../dashboard.css";
+
+const retry_style =
+  "mt-4 min-h-10 min-w-36 rounded-md bg-[#0b2238] px-5 text-sm font-semibold text-white hover:bg-[#183953]";
+
+const stock_actions: Record<string, string> = {
+  ISSUE: "Issued",
+  RECEIVE: "Received",
+  RECEIPT: "Received",
+  RETURN: "Returned",
+  ADJUSTMENT: "Adjusted",
+  TRANSFER: "Transferred",
+};
 
 export default function DashboardPage() {
-    const {
-        summaries,
-        out_of_stock,
-        recent_changes,
-        aircraft_status_data,
-        pending_maintenance,
-        inventory_loading,
-        inventory_error,
-        reload_inventory,
-        history_loading,
-        history_error,
-        reload_history,
-    } = useDashboardSummary();
+  const { user } = useAuth();
+  const workspace = get_workspace(user);
+  const features = user?.features ?? [];
+  const can_manage_inventory = get_inventory_access(user) === "manage";
+  const config = get_dashboard_config(workspace, features, can_manage_inventory);
+  const request_previews = useInventoryRequestPreviews();
+  const open_requests = request_previews.filter(({ kind, status }) => kind === "RESTOCK" && status === "PENDING");
+  const uses_inventory = config.panels.includes("stock");
+  const uses_availability = config.panels.includes("availability");
+  const can_view_availability = features.includes("Availability");
+  const summary = useDashboardSummary(
+    uses_inventory,
+    uses_availability && can_view_availability ? user?.emp_UUID : undefined,
+  );
+  const reminders = usePilotReminders(
+    (workspace === "pilot" || workspace === "pilot_mechanic") &&
+      uses_availability &&
+      features.includes("Personnel")
+      ? user?.emp_UUID
+      : undefined,
+  );
+  const { inventory, transactions } = summary;
+  const failed =
+    (uses_inventory && inventory.error && transactions.error) ||
+    reminders.error;
 
+  function retry() {
+    if (uses_inventory && inventory.error) void inventory.reload();
+    if (uses_inventory && transactions.error) void transactions.reload();
+    if (reminders.error) reminders.reload();
+  }
+
+  if (failed) {
     return (
-        <section aria-labelledby="page_title" className="@container space-y-3">
-            <PageHeader title="Dashboard" title_id="page_title" />
-
-            <DashboardOverview summaries={summaries} />
-
-            <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,18rem),1fr))] items-stretch gap-4">
-                <div className="min-w-0">
-                    {inventory_loading ? (
-                        <ScreenLoading compact label="Loading inventory…" />
-                    ) : inventory_error ? (
-                        <div
-                            role="alert"
-                            className="h-full rounded-xl border border-slate-200 bg-white p-4 text-sm leading-6 text-slate-600"
-                        >
-                            <p>Inventory could not be loaded.</p>
-                            <button
-                                type="button"
-                                onClick={() => void reload_inventory()}
-                                className="min-h-11 rounded px-3 text-sm font-medium text-[#1d4ed8] underline focus-visible:outline-2"
-                            >
-                                Retry inventory
-                            </button>
-                        </div>
-                    ) : (
-                        <OutOfStockCard items={out_of_stock} />
-                    )}
-                </div>
-
-                <div className="min-w-0">
-                    <AircraftStatusCard data={aircraft_status_data} />
-                </div>
-
-                <div className="min-w-0 lg:col-span-2 2xl:col-span-1">
-                    <PendingMaintenanceCard maintenance={pending_maintenance} />
-                </div>
-            </div>
-
-            <Card
-                compact
-                title="Recent Activity"
-                action={
-                    <Link
-                        to="/inventory/history"
-                        className="rounded-sm text-sm font-medium text-slate-600 underline underline-offset-4 decoration-slate-300 hover:text-[#0b2238] hover:decoration-slate-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-600"
-                    >
-                        View history
-                    </Link>
-                }
-            >
-                {history_loading ? (
-                    <ScreenLoading compact label="Loading activity…" />
-                ) : history_error ? (
-                    <div
-                        role="alert"
-                        className="rounded-xl border border-slate-200 bg-white p-4 text-sm leading-6 text-slate-600"
-                    >
-                        <p>Inventory activity could not be loaded.</p>
-                        <button
-                            type="button"
-                            onClick={() => void reload_history()}
-                            className="min-h-11 rounded px-3 text-sm font-medium text-[#1d4ed8] underline focus-visible:outline-2"
-                        >
-                            Retry activity
-                        </button>
-                    </div>
-                ) : (
-                    <RecentActivityTable rows={recent_changes.slice(0, 2)} />
-                )}
-            </Card>
-        </section>
+      <section
+        aria-labelledby="dashboard_unavailable"
+        role="alert"
+        className="dashboard grid min-h-72 place-items-center rounded-xl bg-white px-6 py-12 text-center"
+      >
+        <div>
+          <h2 id="dashboard_unavailable" className="text-xl font-bold">
+            We couldn’t load your records
+          </h2>
+          <p className="mt-4 text-sm text-slate-600">
+            Please try again. You can still use the navigation.
+          </p>
+          <button type="button" onClick={retry} className={retry_style}>
+            Retry
+          </button>
+        </div>
+      </section>
     );
+  }
+
+  if (reminders.loading) return <ScreenLoading label="Loading dashboard…" />;
+
+  const availability = summary.current_availability?.status;
+  const dated_licences = [...reminders.licences]
+    .filter((row) => row.expiry_date)
+    .sort((first, second) =>
+      (first.expiry_date ?? "").localeCompare(second.expiry_date ?? ""),
+    );
+  const licence =
+    dated_licences.find(
+      (row) =>
+        new Date(`${row.expiry_date?.slice(0, 10)}T00:00:00`) >= summary.today,
+    ) ?? dated_licences.at(-1);
+  const expiry = licence?.expiry_date;
+  const days_until_expiry = expiry
+    ? Math.round(
+        (Date.parse(`${expiry.slice(0, 10)}T00:00:00`) -
+          summary.today.getTime()) /
+          86_400_000,
+      )
+    : Number.NaN;
+  const metrics = {
+    inventory: {
+      label: "Inventory items",
+      value: inventory.is_loading
+        ? "Loading…"
+        : inventory.error
+          ? "Unavailable"
+          : inventory.items.length,
+      icon: Package,
+      to: "/inventory",
+    },
+    stock: {
+      label: "Stock alerts",
+      value: inventory.is_loading
+        ? "Loading…"
+        : inventory.error
+          ? "Unavailable"
+          : summary.stock_alerts.length,
+      icon: CircleAlert,
+      to: "/inventory",
+      tone: summary.stock_alerts.length ? "warning" : undefined,
+    },
+    aircraft: {
+      label: "Aircraft",
+      value: summary.aircraft_count,
+      icon: Plane,
+      to: "/aircraft",
+    },
+    pending: {
+      label: "Pending maintenance",
+      value: summary.pending_maintenance.length,
+      icon: Wrench,
+      to: "/maintenance?status=pending",
+    },
+    due: {
+      label: "Due soon",
+      value: summary.due_count,
+      icon: TriangleAlert,
+      tone: summary.due_count ? "danger" : undefined,
+      to: "/maintenance?status=due",
+      hint: "Overdue work and tasks due within 30 days",
+    },
+    requests: {
+      label: "Open stock requests",
+      value: open_requests.length,
+      icon: ClipboardCheck,
+      to: INVENTORY_REQUESTS_PATH,
+    },
+    work: {
+      label: "Work records",
+      value: summary.completed_work.length,
+      icon: Wrench,
+      to: "/maintenance?status=Completed",
+    },
+    availability: {
+      label: "My availability",
+      value: (
+        <StatusBadge
+          tone={
+            availability === "Available"
+              ? "success"
+              : availability
+                ? "warning"
+                : "neutral"
+          }
+        >
+          {can_view_availability
+            ? availability || "Not recorded"
+            : "Unavailable"}
+        </StatusBadge>
+      ),
+      icon: CalendarDays,
+      to: can_view_availability ? "/personnel/availability" : undefined,
+    },
+    staff_availability: {
+      label: "Personnel availability",
+      icon: CalendarDays,
+      to: "/personnel/availability",
+    },
+    checklists: {
+      label: "Flight checklists",
+      value: "Unavailable",
+      icon: ClipboardCheck,
+      tone: "warning",
+    },
+    personnel: {
+      label: "Personnel",
+      value: summary.personnel_count,
+      icon: Users,
+      to: "/personnel",
+    },
+    logbook: {
+      label: "Logbook entries",
+      value: summary.recent_logbook.length,
+      icon: BookOpen,
+      to: "/logbook",
+    },
+  } satisfies Record<(typeof config.metrics)[number], DashboardSummary>;
+
+  const panels = {
+    stock: inventory.is_loading ? (
+      <DashboardPanel title="Stock alerts">
+        <ScreenLoading compact label="Loading inventory…" />
+      </DashboardPanel>
+    ) : inventory.error ? (
+      <DashboardPanel title="Stock alerts">
+        <div role="alert">
+          <p className="text-sm text-slate-600">
+            Inventory could not be loaded.
+          </p>
+          <button
+            type="button"
+            className={retry_style}
+            onClick={() => void inventory.reload()}
+          >
+            Retry inventory
+          </button>
+        </div>
+      </DashboardPanel>
+    ) : (
+      <StockAlertsCard items={summary.stock_alerts} />
+    ),
+    logbook: (
+      <DashboardPanel
+        title="Recent logbook entries"
+        footer={{ label: "View logbook", to: "/logbook" }}
+      >
+        {summary.recent_logbook.length ? (
+          <ul className="space-y-2">
+            {summary.recent_logbook
+              .slice(0, dashboard_list_limit)
+              .map((row) => (
+                <li
+                  key={row.id}
+                  className="rounded-md bg-[#f4f7fa] p-2.5 text-sm"
+                >
+                  <p className="font-semibold">{row.aircraft}</p>
+                  <p className="mt-1 text-xs text-slate-600">
+                    <DashboardDate value={row.entry_date} />
+                  </p>
+                </li>
+              ))}
+          </ul>
+        ) : (
+          <p className="text-sm text-slate-600">No logbook entries recorded.</p>
+        )}
+      </DashboardPanel>
+    ),
+    aircraft: <AircraftStatusCard data={summary.aircraft_status_data} />,
+    maintenance: (
+      <PendingMaintenanceCard
+        maintenance={summary.pending_maintenance}
+        today={summary.today}
+      />
+    ),
+    requests: (
+      <DashboardPanel
+        title="Stock requests"
+        footer={{ label: "View requests", to: INVENTORY_REQUESTS_PATH }}
+      >
+        <p className="rounded-md bg-[#f4f7fa] p-2.5 text-sm text-slate-600">
+          {open_requests.length === 0
+            ? "No open restock requests in this session."
+            : `${open_requests.length} open restock ${open_requests.length === 1 ? "request" : "requests"} in this session.`}
+        </p>
+      </DashboardPanel>
+    ),
+    work: (
+      <DashboardPanel
+        title="Recent maintenance"
+        footer={{
+          label: "View work history",
+          to: "/maintenance?status=Completed",
+        }}
+      >
+        {summary.completed_work.length ? (
+          <ul className="space-y-2">
+            {summary.completed_work
+              .slice(0, dashboard_list_limit)
+              .map((row) => (
+                <li
+                  key={row.id}
+                  className="rounded-md bg-[#f4f7fa] p-2.5 text-sm"
+                >
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <Link
+                      to={`/maintenance/${row.id}`}
+                      className="font-semibold text-link"
+                    >
+                      {row.title}
+                    </Link>
+                    <StatusBadge tone="success">Completed</StatusBadge>
+                  </div>
+                  <p className="mt-1 text-xs text-slate-600">{row.aircraft}</p>
+                </li>
+              ))}
+          </ul>
+        ) : (
+          <p className="text-sm text-slate-600">No completed work recorded.</p>
+        )}
+      </DashboardPanel>
+    ),
+    availability: (
+      <DashboardPanel
+        title="My availability & reminders"
+        footer={
+          can_view_availability
+            ? { label: "Manage availability", to: "/personnel/availability" }
+            : undefined
+        }
+      >
+        <div className="space-y-2 text-sm">
+          <div className="rounded-md bg-[#f4f7fa] p-2.5">
+            <div className="flex flex-wrap items-start justify-between gap-2">
+              <span className="font-semibold">Availability</span>
+              {metrics.availability.value}
+            </div>
+            <p className="mt-1 text-xs text-slate-600">
+              <DashboardDate
+                value={
+                  summary.current_availability?.date ??
+                  summary.today.toISOString()
+                }
+              />
+            </p>
+          </div>
+          <div className="rounded-md bg-[#f4f7fa] p-2.5">
+            <div className="flex flex-wrap items-start justify-between gap-2">
+              <span className="font-semibold">Licence renewal</span>
+              {expiry && days_until_expiry <= 30 && (
+                <StatusBadge
+                  tone={days_until_expiry < 0 ? "danger" : "warning"}
+                >
+                  {days_until_expiry < 0 ? "Expired" : "Expires soon"}
+                </StatusBadge>
+              )}
+            </div>
+            <p className="mt-1 text-xs text-slate-600">
+              {expiry ? (
+                <>
+                  {licence.license_type.license_type_name} ·{" "}
+                  <DashboardDate value={expiry} />
+                </>
+              ) : (
+                "No renewal date recorded."
+              )}
+            </p>
+          </div>
+        </div>
+      </DashboardPanel>
+    ),
+  };
+  const activity = {
+    inventory: {
+      to: "/inventory/history",
+      rows: uses_inventory
+        ? summary.recent_changes.map((row) => {
+            const type = row.transaction_type.toUpperCase();
+            const part = row.status.part;
+            const action = stock_actions[type] ?? row.transaction_type;
+            return {
+              id: row.transaction_UUID,
+              date: row.created_at,
+              activity: (
+                <Link
+                  to={`/inventory/${part.part_UUID}`}
+                  className="text-link"
+                >
+                  {action} {Math.abs(row.quantity_change)} {part.part_name}
+                </Link>
+              ),
+              reference: part.part_number || row.transaction_UUID,
+              processed_by: row.updater ? employee_name(row.updater) : undefined,
+            };
+          })
+        : [],
+    },
+    maintenance: {
+      to: "/maintenance?status=Completed",
+      rows: summary.completed_work.map((row) => ({
+        id: row.id,
+        date: row.due_date,
+        activity: (
+          <Link to={`/maintenance/${row.id}`} className="text-link">
+            {row.title}
+          </Link>
+        ),
+        reference: row.aircraft,
+        processed_by: row.recorded_by?.trim() || row.performed_by,
+      })),
+    },
+    logbook: {
+      to: "/logbook",
+      rows: summary.recent_logbook.map((row) => ({
+        id: row.id,
+        date: row.entry_date,
+        activity: `Logbook entry for ${row.aircraft}`,
+        reference: row.log_page || row.aircraft,
+        processed_by: row.recorded_by,
+      })),
+    },
+  }[config.activity];
+
+  return (
+    <section
+      aria-labelledby="page_title"
+      className="dashboard @container space-y-3.5"
+    >
+      <h1 id="page_title" className="sr-only">
+        Dashboard
+      </h1>
+      {config.metrics.length > 0 && (
+        <DashboardOverview
+          summaries={config.metrics.map((key) => metrics[key])}
+          today={summary.today}
+        />
+      )}
+      {config.panels.length > 0 && (
+        <div
+          className={`dashboard-grid ${uses_inventory && config.panels.length === 3 ? "dashboard-inventory-layout" : ""}`}
+        >
+          {config.panels.map((key) => (
+            <Fragment key={key}>{panels[key]}</Fragment>
+          ))}
+        </div>
+      )}
+      {config.activity === "inventory" &&
+      uses_inventory &&
+      (transactions.is_loading || transactions.error) ? (
+        <DashboardPanel title="Recent activity">
+          {transactions.is_loading ? (
+            <ScreenLoading compact label="Loading activity…" />
+          ) : (
+            <div role="alert">
+              <p className="text-sm text-slate-600">
+                Inventory activity could not be loaded.
+              </p>
+              <button
+                type="button"
+                className={retry_style}
+                onClick={() => void transactions.reload()}
+              >
+                Retry activity
+              </button>
+            </div>
+          )}
+        </DashboardPanel>
+      ) : (
+        <RecentActivityTable
+          rows={activity.rows}
+          history_to={
+            config.activity !== "inventory" || (uses_inventory && can_manage_inventory)
+              ? activity.to
+              : undefined
+          }
+        />
+      )}
+    </section>
+  );
 }
-
-
-

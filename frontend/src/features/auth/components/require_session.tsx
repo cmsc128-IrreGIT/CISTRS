@@ -13,7 +13,7 @@ export default function RequireSession() {
                 <button
                     type="button"
                     onClick={retry}
-                    className="mt-4 min-h-11 text-blue-700 underline"
+                    className="mt-4 min-h-11 text-link"
                 >
                     Retry connection
                 </button>

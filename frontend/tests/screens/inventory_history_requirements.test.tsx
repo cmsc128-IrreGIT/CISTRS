@@ -1,5 +1,5 @@
 import { afterEach, expect, it, vi } from "vitest";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";
 import InventoryHistoryPage from "../../src/features/inventory/pages/inventory_history_page";
@@ -13,8 +13,27 @@ const state = vi.hoisted(() => ({
 vi.mock("../../src/features/inventory/hooks/use_inventory_history", () => ({
     default: () => state,
 }));
+const dialog_methods = {
+    showModal: Object.getOwnPropertyDescriptor(
+        HTMLDialogElement.prototype,
+        "showModal",
+    ),
+    close: Object.getOwnPropertyDescriptor(
+        HTMLDialogElement.prototype,
+        "close",
+    ),
+};
 afterEach(() => {
     cleanup();
+    for (const [name, descriptor] of Object.entries(dialog_methods)) {
+        if (descriptor)
+            Object.defineProperty(
+                HTMLDialogElement.prototype,
+                name,
+                descriptor,
+            );
+        else Reflect.deleteProperty(HTMLDialogElement.prototype, name);
+    }
     state.history = [];
     state.error = null;
     state.is_loading = false;
@@ -43,7 +62,19 @@ const record: InventoryTransaction = {
     },
     updater: { emp_number: "employee-1", f_name: "Demo", l_name: "Staff" },
 };
-it("shows available change information and links to the correct inventory item", async () => {
+it("opens recorded movement details and links to the correct inventory item", async () => {
+    Object.defineProperty(HTMLDialogElement.prototype, "showModal", {
+        configurable: true,
+        value(this: HTMLDialogElement) {
+            this.setAttribute("open", "");
+        },
+    });
+    Object.defineProperty(HTMLDialogElement.prototype, "close", {
+        configurable: true,
+        value(this: HTMLDialogElement) {
+            this.removeAttribute("open");
+        },
+    });
     state.history = [record];
     render(
         <MemoryRouter>
@@ -54,16 +85,34 @@ it("shows available change information and links to the correct inventory item",
         "href",
         "/inventory/part-1",
     );
+    expect(
+        screen.queryByRole("columnheader", { name: "Reference / recipient" }),
+    ).not.toBeInTheDocument();
+    expect(
+        screen.queryByRole("cell", { name: "tx-1" }),
+    ).not.toBeInTheDocument();
+    const user = userEvent.setup();
+    await user.click(
+        screen.getByRole("button", { name: "View movement for Test part" }),
+    );
+    const details = within(
+        screen.getByRole("dialog", { name: "Stock movement details" }),
+    );
     for (const value of [
         "PN-001",
-        "RECEIVE",
+        "Received",
         "+3",
         "Main store",
         "Demo Staff",
         "Delivery checked",
-    ])
-        expect(screen.getByRole("cell", { name: value })).toBeInTheDocument();
-    const user = userEvent.setup();
+    ]) {
+        expect(details.getByText(value, { exact: true })).toBeInTheDocument();
+    }
+    expect(
+        details.getByText("Transaction ID", { exact: true }),
+    ).toBeInTheDocument();
+    expect(details.getByText("tx-1", { exact: true })).toBeInTheDocument();
+    await user.click(details.getByRole("button", { name: "Close form" }));
     await user.type(
         screen.getByRole("searchbox", { name: "Search inventory history" }),
         "Missing item",
@@ -92,4 +141,81 @@ it("distinguishes empty history from a failed protected request", () => {
     expect(
         screen.queryByText("No changes recorded yet"),
     ).not.toBeInTheDocument();
+});
+
+it("shows the reference column when the API provides a recipient", () => {
+    state.history = [{ ...record, recipient: "Hangar team" }];
+    render(
+        <MemoryRouter>
+            <InventoryHistoryPage />
+        </MemoryRouter>,
+    );
+    expect(
+        screen.getByRole("columnheader", { name: "Reference / recipient" }),
+    ).toBeInTheDocument();
+    expect(
+        screen.getByRole("cell", { name: "Hangar team" }),
+    ).toBeInTheDocument();
+});
+
+it("shares the row-size and range controls with the Inventory list", async () => {
+    state.history = Array.from({ length: 12 }, (_, index) => ({
+        ...record,
+        transaction_UUID: `movement-${index}`,
+    }));
+    render(
+        <MemoryRouter>
+            <InventoryHistoryPage />
+        </MemoryRouter>,
+    );
+    const user = userEvent.setup();
+    expect(screen.getByRole("status")).toHaveTextContent(
+        "Showing 1–10 of 12 movements",
+    );
+    await user.click(screen.getByRole("button", { name: "Next page" }));
+    expect(screen.getByRole("status")).toHaveTextContent(
+        "Showing 11–12 of 12 movements",
+    );
+    await user.selectOptions(
+        screen.getByRole("combobox", { name: "Rows per page" }),
+        "5",
+    );
+    expect(screen.getByRole("status")).toHaveTextContent(
+        "Showing 1–5 of 12 movements",
+    );
+    expect(
+        screen.getByRole("button", { name: "Previous page" }),
+    ).toBeDisabled();
+});
+
+it("uses movement pills and colors signed quantities separately from units", () => {
+    const part = { ...record.status.part, unit_of_measure: "pcs" };
+    state.history = [
+        {
+            ...record,
+            transaction_type: "ISSUE",
+            quantity_change: -2,
+            status: { ...record.status, part },
+        },
+        {
+            ...record,
+            transaction_UUID: "tx-2",
+            transaction_type: "ADJUSTMENT",
+            status: { ...record.status, part },
+        },
+    ];
+    render(
+        <MemoryRouter>
+            <InventoryHistoryPage />
+        </MemoryRouter>,
+    );
+    expect(screen.getByText("Issued", { selector: "span" })).toHaveClass(
+        "bg-amber-100",
+    );
+    expect(screen.getByText("Adjusted", { selector: "span" })).toHaveClass(
+        "bg-blue-100",
+    );
+    expect(screen.getByText("-2")).toHaveClass("text-red-700");
+    expect(screen.getByText("+3")).toHaveClass("text-emerald-800");
+    expect(screen.getAllByText("pcs")).toHaveLength(2);
 });

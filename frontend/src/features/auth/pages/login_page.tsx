@@ -1,65 +1,67 @@
-import ScreenLoading from "../../../shared/components/feedback/screen_loading";
-import { useAuth } from "../hooks/auth_context";
-import { useRef } from "react";
-import { Eye, EyeOff, PlaneTakeoff } from "lucide-react";
-import { useState } from "react";
+import { Eye, EyeOff, LoaderCircle } from "lucide-react";
+import { useRef, useState } from "react";
 import type { SubmitEvent } from "react";
-import { Link, Navigate, useLocation, useNavigate } from "react-router";
-import login_plane from "../../../assets/login_plane.png";
+import { Link, Navigate, useLocation } from "react-router";
+import AuthBackdrop from "../../../shared/components/layouts/auth_backdrop";
 import AuthPanel from "../components/auth_panel";
+import { useAuth } from "../hooks/auth_context";
+import { get_sign_in_destination } from "../utils/sign_in_destination";
 
 const input_style =
-    "min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600";
-
-const link_style =
-    "rounded-sm text-sm font-medium text-slate-600 underline underline-offset-4 hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600";
+    "min-h-12 w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-base text-[#0b2238] placeholder:text-slate-500 aria-invalid:border-red-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1d4ed8] sm:text-sm";
+const label_style = "mb-1.5 block text-sm font-semibold text-slate-700";
 
 export default function LoginPage() {
     const [show_password, set_show_password] = useState(false);
     const [error, set_error] = useState("");
-
-    const { user, login, loading } = useAuth();
-    const navigate = useNavigate();
-    const location = useLocation();
+    const [field_errors, set_field_errors] = useState<{ username?: string; password?: string }>({});
     const [pending, set_pending] = useState(false);
     const submitting = useRef(false);
+    const { user, login, loading } = useAuth();
+    const location = useLocation();
     const requested = (location.state as { from?: string } | null)?.from;
-    const destination =
-        requested?.startsWith("/") &&
-        !requested.startsWith("//") &&
-        !requested.startsWith("/login")
-            ? requested
-            : "/dashboard";
-    if (loading) return <ScreenLoading label="Opening your workspace…" />;
-    if (user) return <Navigate to={destination} replace />;
+
+    if (loading) return (
+        <main className="grid min-h-dvh place-items-center bg-[#0b2238] p-6 text-center text-white">
+            <div role="status" className="space-y-3">
+                <p className="text-xl font-bold">CISTRS</p>
+                <LoaderCircle aria-hidden="true" className="mx-auto motion-safe:animate-spin" size={24} />
+                <p className="text-sm text-slate-200">Opening your workspace…</p>
+            </div>
+        </main>
+    );
+    if (user) return <Navigate to={get_sign_in_destination(user, requested)} replace />;
+
+    function clear_error(field: "username" | "password") {
+        set_error("");
+        set_field_errors((current) => current[field] ? { ...current, [field]: undefined } : current);
+    }
+
     async function handle_submit(event: SubmitEvent<HTMLFormElement>) {
         event.preventDefault();
-
+        if (submitting.current) return;
         const form = event.currentTarget;
-        const username = form.elements.namedItem("username");
-
-        if (username instanceof HTMLInputElement) {
-            username.setCustomValidity(
-                username.value.trim() ? "" : "Enter your username.",
-            );
+        const data = new FormData(form);
+        const username = String(data.get("username") ?? "").trim();
+        const password = String(data.get("password") ?? "");
+        const errors = {
+            username: username ? undefined : "Enter your username.",
+            password: password ? undefined : "Enter your password.",
+        };
+        set_error("");
+        set_field_errors(errors);
+        if (errors.username || errors.password) {
+            const field = form.elements.namedItem(errors.username ? "username" : "password");
+            if (field instanceof HTMLInputElement) field.focus();
+            return;
         }
 
-        if (!form.reportValidity()) return;
-
-        if (submitting.current) return;
-        const password = (
-            form.elements.namedItem("password") as HTMLInputElement
-        ).value;
         submitting.current = true;
         set_pending(true);
-        set_error("");
         try {
-            await login((username as HTMLInputElement).value, password);
-            navigate(destination, { replace: true });
-        } catch (error) {
-            set_error(
-                error instanceof Error ? error.message : "Unable to sign in.",
-            );
+            await login(username, password);
+        } catch (cause) {
+            set_error(cause instanceof Error ? cause.message : "Unable to sign in.");
         } finally {
             submitting.current = false;
             set_pending(false);
@@ -67,170 +69,74 @@ export default function LoginPage() {
     }
 
     return (
-        <main className="relative isolate grid min-h-dvh bg-[#0b2238] lg:grid-cols-2">
-            <img
-                src={login_plane}
-                alt=""
-                aria-hidden="true"
-                className="pointer-events-none absolute inset-0 -z-20 h-full w-full object-cover object-left lg:object-center"
-            />
-
-            <div
-                aria-hidden="true"
-                className="pointer-events-none absolute inset-0 -z-10 bg-linear-to-r from-[#0b2238]/75 via-[#0b2238]/40 to-[#0b2238]/25"
-            />
-
-            <section
-                aria-label="About CISTRS"
-                className="flex items-center px-6 py-8 text-white sm:px-10 lg:p-12"
-            >
-                <div className="mx-auto w-full max-w-lg">
-                    <div className="flex items-center gap-3">
-                        <span className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-white/10 text-red-400">
-                            <PlaneTakeoff
-                                size={28}
-                                strokeWidth={1.8}
-                                aria-hidden="true"
-                            />
-                        </span>
-
-                        <span className="text-3xl font-bold tracking-tight sm:text-4xl">
-                            CISTRS
-                        </span>
-                    </div>
-
-                    <p className="mt-5 text-sm font-medium text-slate-200">
-                        Shuttle Air Services, Inc.
+        <AuthBackdrop>
+            <div className="mx-auto grid w-full max-w-[1600px] items-center gap-8 px-5 pt-7 pb-8 sm:px-9 sm:pb-12 lg:grid-cols-[minmax(0,1.45fr)_minmax(0,1fr)] lg:px-14 lg:py-12">
+                <section aria-label="About CISTRS" className="hidden self-end pb-[clamp(1rem,9vh,7rem)] lg:block">
+                    <p className="max-w-sm text-4xl leading-[1.12] font-bold tracking-tight xl:text-5xl">
+                        Every record.<br />In one place.
                     </p>
-
-                    <p className="mt-3 max-w-md text-lg leading-relaxed text-white sm:text-xl">
-                        Inventory, maintenance, and operational records in one
-                        place.
+                    <p className="mt-3 max-w-sm text-sm leading-6 text-slate-200">
+                        Inventory, maintenance, and operational records for Shuttle Air Services.
                     </p>
-                </div>
-            </section>
+                </section>
+                <div className="mx-auto w-full max-w-md lg:mx-0 lg:justify-self-end">
+                    <AuthPanel labelled_by="page_title">
+                        <h1 id="page_title" className="text-2xl font-bold tracking-tight sm:text-3xl">Welcome back</h1>
+                        <p className="mt-2 text-sm text-slate-600">Sign in to your CISTRS workspace.</p>
 
-            <AuthPanel labelled_by="page_title">
-                <h1
-                    id="page_title"
-                    className="text-3xl font-bold tracking-tight text-[#0b2238]"
-                >
-                    Welcome back
-                </h1>
+                        <form onSubmit={handle_submit} noValidate aria-busy={pending} className="mt-6">
+                            {error && (
+                                <p role="alert" className="mb-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-800">
+                                    {error}
+                                </p>
+                            )}
+                            <fieldset disabled={pending} className="min-w-0 space-y-4">
+                                <div>
+                                    <label htmlFor="username" className={label_style}>Username</label>
+                                    <input id="username" name="username" type="text" autoComplete="username"
+                                        placeholder="Enter your username" autoCapitalize="none" spellCheck={false}
+                                        required maxLength={200} onChange={() => clear_error("username")} className={input_style}
+                                        aria-invalid={field_errors.username ? true : undefined}
+                                        aria-describedby={field_errors.username ? "username_error" : undefined} />
+                                    {field_errors.username && <p id="username_error" className="mt-1.5 text-sm text-red-700">{field_errors.username}</p>}
+                                </div>
 
-                <p className="mt-2 text-sm text-slate-500">
-                    Sign in to your account.
-                </p>
+                                <div>
+                                    <label htmlFor="password" className={label_style}>Password</label>
+                                    <div className="relative">
+                                        <input id="password" name="password" type={show_password ? "text" : "password"}
+                                            autoComplete="current-password" placeholder="Enter your password" required
+                                            onChange={() => clear_error("password")} className={`${input_style} cistrs-password pr-12`}
+                                            aria-invalid={field_errors.password ? true : undefined}
+                                            aria-describedby={field_errors.password ? "password_error" : undefined} />
+                                        <button type="button" aria-label={show_password ? "Hide password" : "Show password"}
+                                            aria-pressed={show_password} aria-controls="password"
+                                            onClick={() => set_show_password((previous) => !previous)}
+                                            className="absolute inset-y-0 right-0 flex w-12 items-center justify-center rounded-lg text-slate-600 hover:text-[#0b2238] focus-visible:outline-2 focus-visible:outline-[#1d4ed8]">
+                                            {show_password ? <EyeOff size={19} aria-hidden="true" /> : <Eye size={19} aria-hidden="true" />}
+                                        </button>
+                                    </div>
+                                    {field_errors.password && <p id="password_error" className="mt-1.5 text-sm text-red-700">{field_errors.password}</p>}
+                                    <div className="mt-2 text-right">
+                                        <Link to="/forgot-password" className="text-link text-sm font-medium">Forgot password?</Link>
+                                    </div>
+                                </div>
 
-                <form
-                    onSubmit={handle_submit}
-                    aria-busy={pending}
-                    className="mt-5 space-y-5"
-                >
-                    <fieldset
-                        disabled={pending}
-                        className="space-y-5 border-0 p-0"
-                    >
-                        <div>
-                            <label
-                                htmlFor="username"
-                                className="mb-2 block text-sm font-medium text-slate-700"
-                            >
-                                Username
-                            </label>
-
-                            <input
-                                id="username"
-                                name="username"
-                                type="text"
-                                autoComplete="username"
-                                autoCapitalize="none"
-                                spellCheck={false}
-                                required
-                                maxLength={200}
-                                onChange={(event) => {
-                                    event.currentTarget.setCustomValidity("");
-                                    set_error("");
-                                }}
-                                className={input_style}
-                            />
-                        </div>
-
-                        <div>
-                            <label
-                                htmlFor="password"
-                                className="mb-2 block text-sm font-medium text-slate-700"
-                            >
-                                Password
-                            </label>
-
-                            <div className="relative">
-                                <input
-                                    id="password"
-                                    name="password"
-                                    type={show_password ? "text" : "password"}
-                                    autoComplete="current-password"
-                                    required
-                                    onChange={() => set_error("")}
-                                    className={`${input_style} cistrs-password pr-12`}
-                                />
-
-                                <button
-                                    type="button"
-                                    aria-label={
-                                        show_password
-                                            ? "Hide password"
-                                            : "Show password"
-                                    }
-                                    aria-pressed={show_password}
-                                    aria-controls="password"
-                                    onClick={() =>
-                                        set_show_password(
-                                            (previous) => !previous,
-                                        )
-                                    }
-                                    className="absolute right-0 top-0 flex size-11 items-center justify-center rounded-lg text-slate-500 hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-red-600"
-                                >
-                                    {show_password ? (
-                                        <EyeOff size={19} aria-hidden="true" />
-                                    ) : (
-                                        <Eye size={19} aria-hidden="true" />
-                                    )}
+                                <button type="submit" className="flex min-h-12 w-full items-center justify-center gap-2 rounded-lg bg-[#0b2238] px-4 py-2 text-sm font-semibold text-white hover:bg-[#193951] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1d4ed8] disabled:opacity-75">
+                                    {pending && <LoaderCircle aria-hidden="true" className="motion-safe:animate-spin" size={17} />}
+                                    {pending ? "Signing in…" : "Log in"}
                                 </button>
-                            </div>
+                            </fieldset>
+                            {pending && <p role="status" className="sr-only">Signing in…</p>}
+                        </form>
 
-                            <div className="mt-2 text-right">
-                                <Link
-                                    to="/forgot-password"
-                                    className={link_style}
-                                >
-                                    Forgot password?
-                                </Link>
-                            </div>
-                        </div>
-
-                        {error && (
-                            <p role="alert" className="text-sm text-red-700">
-                                {error}
-                            </p>
-                        )}
-
-                        <button
-                            type="submit"
-                            className="flex min-h-11 w-full items-center justify-center rounded-lg bg-red-700 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600"
-                        >
-                            {pending ? "Signing in…" : "Log in"}
-                        </button>
-                    </fieldset>
-                </form>
-
-                <p className="mt-5 text-center text-sm text-slate-500">
-                    Need an account?{" "}
-                    <Link to="/signup" className={link_style}>
-                        Request access
-                    </Link>
-                </p>
-            </AuthPanel>
-        </main>
+                        <p className="mt-5 border-t border-slate-200 pt-4 text-center text-sm text-slate-600">
+                            Need an account?{" "}
+                            <Link to="/signup" className="text-link font-medium">Contact your Administrator</Link>
+                        </p>
+                    </AuthPanel>
+                </div>
+            </div>
+        </AuthBackdrop>
     );
 }

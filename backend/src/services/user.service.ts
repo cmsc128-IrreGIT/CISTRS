@@ -131,7 +131,9 @@ const accountSummary = {
             emp_UUID: true,
             emp_number: true,
             f_name: true,
+            m_name: true,
             l_name: true,
+            suffix: true,
             position: {
                 select: {
                     position_UUID: true,

@@ -10,6 +10,8 @@ export type InventoryItem = {
     part_UUID: string;
     part_number: string;
     part_name: string;
+    category?: string | null;
+    expiry_date?: string | null;
     unit_of_measure: string;
     min_stock_level: number;
     description: string | null;
@@ -52,6 +54,11 @@ export type InventoryTransaction = {
     updated_by: string;
     created_at: string;
     remarks: string | null;
+    reference?: string | null;
+    recipient?: string | null;
+    supplier_name?: string | null;
+    aircraft?: string | null;
+    movement_date?: string | null;
     status: {
         status_UUID: string;
         current_quantity: number;
@@ -59,6 +66,7 @@ export type InventoryTransaction = {
             part_UUID: string;
             part_number: string;
             part_name: string;
+            unit_of_measure?: string;
         };
         location: {
             location_UUID: string;
@@ -69,6 +77,30 @@ export type InventoryTransaction = {
     updater: {
         emp_number: string;
         f_name: string;
+        m_name?: string | null;
         l_name: string;
+        suffix?: string | null;
     };
+};
+
+export type InventoryRequestDecision =
+    | { status: "APPROVED" }
+    | { status: "RETURNED"; review_note: string };
+
+export type InventoryRequestPreview = {
+    request_UUID: string;
+    kind: "RESTOCK" | "CORRECTION";
+    status: "PENDING" | InventoryRequestDecision["status"];
+    part: Pick<InventoryItem, "part_UUID" | "part_name" | "part_number" | "unit_of_measure">;
+    location: Pick<InventoryLocation, "location_name" | "storage_area"> | null;
+    quantity: number;
+    recorded_quantity: number | null;
+    needed_by: string | null;
+    reason: string;
+    reference: string | null;
+    requester: string;
+    reviewer: string | null;
+    review_note: string | null;
+    created_at: string;
+    reviewed_at: string | null;
 };

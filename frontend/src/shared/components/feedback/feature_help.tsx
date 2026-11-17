@@ -1,46 +1,33 @@
-import { CircleHelp, X } from "lucide-react";
-import { useId, useRef } from "react";
-export default function FeatureHelp({
-    title,
-    text,
-}: {
+import { CircleHelp } from "lucide-react";
+import { useState } from "react";
+import { help_guides } from "../../config/help_guides";
+import type { HelpGuideId } from "../../config/help_guides";
+import GuideDialog from "./guide_dialog";
+
+export default function FeatureHelp({ title, text, guide_id }: {
     title: string;
-    text: string;
+    text?: string;
+    guide_id?: HelpGuideId;
 }) {
-    const ref = useRef<HTMLDialogElement>(null);
-    const id = useId();
+    const [is_open, set_is_open] = useState(false);
+    const guide = guide_id ? help_guides[guide_id] : {
+        label: title,
+        title: `${title} guide`,
+        description: text ?? "",
+        icon: CircleHelp,
+    };
 
     return (
         <>
             <button
                 type="button"
-                onClick={() => ref.current?.showModal()}
+                onClick={() => set_is_open(true)}
                 aria-label={`Help for ${title}`}
                 className="inline-flex size-11 shrink-0 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-[#1d4ed8] focus-visible:outline-2 focus-visible:outline-[#1d4ed8]"
             >
                 <CircleHelp size={18} aria-hidden="true" />
             </button>
-            <dialog
-                ref={ref}
-                aria-labelledby={id}
-                className="fixed inset-0 m-auto max-h-[85dvh] w-[calc(100%-2rem)] max-w-lg overflow-auto rounded-xl bg-white p-6 text-[#172b3a] shadow-xl backdrop:bg-[#0b2238]/65"
-            >
-                <div className="flex items-center justify-between gap-4">
-                    <h2 id={id} className="text-lg font-semibold">
-                        {title} guide
-                    </h2>
-                    <button
-                        type="button"
-                        autoFocus
-                        aria-label="Close help"
-                        onClick={() => ref.current?.close()}
-                        className="flex size-11 items-center justify-center rounded-lg hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-[#1d4ed8]"
-                    >
-                        <X size={20} />
-                    </button>
-                </div>
-                <p className="mt-3 text-sm leading-6 text-slate-600">{text}</p>
-            </dialog>
+            {is_open && <GuideDialog guide={guide} directory_link={Boolean(guide_id)} on_close={() => set_is_open(false)} />}
         </>
     );
 }

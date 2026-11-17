@@ -1,51 +1,8 @@
-import { useCallback, useEffect, useRef, useState } from "react";
 import { get_inventory } from "../services/inventory_services";
-import type { InventoryItem } from "../types/inventory_types";
+import useInventoryQuery from "./use_inventory_query";
 
-export default function useInventory() {
-    const [items, set_data] = useState<InventoryItem[]>([]);
-    const [is_loading, set_is_loading] = useState(true);
-    const [error, set_error] = useState<string | null>(null);
-    const request_id = useRef({ id: 0 });
-
-    const load = useCallback(() => {
-        const current_request = ++request_id.current.id;
-        return get_inventory()
-            .then(
-                (data) => {
-                    if (current_request === request_id.current.id) {
-                        set_data(data);
-                        set_error(null);
-                    }
-                },
-                (cause: unknown) => {
-                    if (current_request === request_id.current.id)
-                        set_error(
-                            cause instanceof Error
-                                ? cause.message
-                                : "Failed to load inventory data.",
-                        );
-                },
-            )
-            .finally(() => {
-                if (current_request === request_id.current.id)
-                    set_is_loading(false);
-            });
-    }, []);
-
-    const reload = useCallback(() => {
-        set_is_loading(true);
-        set_error(null);
-        return load();
-    }, [load]);
-
-    useEffect(() => {
-        const state = request_id.current;
-        void load();
-        return () => {
-            ++state.id;
-        };
-    }, [load]);
-
-    return { items, is_loading, error, reload };
+export default function useInventory(enabled = true) {
+  const { rows: items, is_loading, error, reload, refresh } =
+    useInventoryQuery(get_inventory, enabled);
+  return { items, is_loading, error, reload, refresh };
 }
