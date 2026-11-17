@@ -2,7 +2,7 @@ import { Bell, PlaneTakeoff } from "lucide-react";
 import FeatureHelp from "../feedback/feature_help";
 import { Link, useLocation, useMatch } from "react-router";
 import { useAuth } from "../../../features/auth/hooks/auth_context";
-import { get_inventory_access, workspace_label } from "../navigation/workspace";
+import { get_inventory_access, position_label } from "../navigation/workspace";
 import ProfileMenu from "./profile_menu";
 import { WORKSPACE_CONTENT_WIDTH } from "../../styles/layout_styles";
 
@@ -75,18 +75,20 @@ export default function AppHeader() {
         </Link>
 
         <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
-          <Link
-            to="/notifications"
-            aria-label="Open notifications"
-            title="Notifications"
-            className={`flex size-11 items-center justify-center rounded-xl transition-colors hover:bg-[#eaf0ff] hover:text-[#1d4ed8] focus-visible:outline-2 focus-visible:outline-[#1d4ed8] ${notifications ? "bg-[#eaf0ff] text-[#1d4ed8]" : "text-slate-500"}`}
-          >
-            <Bell
-              size={workspace_header ? 18 : 21}
-              strokeWidth={1.8}
-              aria-hidden="true"
-            />
-          </Link>
+          {user?.features.includes("Notifications") && (
+            <Link
+              to="/notifications"
+              aria-label="Open notifications"
+              title="Notifications"
+              className={`flex size-11 items-center justify-center rounded-xl transition-colors hover:bg-[#eaf0ff] hover:text-[#1d4ed8] focus-visible:outline-2 focus-visible:outline-[#1d4ed8] ${notifications ? "bg-[#eaf0ff] text-[#1d4ed8]" : "text-slate-500"}`}
+            >
+              <Bell
+                size={workspace_header ? 18 : 21}
+                strokeWidth={1.8}
+                aria-hidden="true"
+              />
+            </Link>
+          )}
 
           <div
             className={
@@ -95,7 +97,7 @@ export default function AppHeader() {
           >
             <ProfileMenu
               display_name={user?.full_name?.trim() || user?.username || "Account"}
-              role={user?.position?.position_name || workspace_label(user)}
+              role={position_label(user)}
               compact={workspace_header}
               on_logout={logout}
             />

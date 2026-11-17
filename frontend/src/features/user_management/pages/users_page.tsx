@@ -20,23 +20,23 @@ const sign_in_format = new Intl.DateTimeFormat("en-GB", {
 export default function UsersPage() {
     const workspace = useUserManagement();
     const [search, set_search] = useState("");
-    const [role, set_role] = useState("");
+    const [position, set_position] = useState("");
     const [status, set_status] = useState("");
     const term = search.trim().toLowerCase();
     const rows = workspace.accounts.map((account) => ({
         account,
         name: account_name(account),
-        role: account.employee.position?.position_name || "Not recorded",
+        position: account.employee.position?.position_name || "Not recorded",
         status: workspace.previews?.get(account.account_UUID)?.status ?? account.account_status,
         preview: workspace.previews?.has(account.account_UUID),
     }));
-    const roles = [...new Set(rows.map((row) => row.role))].sort();
+    const positions = [...new Set(rows.map((row) => row.position))].sort();
     const statuses = [...new Set(rows.map((row) => row.status))].sort();
     const filtered = rows.filter((row) =>
-        (!role || row.role === role) && (!status || row.status === status) &&
+        (!position || row.position === position) && (!status || row.status === status) &&
         [row.name, row.account.username].some((value) => value.toLowerCase().includes(term)),
     );
-    const { visible_rows, footer } = useTablePagination(filtered, JSON.stringify([term, role, status]));
+    const { visible_rows, footer } = useTablePagination(filtered, JSON.stringify([term, position, status]));
 
     return (
         <section aria-labelledby="page_title" className="min-w-0 space-y-4">
@@ -51,10 +51,10 @@ export default function UsersPage() {
                         <SearchInput label="Search accounts" placeholder="Search name or username" value={search} on_change={set_search} />
                     </div>
                     <label className="filter-toolbar-field grid gap-1.5 text-sm text-slate-700">
-                        System role
-                        <select className={account_field_style} value={role} onChange={(event) => set_role(event.currentTarget.value)}>
-                            <option value="">All roles</option>
-                            {roles.map((value) => <option key={value}>{value}</option>)}
+                        Position
+                        <select className={account_field_style} value={position} onChange={(event) => set_position(event.currentTarget.value)}>
+                            <option value="">All positions</option>
+                            {positions.map((value) => <option key={value}>{value}</option>)}
                         </select>
                     </label>
                     <label className="filter-toolbar-field grid gap-1.5 text-sm text-slate-700">
@@ -75,7 +75,7 @@ export default function UsersPage() {
                         { id: "name", header: "Name / username", render: (row) => (
                             <><span className="block font-medium">{row.name}</span><span className="text-slate-600">{row.account.username}</span></>
                         ) },
-                        { id: "role", header: "System role", render: (row) => row.role },
+                        { id: "position", header: "Position", render: (row) => row.position },
                         { id: "status", header: "Account status", render: (row) => <AccountStatus status={row.status} preview={row.preview} /> },
                         { id: "last_login", header: "Last sign-in", render: ({ account }) => {
                             const login = Date.parse(account.last_login_at ?? "");

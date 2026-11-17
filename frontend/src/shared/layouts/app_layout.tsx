@@ -1,4 +1,6 @@
+import { Suspense } from "react";
 import { Outlet, useMatch } from "react-router";
+import ScreenLoading from "../components/feedback/screen_loading";
 import AppHeader from "../components/header/app_header";
 import MobileNavbar from "../components/navigation/mobile_navbar";
 import Sidebar from "../components/navigation/sidebar";
@@ -45,7 +47,9 @@ export default function AppLayout() {
                     tabIndex={-1}
                     className={`${content_width} pt-4 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-5 ${workspace_background ? "md:pt-8" : "md:pt-5"} ${print_report ? "print:max-w-none print:p-0" : ""}`}
                 >
-                    <Outlet />
+                    <Suspense fallback={<ScreenLoading />}>
+                        <Outlet />
+                    </Suspense>
                 </main>
             </div>
 

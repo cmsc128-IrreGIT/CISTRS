@@ -4,7 +4,7 @@ vi.mock("../../src/features/auth/hooks/auth_context", () => ({
       username: "adrian.reyes",
       full_name: "Adrian Miguel Reyes",
       position: { position_name: "President / CEO" },
-      features: ["Inventory"],
+      features: ["Dashboard", "Inventory", "Notifications"],
     },
     logout: vi.fn(),
   }),
@@ -13,6 +13,8 @@ import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router";
+import * as auth_module from "../../src/features/auth/hooks/auth_context";
+import MobileNavbar from "../../src/shared/components/navigation/mobile_navbar";
 import Sidebar from "../../src/shared/components/navigation/sidebar";
 import HelpPage from "../../src/shared/pages/help_page";
 import AppHeader from "../../src/shared/components/header/app_header";
@@ -23,7 +25,7 @@ beforeEach(() => {
     close: { configurable: true, value(this: HTMLDialogElement) { this.removeAttribute("open"); } },
   });
 });
-afterEach(cleanup);
+afterEach(() => { cleanup(); vi.restoreAllMocks(); });
 it("keeps navigation accessible when the whole sidebar is collapsed", async () => {
   const user = userEvent.setup();
   render(
@@ -31,8 +33,7 @@ it("keeps navigation accessible when the whole sidebar is collapsed", async () =
       <Sidebar />
     </MemoryRouter>,
   );
-  expect(screen.getByText("Administrator")).toBeInTheDocument();
-  expect(screen.queryByText("President / CEO")).not.toBeInTheDocument();
+  expect(screen.getByText("Inventory", { selector: "p" })).toBeInTheDocument();
   expect(screen.getByRole("link", { name: "Help & guides" })).toHaveAttribute(
     "href",
     "/help",
@@ -59,6 +60,63 @@ it("keeps navigation accessible when the whole sidebar is collapsed", async () =
     screen.getByRole("button", { name: "Collapse sidebar" }),
   ).toHaveAttribute("aria-expanded", "true");
 });
+it("summarizes assigned core modules and preserves the Accountable Manager’s position in the header", () => {
+  const auth = auth_module.useAuth();
+  vi.spyOn(auth_module, "useAuth").mockReturnValue({
+    ...auth,
+    user: {
+      account_UUID: "marissa",
+      emp_UUID: "employee-marissa",
+      username: "marissa",
+      position: { position_UUID: "accountable-manager", position_name: "Accountable Manager" },
+      features: ["Dashboard", "Aircraft", "Availability", "Notifications"],
+    },
+  });
+
+  render(<MemoryRouter><Sidebar /><AppHeader /><MobileNavbar /></MemoryRouter>);
+
+  const sidebar = within(screen.getByRole("complementary", { name: "Sidebar" }));
+  expect(sidebar.getByText("Aircraft", { selector: "p" })).toBeInTheDocument();
+  expect(sidebar.queryByText(/Availability/, { selector: "p" })).not.toBeInTheDocument();
+  expect(screen.getByText("Accountable Manager")).toBeInTheDocument();
+  expect(screen.queryByText("Administrator")).not.toBeInTheDocument();
+  const nav = within(screen.getByRole("navigation", { name: "Main navigation" }));
+  expect(nav.getAllByRole("link").map((link) => link.textContent)).toEqual([
+    "Dashboard", "Aircraft", "Personnel",
+  ]);
+  const mobile = within(screen.getByRole("navigation", { name: "Mobile navigation" }));
+  expect(mobile.getAllByRole("link").map((link) => link.textContent)).toEqual(["Dashboard", "Alerts"]);
+});
+
+it.each([
+  ["User Accounts", "Administrator · Full access"],
+  ["Another feature", "Inventory · Maintenance · Aircraft · Logbook · Personnel"],
+])("summarizes full access only when all nine system features are assigned (%s)", (last_feature, expected) => {
+  const auth = auth_module.useAuth();
+  vi.spyOn(auth_module, "useAuth").mockReturnValue({
+    ...auth,
+    user: {
+      account_UUID: "full-access",
+      emp_UUID: "employee-full-access",
+      username: "staff",
+      position: { position_UUID: "president-ceo", position_name: "President / CEO" },
+      features: [
+        "Dashboard", "Inventory", "Aircraft", "Maintenance", "Logbook",
+        "Personnel", "Availability", "Notifications", last_feature,
+      ],
+    },
+  });
+
+  render(<MemoryRouter><Sidebar /><AppHeader /></MemoryRouter>);
+
+  const sidebar = within(screen.getByRole("complementary", { name: "Sidebar" }));
+  expect(sidebar.getByText(expected)).toBeInTheDocument();
+  expect(screen.getByText("President / CEO")).toBeInTheDocument();
+  if (last_feature !== "User Accounts") {
+    expect(sidebar.queryByRole("link", { name: "User Accounts" })).not.toBeInTheDocument();
+  }
+});
+
 it("preserves notification and profile controls in the header", async () => {
   const user = userEvent.setup();
   render(

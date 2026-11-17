@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Link } from "react-router";
 import { useAuth } from "../../../features/auth/hooks/auth_context";
 import NavigationLinks from "./navigation_links";
-import { workspace_label } from "./workspace";
+import { workspace_access_label } from "./workspace";
 export default function Sidebar() {
   const { user } = useAuth();
   const [collapsed, set_collapsed] = useState(() => {
@@ -58,7 +58,7 @@ export default function Sidebar() {
             WORKSPACE
           </p>
           <p className="mt-1 text-xs font-medium">
-            {workspace_label(user) || "Account"}
+            {workspace_access_label(user)}
           </p>
         </div>
       )}

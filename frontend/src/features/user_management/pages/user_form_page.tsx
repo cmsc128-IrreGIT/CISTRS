@@ -92,19 +92,19 @@ function CreateAccountDialog({ on_close }: { on_close: () => void }) {
         <FormDialog title="Create user account" compact is_busy={pending} on_close={on_close}>
             <form onSubmit={submit}>
                 <div className={form_body}>
-                    {!can_read_personnel ? <p role="status" className="text-sm text-slate-600">Creating an account requires access to the Personnel directory.</p>
+                    {!can_read_personnel ? <p role="status" className="text-sm text-slate-600">You need Personnel access to select an employee for this account.</p>
                         : load_error ? (
                             <>
                                 <p role="alert" className="text-sm text-red-700">{load_error}</p>
                                 <Button variant="secondary" onClick={() => { set_load_error(""); set_attempt((value) => value + 1); }}>Retry</Button>
                             </>
                         ) : !eligible ? <ScreenLoading compact label="Loading personnel…" />
-                        : !eligible.length ? <p role="status" className="text-sm text-slate-600">No active personnel without an account are available.</p>
+                        : !eligible.length ? <p role="status" className="text-sm text-slate-600">No active employees without an account are available. A new hire needs an active personnel record before an account can be created.</p>
                         : (
                             <>
                                 <p className="text-xs text-slate-600"><span className="text-red-700">*</span> indicates a required field.</p>
                                 <fieldset disabled={pending} className="grid min-w-0 gap-3 sm:grid-cols-2">
-                                    <FormField label="Linked personnel" required>
+                                    <FormField label="Existing employee" required>
                                         {(props) => <select {...props} value={selected} className={account_field_style}
                                             onChange={(event) => set_selected(event.currentTarget.value)}>
                                             <option value="">Select personnel</option>
@@ -127,7 +127,7 @@ function CreateAccountDialog({ on_close }: { on_close: () => void }) {
                                 <div className="rounded-lg bg-slate-100 p-3 text-sm">
                                     <p className="font-semibold text-[#0b2238]">Assigned access</p>
                                     <p className="mt-1 text-slate-600">{person?.position || "Select a person to see their position."}</p>
-                                    {person && <p className="mt-1 text-slate-600">The account inherits access from the linked employee’s position.</p>}
+                                    {person && <p className="mt-1 text-slate-600">Workspace access is assigned by the employee’s position.</p>}
                                 </div>
                             </>
                         )}

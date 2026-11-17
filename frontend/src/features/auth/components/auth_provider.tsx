@@ -15,6 +15,8 @@ import { get_personnel } from "../../personnel/services/personnel_service";
 import { list_accounts } from "../../user_management/services/user_account_service";
 import { employee_name } from "../../../shared/utils/employee_name";
 import { AuthContext, type SessionUser } from "../hooks/auth_context";
+const AUTH_REQUEST_TIMEOUT_MS = 15_000;
+
 export default function AuthProvider({ children }: { children: ReactNode }) {
     const [user, set_user] = useState<SessionUser | null>(null);
     const [loading, set_loading] = useState(() => !!get_token());
@@ -22,7 +24,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     const generation = useRef(0);
     const restore = useCallback(() => {
         const current = ++generation.current;
-        return api<SessionUser>("/auth/me")
+        return api<SessionUser>("/auth/me", { signal: AbortSignal.timeout(AUTH_REQUEST_TIMEOUT_MS) })
             .then(
                 (data) => {
                     if (current === generation.current) {
@@ -36,14 +38,12 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
                     if (
                         error instanceof ApiError &&
                         [401, 403].includes(error.status)
-                    )
+                    ) {
                         set_token(null);
-                    else
-                        set_error(
-                            error instanceof Error
-                                ? error.message
-                                : "Unable to restore your session.",
-                        );
+                        set_error("");
+                    } else {
+                        set_error("We couldn’t open your workspace. Check your connection and try again.");
+                    }
                 },
             )
             .finally(() => {
@@ -118,6 +118,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
             "/auth/login",
             {
                 method: "POST",
+                signal: AbortSignal.timeout(AUTH_REQUEST_TIMEOUT_MS),
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ username: username.trim(), password }),
             },
