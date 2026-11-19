@@ -9,6 +9,7 @@ import { prisma } from "../lib/prisma.js";
 //   BE-12       : record an aircraft's status
 //   BE-13       : retrieve status (all aircraft, one aircraft, allowed values)
 //   BE-14       : update an aircraft's status
+//   Admin       : add a new aircraft (POST /api/admin/aircraft)
 //
 // "Status information" for an aircraft is its status (Airworthy, In Maintenance,
 // AOG, ...) plus its current flight hours. Both live on the aircraft row, and
@@ -183,4 +184,61 @@ export async function updateAircraftStatus(
         include: aircraftInclude,
     });
     return toStatusResponse(updated);
+}
+
+// -----------------------------------------------------------------------------
+// ADMIN: ADD AIRCRAFT
+//   POST /api/admin/aircraft   (User Accounts feature, see routes/admin.ts)
+//   registration is stored trimmed and upper-case, and is unique ignoring case.
+//   current_hours is optional and starts at 0.
+
+export const createAircraftSchema = z
+    .object({
+        registration: z
+            .string("Registration must be text")
+            .trim()
+            .toUpperCase()
+            .min(2, "Registration is required")
+            .max(12, "Registration must be at most 12 characters")
+            .regex(
+                /^[A-Z0-9-]+$/,
+                "Registration can only contain letters, numbers and hyphens",
+            ),
+        aircraft_type_UUID: z
+            .string()
+            .uuid("aircraft_type_UUID must be a valid UUID"),
+        aircraft_status_UUID: statusField,
+        current_hours: hoursField.optional(),
+    })
+    .strict();
+export type CreateAircraftInput = z.infer<typeof createAircraftSchema>;
+
+export async function createAircraft(input: CreateAircraftInput) {
+    const taken = await prisma.aircraft.findFirst({
+        where: { registration: { equals: input.registration, mode: "insensitive" } },
+        select: { aircraft_UUID: true },
+    });
+    if (taken) {
+        throw new HttpError(409, "An aircraft with this registration already exists");
+    }
+
+    const type = await prisma.aircraftType.findUnique({
+        where: { aircraft_type_UUID: input.aircraft_type_UUID },
+        select: { aircraft_type_UUID: true },
+    });
+    if (!type) throw new HttpError(404, "Aircraft type not found");
+    await assertStatusExists(input.aircraft_status_UUID);
+
+    const created = await prisma.aircraft.create({
+        data: {
+            registration: input.registration,
+            aircraft_type_UUID: input.aircraft_type_UUID,
+            aircraft_status_UUID: input.aircraft_status_UUID,
+            ...(input.current_hours !== undefined
+                ? { current_hours: input.current_hours }
+                : {}),
+        },
+        include: aircraftInclude,
+    });
+    return toStatusResponse(created);
 }

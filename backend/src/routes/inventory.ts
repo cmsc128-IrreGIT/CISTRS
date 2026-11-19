@@ -14,6 +14,7 @@ import {
     listHistory,
     listPartHistory,
 } from "../services/inventory/history.service.js";
+import { listLocations } from "../services/inventory/locations.service.js";
 import {
     createPart,
     createPartSchema,
@@ -31,6 +32,17 @@ import {
 
 // Mounted in server.ts behind requireAuth + requireFeature(FEATURE.Inventory).
 export const inventoryRouter = Router();
+
+// -----------------------------------------------------------------------------
+// Locations (picker data for initial_stock, set stock, assign / return)
+
+// GET /api/inventory/locations
+// -> every location { location_UUID, location_name, storage_area }, ordered by
+//    location_name then storage_area. A plain path, so it cannot collide with
+//    /parts/:part_UUID.
+inventoryRouter.get("/locations", async (_req, res) => {
+    res.json(await listLocations());
+});
 
 // -----------------------------------------------------------------------------
 // BE-02: create
