@@ -18,6 +18,7 @@ endpoints, request bodies, response shapes, validation rules and error behaviour
 | Inventory | `GET·POST /inventory/parts` <br> `GET·PATCH /inventory/parts/:id` <br> `GET /inventory/parts/:id/stock` <br> `PUT /inventory/parts/:id/stock/:locationId` <br> `GET·POST /inventory/parts/:id/aircraft` <br> `POST /inventory/parts/:id/aircraft/:aircraftId/return` <br> `GET /inventory/aircraft/:id/parts` <br> `GET /inventory/transactions` <br> `GET /inventory/transactions/:id` <br> `GET /inventory/parts/:id/history` |
 | Maintenance | `GET·POST /maintenance/ad-records` <br> `GET·PATCH /maintenance/ad-records/:id` <br> `GET·POST /maintenance/cpcp-tasks` <br> `GET·PATCH /maintenance/cpcp-tasks/:id` <br> `GET /maintenance/aircraft/:id` |
 | Logbook | `GET·POST /logbook/sectors` <br> `GET·PATCH /logbook/sectors/:id` <br> `POST /logbook/sectors/:id/fuel-transactions` <br> `GET·PATCH /logbook/fuel-transactions/:id` <br> `POST /logbook/export` |
+| Lookups | `GET /lookups` |
 
 ## Contents
 
@@ -125,6 +126,7 @@ Access is **position-based**. Every employee has one position; a position grants
 | `/api/maintenance` | `Maintenance` |
 | `/api/personnel` | `Personnel` |
 | `/api/auth/*` | any valid token (no feature) |
+| `/api/lookups` | any valid token (no feature) |
 
 Feature names (exact strings): `Dashboard`, `Inventory`, `Aircraft`, `Maintenance`, `Logbook`, `Personnel`, `Availability`, `Notifications`, `User Accounts`.
 
@@ -818,31 +820,55 @@ Because the request needs the `Authorization` header, a plain `<a href>` link wi
 
 ## 10. Reference data and known gaps
 
-### Dropdown data: what exists today
+### GET `/api/lookups`
 
-Many forms need IDs of lookup records. Only **one** lookup endpoint exists:
+All dropdown lists for the forms, in one request. Any authenticated account can call it: it needs a valid token but **no feature**, so users who cannot open Aircraft or Personnel can still fill in the logbook and employee forms. Lists are sorted by name. `bases` and `positions` return **active rows only**; the other lists have no active flag and return every row.
+
+**Response (200):**
+
+```json
+{
+  "flight_types":         [{ "flight_type_UUID": "…", "type_name": "Charter", "description": "…" }],
+  "flight_statuses":      [{ "flight_status_UUID": "…", "status_name": "Completed", "description": "…" }],
+  "delay_categories":     [{ "delay_category_UUID": "…", "category_name": "Weather", "description": "…" }],
+  "bases":                [{ "base_UUID": "…", "base_name": "Cebu", "base_location": "…" }],
+  "employment_statuses":  [{ "emp_status_UUID": "…", "status_name": "Regular", "description": "…" }],
+  "personnel_categories": [{ "personnel_category_UUID": "…", "category_name": "Pilot", "description": "…" }],
+  "positions":            [{ "position_UUID": "…", "position_name": "Captain", "description": "…" }],
+  "aircraft_types":       [{ "aircraft_type_UUID": "…", "type_name": "Cessna 208B Grand Caravan", "description": "…" }],
+  "aircraft_statuses":    [{ "aircraft_status_UUID": "…", "status_name": "Airworthy", "description": "…" }]
+}
+```
+
+Errors: `401` without a valid token.
+
+| Form | Lists to use |
+| --- | --- |
+| Create / edit logbook sector | `flight_types`, `flight_statuses`, `delay_categories` |
+| Create employee | `bases`, `employment_statuses`, `positions`, `personnel_categories` |
+| Aircraft | `aircraft_types`, `aircraft_statuses` |
+
+Send the UUID from the row (for example `base_UUID`), never the name. `GET /api/aircraft/statuses` still exists and returns the same data as `aircraft_statuses`.
+
+### Dropdown data: what is still missing
+
+Lookups that `GET /api/lookups` does **not** cover:
 
 | Needed for | Available? | Where to get it |
 | --- | --- | --- |
-| Aircraft status (`aircraft_status_UUID`) | Yes | `GET /api/aircraft/statuses` |
 | Aircraft list (`aircraft_UUID`) | Yes | `GET /api/aircraft` (needs `Aircraft` feature) |
 | Employees for pickers (supervisor, mechanic, assignee, PIC / SIC / observer, fuel recipient) | Partly | `GET /api/personnel/employees?record_status=Active&q=` (needs `Personnel` feature) |
 | Parts | Yes | `GET /api/inventory/parts` |
-| Base (`base_UUID`) | **No endpoint** | only visible inside an employee's `base` object |
-| Employment status (`emp_status_UUID`) | **No endpoint** | only inside `employment_status` |
-| Position (`position_UUID`) | **No endpoint** | only inside `position` |
-| Personnel category (`personnel_category_UUID`) | **No endpoint** | name only inside `personnel_category` |
 | Inventory location (`location_UUID`) | **No endpoint** | only the locations that already hold stock appear in a part's `locations` |
-| Flight status, flight type, delay category | **No endpoint** | only inside an existing sector |
-| Aircraft type, license type, renewal status | **No endpoint** | n/a |
+| License type, renewal status | **No endpoint** | n/a |
 
-The frontend cannot build the Create Employee form, "add initial stock" selector or Create Logbook Entry form from the API alone until the backend adds these lookup endpoints. **Ask the backend team for `GET` lookup endpoints** (ideally readable by any authenticated user).
+The "add initial stock" selector still cannot be built from the API alone. **Ask the backend team for a `GET` endpoint for inventory locations** (ideally readable by any authenticated user).
 
 Seeded values in the dev database (names only; IDs must be fetched, never hard-coded): bases Cebu / Manila / Davao; employment statuses Regular, Probationary, On-call, Contractual, Owner; personnel categories Pilot, Operations Personnel, Aircraft Maintenance Technician, Inventory Personnel, Quality / Safety Personnel; inventory locations Cebu Main Store, Cebu Maintenance Room, Manila Store, Davao Store; flight statuses Completed, Delayed; flight types Charter, Cargo, Positioning; delay categories Weather, Maintenance; aircraft statuses Airworthy, In Maintenance, AOG.
 
 ### Things to confirm with the backend team
 
-1. **Feature gating can block pickers.** With the seeded positions, Captain and First Officer have `Logbook` but not `Aircraft` or `Personnel`, so they cannot load the aircraft list or crew list needed to fill in a logbook entry. Chief Aircraft Mechanic has `Maintenance` but not `Aircraft` or `Personnel`, so the same applies to AD / CPCP forms. The fix is either shared read-only lookup endpoints or adjusted position features.
+1. **Feature gating can block pickers.** With the seeded positions, Captain and First Officer have `Logbook` but not `Aircraft` or `Personnel`, so they cannot load the aircraft list or crew list needed to fill in a logbook entry. Chief Aircraft Mechanic has `Maintenance` but not `Aircraft` or `Personnel`, so the same applies to AD / CPCP forms. `GET /api/lookups` now covers the dropdown lists, but the aircraft list and crew list still sit behind `Aircraft` and `Personnel`. The fix is either shared read-only endpoints for those or adjusted position features.
 2. **Malformed JSON returns `500`**, not `400`. Always send valid JSON with `Content-Type: application/json`.
 3. **Inconsistent shapes:** aircraft `status` is an object in `/aircraft` but a string in maintenance and logbook summaries; license dates are ISO timestamps while employee dates are `YYYY-MM-DD`.
 4. **Sessions:** no refresh endpoint (8 hour tokens); logout revocation is in server memory only.
@@ -931,4 +957,3 @@ async function exportLogbook(body: object) {
   URL.revokeObjectURL(url);
 }
 ```
-
