@@ -363,14 +363,16 @@ export async function listEmployees(query: ListEmployeesQuery) {
         record_status: query.record_status,
         personnel_category_UUID: query.personnel_category_UUID,
         base_UUID: query.base_UUID,
-        AND: tokens.map((token) => ({
-            OR: [
-                { emp_number: { contains: token, mode: "insensitive" as const } },
-                { f_name: { contains: token, mode: "insensitive" as const } },
-                { m_name: { contains: token, mode: "insensitive" as const } },
-                { l_name: { contains: token, mode: "insensitive" as const } },
-            ],
-        })),
+        ...(tokens.length > 0 && {
+            AND: tokens.map((token) => ({
+                OR: [
+                    { emp_number: { contains: token, mode: "insensitive" as const } },
+                    { f_name: { contains: token, mode: "insensitive" as const } },
+                    { m_name: { contains: token, mode: "insensitive" as const } },
+                    { l_name: { contains: token, mode: "insensitive" as const } },
+                ],
+            })),
+        }),
     };
 
     const [total, employees] = await prisma.$transaction([

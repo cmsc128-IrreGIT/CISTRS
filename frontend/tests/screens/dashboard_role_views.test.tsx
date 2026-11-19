@@ -293,11 +293,11 @@ it("excludes decommissioned parts from the Inventory count and stock alerts", as
   ).not.toBeInTheDocument();
 });
 
-it("shows today beside Overview and identifies the combined workspace", async () => {
+it("shows today beside Overview and summarizes the mechanic’s workspace", async () => {
   state.position = "Chief Aircraft Mechanic";
   state.features = ["Dashboard", "Inventory", "Maintenance"];
   show();
-  expect(screen.getByText("Inventory + Mechanic")).toBeInTheDocument();
+  expect(screen.getByText("Inventory · Maintenance")).toBeInTheDocument();
   const overview = await screen.findByRole("heading", { name: "Overview" });
   const date = new Intl.DateTimeFormat("en-GB", { dateStyle: "full" }).format(new Date());
   expect(overview.parentElement).toContainElement(screen.getByText(date));

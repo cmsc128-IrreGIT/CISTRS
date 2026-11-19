@@ -50,7 +50,7 @@ export default function UserDetailsPage() {
                     <DetailsList entries={[
                         { id: "personnel", label: "Linked personnel", value: [name, account.employee.emp_number].filter(Boolean).join(" · ") },
                         { id: "username", label: "Username", value: account.username },
-                        { id: "role", label: "System role", value: account.employee.position?.position_name || "Not recorded" },
+                        { id: "position", label: "Position", value: account.employee.position?.position_name || "Not recorded" },
                         { id: "status", label: "Account status", value: <AccountStatus status={status} preview={Boolean(preview)} /> },
                     ]} />
                 </div>

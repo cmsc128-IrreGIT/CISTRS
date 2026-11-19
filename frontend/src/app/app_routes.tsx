@@ -15,13 +15,26 @@ import SignupPage from "../features/auth/pages/signup_page";
 import ForgotPasswordPage from "../features/auth/pages/forgot_password_page";
 import NotFoundPage from "../shared/pages/not_found_page";
 
-import InventoryPage from "../features/inventory/pages/inventory_page";
-import InventoryDetailsPage from "../features/inventory/pages/inventory_details_page";
-import InventoryFormPage from "../features/inventory/pages/inventory_form_page";
-import InventoryUnavailablePage from "../features/inventory/pages/inventory_unavailable_page";
-import DecommissionedPartsPage from "../features/inventory/pages/inventory_decommissioned_parts_page";
-import InventoryHistoryPage from "../features/inventory/pages/inventory_history_page";
 import { INVENTORY_CORRECTIONS_PATH, INVENTORY_REQUESTS_PATH } from "../features/inventory/constants/inventory_constants";
+
+const InventoryPage = lazy(
+    () => import("../features/inventory/pages/inventory_page"),
+);
+const InventoryDetailsPage = lazy(
+    () => import("../features/inventory/pages/inventory_details_page"),
+);
+const InventoryFormPage = lazy(
+    () => import("../features/inventory/pages/inventory_form_page"),
+);
+const InventoryUnavailablePage = lazy(
+    () => import("../features/inventory/pages/inventory_unavailable_page"),
+);
+const DecommissionedPartsPage = lazy(
+    () => import("../features/inventory/pages/inventory_decommissioned_parts_page"),
+);
+const InventoryHistoryPage = lazy(
+    () => import("../features/inventory/pages/inventory_history_page"),
+);
 
 const AircraftPage = lazy(
     () => import("../features/aircraft/pages/aircraft_page"),
@@ -40,13 +53,6 @@ const MaintenanceFormPage = lazy(
     () => import("../features/maintenance/pages/maintenance_form_page"),
 );
 
-import PersonnelWorkspace from "../features/personnel/pages/personnel_workspace";
-import PersonnelPage from "../features/personnel/pages/personnel_page";
-import PersonnelDetailsPage from "../features/personnel/pages/personnel_details_page";
-import PersonnelDocumentsPage from "../features/personnel/pages/personnel_documents_page";
-import PersonnelFormPage from "../features/personnel/pages/personnel_form_page";
-import AvailabilityPage from "../features/personnel/pages/availability_page";
-
 import NotificationPreferencesPage from "../features/notifications/pages/notification_preferences_page";
 import NotificationsPage from "../features/notifications/pages/notifications_page";
 
@@ -54,6 +60,25 @@ import UserAccountsWorkspace from "../features/user_management/pages/user_accoun
 import UsersPage from "../features/user_management/pages/users_page";
 import UserDetailsPage from "../features/user_management/pages/user_details_page";
 import UserFormPage from "../features/user_management/pages/user_form_page";
+
+const PersonnelWorkspace = lazy(
+    () => import("../features/personnel/pages/personnel_workspace"),
+);
+const PersonnelPage = lazy(
+    () => import("../features/personnel/pages/personnel_page"),
+);
+const PersonnelDetailsPage = lazy(
+    () => import("../features/personnel/pages/personnel_details_page"),
+);
+const PersonnelDocumentsPage = lazy(
+    () => import("../features/personnel/pages/personnel_documents_page"),
+);
+const PersonnelFormPage = lazy(
+    () => import("../features/personnel/pages/personnel_form_page"),
+);
+const AvailabilityPage = lazy(
+    () => import("../features/personnel/pages/availability_page"),
+);
 
 const InventoryRequestsPage = lazy(
     () => import("../features/inventory/pages/inventory_requests_page"),
@@ -154,9 +179,7 @@ export default function AppRoutes() {
                     path={INVENTORY_REQUESTS_PATH}
                     element={
                         <InventoryAccess manage>
-                            <Suspense fallback={<ScreenLoading />}>
-                                <InventoryRequestsPage />
-                            </Suspense>
+                            <InventoryRequestsPage />
                         </InventoryAccess>
                     }
                 />
@@ -164,9 +187,7 @@ export default function AppRoutes() {
                     path={INVENTORY_CORRECTIONS_PATH}
                     element={
                         <InventoryAccess manage>
-                            <Suspense fallback={<ScreenLoading />}>
-                                <InventoryRequestsPage key="corrections" correction />
-                            </Suspense>
+                            <InventoryRequestsPage key="corrections" correction />
                         </InventoryAccess>
                     }
                 />

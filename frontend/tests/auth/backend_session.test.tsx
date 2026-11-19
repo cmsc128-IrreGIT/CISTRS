@@ -137,6 +137,56 @@ it("shows invalid credentials without creating a session", async () => {
     );
     expect(get_token()).toBeNull();
 });
+it.each([
+    [403, "Your assigned position is inactive. Contact an administrator.", "Your assigned position is inactive."],
+    [500, "Internal database detail", "Sign-in is temporarily unavailable."],
+])("shows actionable sign-in feedback for HTTP %s", async (status, message, expected) => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(Response.json({ message }, { status })));
+    render(<MemoryRouter><AuthProvider><LoginPage /></AuthProvider></MemoryRouter>);
+
+    const person = userEvent.setup();
+    await person.type(screen.getByLabelText("Username"), "adrian.reyes");
+    await person.type(screen.getByLabelText("Password"), "test-password1");
+    await person.click(screen.getByRole("button", { name: "Log in" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(expected);
+    if (status === 500) expect(screen.getByRole("alert")).not.toHaveTextContent(message);
+    expect(screen.getByRole("button", { name: "Log in" })).toBeEnabled();
+    expect(get_token()).toBeNull();
+});
+
+it("retries opening a saved workspace and continues automatically", async () => {
+    set_token("saved-token");
+    let complete_restore!: (response: Response) => void;
+    const retry_response = new Promise<Response>((resolve) => { complete_restore = resolve; });
+    const fetcher = vi.fn()
+        .mockRejectedValueOnce(new TypeError("Failed to fetch"))
+        .mockReturnValueOnce(retry_response);
+    vi.stubGlobal("fetch", fetcher);
+
+    render(
+        <MemoryRouter initialEntries={["/login"]}>
+            <AuthProvider>
+                <Routes>
+                    <Route path="/login" element={<LoginPage />} />
+                    <Route path="/dashboard" element={<Workspace />} />
+                </Routes>
+            </AuthProvider>
+        </MemoryRouter>,
+    );
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("We couldn’t open your workspace.");
+    expect(get_token()).toBe("saved-token");
+    await userEvent.click(screen.getByRole("button", { name: "Retry connection" }));
+    expect(screen.getByRole("status")).toHaveTextContent("Opening your workspace…");
+
+    complete_restore(Response.json(user));
+    expect(await screen.findByText("adrian.reyes")).toBeInTheDocument();
+    expect(fetcher.mock.calls.map(([url]) => url)).toEqual([
+        expect.stringMatching(/\/auth\/me$/), expect.stringMatching(/\/auth\/me$/),
+    ]);
+});
+
 it("restores a session from the server and revokes it on logout", async () => {
     set_token("saved-token");
     const fetcher = vi
@@ -216,7 +266,7 @@ it("keeps a saved token when the server is temporarily unreachable", async () =>
         </AuthProvider>,
     );
     expect(await screen.findByRole("alert")).toHaveTextContent(
-        "Cannot reach the server",
+        "We couldn’t open your workspace.",
     );
     expect(get_token()).toBe("saved-token");
 });

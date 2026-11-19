@@ -9,6 +9,8 @@ export class ApiError extends Error {
         this.status = status;
     }
 }
+export class ApiConnectionError extends Error {}
+
 export function get_token() {
     return sessionStorage.getItem(TOKEN_KEY);
 }
@@ -28,7 +30,7 @@ export async function api_fetch(
         response = await fetch(input, { ...init, headers });
     } catch (error) {
         if (init.signal?.aborted) throw error;
-        throw new Error(
+        throw new ApiConnectionError(
             "Cannot reach the server. Check that the backend is running and try again.",
             { cause: error },
         );

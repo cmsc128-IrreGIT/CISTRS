@@ -22,12 +22,14 @@ export default function NavigationLinks({
   const workspace = get_workspace(user);
   const pilot = workspace === "pilot" || workspace === "pilot_mechanic";
   const features: Record<string, string> = {
+    "/dashboard": "Dashboard",
     "/inventory": "Inventory",
     "/aircraft": "Aircraft",
     "/maintenance": "Maintenance",
     "/logbook": "Logbook",
     "/users": "User Accounts",
   };
+  // Personnel also has a read-only directory for authenticated staff.
   const items = navigation_items
     .filter(
       (item) =>

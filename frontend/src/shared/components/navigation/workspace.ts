@@ -35,25 +35,30 @@ export function get_workspace(user: SessionUser | null): Workspace {
         : workspace;
 }
 
-export const workspace_labels: Record<Workspace, string> = {
-    administrator: "Administrator",
-    inventory: "Inventory",
-    mechanic: "Mechanic",
-    pilot: "Pilot",
-    inventory_mechanic: "Inventory + Mechanic",
-    pilot_mechanic: "Pilot + Mechanic",
-    default: "",
-};
+const core_workspace_features = [
+    "Inventory",
+    "Maintenance",
+    "Aircraft",
+    "Logbook",
+    "Personnel",
+    "User Accounts",
+];
 
-export function workspace_label(user: SessionUser | null) {
-    const workspace = get_workspace(user);
+const full_workspace_features = [...core_workspace_features, "Dashboard", "Notifications", "Availability"];
+
+export function workspace_access_label(user: SessionUser | null) {
     const features = user?.features ?? [];
-    if (workspace === "mechanic" && features.includes("Inventory") && features.includes("Maintenance"))
-        return workspace_labels.inventory_mechanic;
-    if (workspace !== "default") return workspace_labels[workspace];
-    if (features.includes("Logbook")) return workspace_labels.pilot;
-    if (features.includes("Personnel")) return "Personnel";
-    return user?.roles?.join(" + ") || "Account";
+    if (full_workspace_features.every((feature) => features.includes(feature))) {
+        return "Administrator · Full access";
+    }
+
+    return core_workspace_features
+        .filter((feature) => features.includes(feature))
+        .join(" · ") || "No core modules assigned";
+}
+
+export function position_label(user: SessionUser | null) {
+    return user?.position?.position_name?.trim() || "Account";
 }
 
 export function get_inventory_access(user: SessionUser | null) {

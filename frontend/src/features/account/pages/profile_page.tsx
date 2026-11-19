@@ -10,7 +10,6 @@ import Button from "../../../shared/components/ui/button";
 import Card from "../../../shared/components/ui/card";
 import FormDialog from "../../../shared/components/ui/form_dialog";
 import StatusBadge from "../../../shared/components/ui/status_badge";
-import { workspace_label } from "../../../shared/components/navigation/workspace";
 
 export default function ProfilePage() {
     const { user } = useAuth();
@@ -48,7 +47,6 @@ function Profile({ user }: { user: SessionUser }) {
         { title: "Work information", entries: [
             { label: "Position", value: user.position?.position_name || record?.position || "Not recorded" },
             { label: "Department", value: record?.department || "Not available" },
-            { label: "Assigned duties", value: workspace_label(user) },
             { label: "Access", value: user.features.join(", ") || "Not assigned" },
         ] },
     ];

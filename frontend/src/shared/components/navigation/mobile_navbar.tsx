@@ -7,9 +7,9 @@ import NavigationLinks from "./navigation_links";
 import { get_inventory_access } from "./workspace";
 
 const mobile_links = [
-  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/inventory", label: "Inventory", icon: Package },
-  { to: "/notifications", label: "Alerts", icon: Bell },
+  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, feature: "Dashboard" },
+  { to: "/inventory", label: "Inventory", icon: Package, feature: "Inventory" },
+  { to: "/notifications", label: "Alerts", icon: Bell, feature: "Notifications" },
 ];
 
 export default function MobileNavbar() {
@@ -28,11 +28,7 @@ export default function MobileNavbar() {
       >
         <div className="flex gap-1">
           {mobile_links
-            .filter(
-              (item) =>
-                item.to !== "/inventory" ||
-                get_inventory_access(user) !== "none",
-            )
+            .filter(({ feature }) => user?.features.includes(feature))
             .map(({ to, label, icon: Icon }) => (
               <NavLink
                 key={to}

@@ -118,7 +118,7 @@ it("shows live positions, filters accounts, and opens the manage screen", async 
     await user.type(screen.getByRole("searchbox"), "missing");
     expect(screen.getByText("No matching accounts")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Clear search accounts" }));
-    await user.selectOptions(screen.getByLabelText("System role"), "Inventory Officer");
+    await user.selectOptions(screen.getByLabelText("Position"), "Inventory Officer");
     await user.click(screen.getByRole("link", { name: "Manage Saved Mario Employee" }));
     expect(screen.getByRole("heading", { name: "Manage account" })).toBeInTheDocument();
     expect(screen.getByText("Saved Mario Employee · E-1")).toBeInTheDocument();
@@ -156,7 +156,7 @@ it("creates a live account with the linked employee and refreshes the directory"
     mount("/users/new");
     const user = userEvent.setup();
     const dialog = within(await screen.findByRole("dialog", { name: "Create user account" }));
-    const personnel = await dialog.findByLabelText(/Linked personnel/);
+    const personnel = await dialog.findByLabelText(/Existing employee/);
     expect(dialog.queryByRole("option", { name: "Saved Mario Employee · E-1" })).not.toBeInTheDocument();
     expect(dialog.queryByRole("option", { name: "New Employee · E-4" })).not.toBeInTheDocument();
     await user.selectOptions(personnel, "employee-one");
