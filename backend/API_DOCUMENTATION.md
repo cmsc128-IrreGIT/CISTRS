@@ -12,13 +12,13 @@ endpoints, request bodies, response shapes, validation rules and error behaviour
 | Module | Endpoints |
 | --- | --- |
 | Auth | `POST /auth/login` <br> `GET /auth/me` <br> `POST /auth/logout` |
-| Users | `GET /users` <br> `POST /users` |
+| Users | `GET /users` <br> `GET /users/eligible-employees` <br> `POST /users` |
 | Aircraft | `GET /aircraft/statuses` <br> `GET /aircraft` <br> `GET·POST·PATCH /aircraft/:id/status` |
-| Personnel | `GET·POST /personnel/employees` <br> `GET·PATCH /personnel/employees/:id` <br> `GET /personnel/licenses/expiring` |
-| Inventory | `GET·POST /inventory/parts` <br> `GET·PATCH /inventory/parts/:id` <br> `GET /inventory/parts/:id/stock` <br> `PUT /inventory/parts/:id/stock/:locationId` <br> `GET·POST /inventory/parts/:id/aircraft` <br> `POST /inventory/parts/:id/aircraft/:aircraftId/return` <br> `GET /inventory/aircraft/:id/parts` <br> `GET /inventory/transactions` <br> `GET /inventory/transactions/:id` <br> `GET /inventory/parts/:id/history` |
+| Personnel | `GET·POST /personnel/employees` <br> `GET·PATCH /personnel/employees/:id` <br> `GET /personnel/licenses/expiring` <br> `GET /personnel/directory` |
+| Inventory | `GET /inventory/locations` <br> `GET·POST /inventory/parts` <br> `GET·PATCH /inventory/parts/:id` <br> `GET /inventory/parts/:id/stock` <br> `PUT /inventory/parts/:id/stock/:locationId` <br> `GET·POST /inventory/parts/:id/aircraft` <br> `POST /inventory/parts/:id/aircraft/:aircraftId/return` <br> `GET /inventory/aircraft/:id/parts` <br> `GET /inventory/transactions` <br> `GET /inventory/transactions/:id` <br> `GET /inventory/parts/:id/history` |
 | Maintenance | `GET·POST /maintenance/ad-records` <br> `GET·PATCH /maintenance/ad-records/:id` <br> `GET·POST /maintenance/cpcp-tasks` <br> `GET·PATCH /maintenance/cpcp-tasks/:id` <br> `GET /maintenance/aircraft/:id` |
 | Logbook | `GET·POST /logbook/sectors` <br> `GET·PATCH /logbook/sectors/:id` <br> `POST /logbook/sectors/:id/fuel-transactions` <br> `GET·PATCH /logbook/fuel-transactions/:id` <br> `POST /logbook/export` |
-| Lookups | `GET /lookups` |
+| Lookups | `GET /lookups` <br> `GET /lookups/aircraft` |
 
 ## Contents
 
@@ -125,8 +125,9 @@ Access is **position-based**. Every employee has one position; a position grants
 | `/api/logbook` | `Logbook` |
 | `/api/maintenance` | `Maintenance` |
 | `/api/personnel` | `Personnel` |
+| `/api/personnel/directory` | any valid token (no feature) |
 | `/api/auth/*` | any valid token (no feature) |
-| `/api/lookups` | any valid token (no feature) |
+| `/api/lookups` (including `/api/lookups/aircraft`) | any valid token (no feature) |
 
 Feature names (exact strings): `Dashboard`, `Inventory`, `Aircraft`, `Maintenance`, `Logbook`, `Personnel`, `Availability`, `Notifications`, `User Accounts`.
 
@@ -223,6 +224,30 @@ All accounts ordered by username. Passwords are never returned.
 
 `account_status` is `"Active" | "Inactive" | "Locked"`. `last_login_at` is `null` if the user never logged in.
 
+### GET `/api/users/eligible-employees`
+
+Employees an account can be created for right now: **active** employees whose position is **active** and who have **no account yet**. These are the same checks `POST /api/users` makes, so every row returned can be sent as `emp_UUID` without a `400` or `409` for the employee. Use it to fill the employee picker on the create-account form; it replaces joining `GET /api/personnel/employees` with `GET /api/users` in the client, which needed both the `Personnel` and `User Accounts` features. Needs only `User Accounts`. Ordered by last name then first name, not paged, no query parameters.
+
+Each row has the same fields as the [staff directory](#get-apipersonneldirectory-staff-directory):
+
+```json
+[
+  {
+    "emp_UUID": "…",
+    "emp_number": "SA-0009",
+    "f_name": "Juan", "m_name": null, "l_name": "Dela Cruz", "suffix": null,
+    "position": { "position_name": "Captain" },
+    "personnel_category": "Pilot",
+    "department": "Pilot",
+    "base": { "base_name": "Cebu" }
+  }
+]
+```
+
+`personnel_category` is the category name (string). The list is empty when every eligible employee already has an account. It is a snapshot: another admin can create an account first, so `POST /api/users` can still return `409 This employee already has a user account`.
+
+Errors: `401` without a valid token; `403` without `User Accounts`.
+
 ### POST `/api/users`
 
 Creates a login for an **existing** employee. The employee's position decides their access.
@@ -292,12 +317,14 @@ Requires feature `Aircraft`. "Status information" is the aircraft's status plus 
 - Errors: `404 Aircraft not found`, `404 Aircraft status not found`, `400` validation.
 
 > There is no endpoint to create an aircraft or list aircraft types.
+>
+> Users without the `Aircraft` feature (Captain, First Officer, Chief Aircraft Mechanic, Inventory Officer) can read the same list from `GET /api/lookups/aircraft` (see section 10). The gated `GET /api/aircraft` is unchanged.
 
 ---
 
 ## 6. Personnel
 
-Requires feature `Personnel`. **Pilots are employees** whose `personnel_category` is `"Pilot"`; there is no separate pilot endpoint. Use `personnel_category_UUID` (or the category name in the response) to tell them apart.
+Requires feature `Personnel`, except the [staff directory](#get-apipersonneldirectory-staff-directory) at the end of this section, which any authenticated account can read. **Pilots are employees** whose `personnel_category` is `"Pilot"`; there is no separate pilot endpoint. Use `personnel_category_UUID` (or the category name in the response) to tell them apart.
 
 ### Employee object
 
@@ -414,6 +441,41 @@ Licenses expiring within `days` days from now (default 60; invalid or below 1 fa
 ]
 ```
 
+### GET `/api/personnel/directory` (staff directory)
+
+Needs a valid token but **no feature**, so users without `Personnel` (for example Captain, First Officer, Chief Aircraft Mechanic) can still fill pilot / mechanic dropdowns, the fuel `issued_to` picker and the supervisor field. It is mounted ahead of the gated `/api/personnel`, so `/api/personnel/directory` never reaches the `Personnel` check. Read-only; returns **active employees only**, ordered by last name then first name, not paged.
+
+Query parameters, both optional:
+
+| Param | Meaning |
+| --- | --- |
+| `category` | Personnel category **name**, case-insensitive exact match (`Pilot`, `Aircraft Maintenance Technician`). Take the names from `personnel_categories` in `GET /api/lookups`. An unknown name returns `[]`. |
+| `q` | Case-insensitive search on employee number and first / middle / last name, max 100 chars. Several words must each match something (`adrian reyes`). |
+
+An empty value (`?category=`) is the same as leaving the parameter out. With no parameters, every active employee is returned.
+
+```json
+[
+  {
+    "emp_UUID": "…",
+    "emp_number": "SA-0004",
+    "f_name": "Angela", "m_name": null, "l_name": "Cruz", "suffix": null,
+    "position": { "position_name": "Captain" },
+    "personnel_category": "Pilot",
+    "department": "Pilot",
+    "base": { "base_name": "Cebu" }
+  }
+]
+```
+
+Things to watch:
+
+- `personnel_category` is the **category name (string)**, the same as in the employee object above. It has no UUID here; use `GET /api/lookups` if you need one.
+- Only basic work details are returned. Dates of birth, blood type, contacts, licenses and the supervisor are **not** included; those stay behind `Personnel`.
+- Use `emp_UUID` as the value to send (`issued_to`, `supervisor_emp_UUID`, crew fields).
+
+Errors: `400` if `category` or `q` is longer than 100 characters; `401` without a valid token.
+
 ---
 
 ## 7. Inventory
@@ -446,6 +508,22 @@ How it works: quantity lives per **part + location**. Every change is written to
 ```
 
 `suppliers` and `manufacturers` are arrays of organisation **names** (strings, not objects). `is_low_stock` is `total_quantity < min_stock_level`.
+
+### Locations endpoint
+
+| Method and path | Purpose | Success |
+| --- | --- | --- |
+| `GET /api/inventory/locations` | Every inventory location, including ones that hold no stock yet. Not paged, ordered by `location_name` then `storage_area`. | 200 |
+
+Response:
+
+```json
+[
+  { "location_UUID": "…", "location_name": "Cebu Main Store", "storage_area": "Shelf A1" }
+]
+```
+
+Use it to fill the `location_UUID` pickers for `initial_stock` (part create), set stock and assign / return. Requires feature `Inventory` (same gate as the rest of `/api/inventory`). It is a fixed path, so it does not conflict with `/parts/:part_UUID`.
 
 ### Parts endpoints
 
@@ -846,9 +924,17 @@ Errors: `401` without a valid token.
 | --- | --- |
 | Create / edit logbook sector | `flight_types`, `flight_statuses`, `delay_categories` |
 | Create employee | `bases`, `employment_statuses`, `positions`, `personnel_categories` |
+| Pilot / mechanic dropdowns, fuel `issued_to`, supervisor | `GET /api/personnel/directory` (see section 6) |
 | Aircraft | `aircraft_types`, `aircraft_statuses` |
+| Logbook, maintenance and part-assignment aircraft picker | `GET /api/lookups/aircraft` |
 
 Send the UUID from the row (for example `base_UUID`), never the name. `GET /api/aircraft/statuses` still exists and returns the same data as `aircraft_statuses`.
+
+### GET `/api/lookups/aircraft`
+
+The aircraft list for pickers, open to any authenticated account (valid token, **no feature**). Use it to get `aircraft_UUID` for logbook entries, AD / CPCP records and part assignment when the user does not have the `Aircraft` feature. It returns exactly the same data as `GET /api/aircraft`: every aircraft with its status object and hours, ordered by registration (see the aircraft status object in section 5). It is read-only; changing status or hours still needs `Aircraft` through `/api/aircraft/:aircraft_UUID/status`. `GET /api/aircraft` keeps its `Aircraft` feature gate.
+
+Errors: `401` without a valid token.
 
 ### Dropdown data: what is still missing
 
@@ -856,19 +942,17 @@ Lookups that `GET /api/lookups` does **not** cover:
 
 | Needed for | Available? | Where to get it |
 | --- | --- | --- |
-| Aircraft list (`aircraft_UUID`) | Yes | `GET /api/aircraft` (needs `Aircraft` feature) |
-| Employees for pickers (supervisor, mechanic, assignee, PIC / SIC / observer, fuel recipient) | Partly | `GET /api/personnel/employees?record_status=Active&q=` (needs `Personnel` feature) |
+| Aircraft list (`aircraft_UUID`) | Yes | `GET /api/lookups/aircraft` (any authenticated user). `GET /api/aircraft` returns the same data but needs the `Aircraft` feature. |
+| Employees for pickers (supervisor, mechanic, assignee, PIC / SIC / observer, fuel recipient) | Yes | `GET /api/personnel/directory?category=&q=` (any authenticated user). The full `GET /api/personnel/employees` needs the `Personnel` feature. |
 | Parts | Yes | `GET /api/inventory/parts` |
-| Inventory location (`location_UUID`) | **No endpoint** | only the locations that already hold stock appear in a part's `locations` |
+| Inventory location (`location_UUID`) | Yes | `GET /api/inventory/locations` (needs the `Inventory` feature) |
 | License type, renewal status | **No endpoint** | n/a |
-
-The "add initial stock" selector still cannot be built from the API alone. **Ask the backend team for a `GET` endpoint for inventory locations** (ideally readable by any authenticated user).
 
 Seeded values in the dev database (names only; IDs must be fetched, never hard-coded): bases Cebu / Manila / Davao; employment statuses Regular, Probationary, On-call, Contractual, Owner; personnel categories Pilot, Operations Personnel, Aircraft Maintenance Technician, Inventory Personnel, Quality / Safety Personnel; inventory locations Cebu Main Store, Cebu Maintenance Room, Manila Store, Davao Store; flight statuses Completed, Delayed; flight types Charter, Cargo, Positioning; delay categories Weather, Maintenance; aircraft statuses Airworthy, In Maintenance, AOG.
 
 ### Things to confirm with the backend team
 
-1. **Feature gating can block pickers.** With the seeded positions, Captain and First Officer have `Logbook` but not `Aircraft` or `Personnel`, so they cannot load the aircraft list or crew list needed to fill in a logbook entry. Chief Aircraft Mechanic has `Maintenance` but not `Aircraft` or `Personnel`, so the same applies to AD / CPCP forms. `GET /api/lookups` now covers the dropdown lists, but the aircraft list and crew list still sit behind `Aircraft` and `Personnel`. The fix is either shared read-only endpoints for those or adjusted position features.
+1. **Feature gating can block pickers.** With the seeded positions, Captain and First Officer have `Logbook` but not `Aircraft` or `Personnel`, so they cannot load the aircraft list or crew list needed to fill in a logbook entry. Chief Aircraft Mechanic has `Maintenance` but not `Aircraft` or `Personnel`, so the same applies to AD / CPCP forms. `GET /api/lookups` covers the dropdown lists and `GET /api/personnel/directory` covers the crew / employee pickers for any authenticated user. `GET /api/lookups/aircraft` covers the aircraft picker for any authenticated user.
 2. **Malformed JSON returns `500`**, not `400`. Always send valid JSON with `Content-Type: application/json`.
 3. **Inconsistent shapes:** aircraft `status` is an object in `/aircraft` but a string in maintenance and logbook summaries; license dates are ISO timestamps while employee dates are `YYYY-MM-DD`.
 4. **Sessions:** no refresh endpoint (8 hour tokens); logout revocation is in server memory only.
