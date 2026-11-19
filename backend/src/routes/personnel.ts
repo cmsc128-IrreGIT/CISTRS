@@ -41,6 +41,12 @@ import {
     updateDocument,
     updateDocumentSchema,
 } from "../services/personnel/document.service.js";
+import {
+    listLicenseTypes,
+    listRenewalStatuses,
+    listTrainingTypes,
+    listTrainingProviders,
+} from "../services/personnel/lookup.service.js";
 
 // Mounted in server.ts behind requireAuth + requireFeature(FEATURE.Personnel).
 export const personnelRouter = Router();
@@ -174,7 +180,7 @@ personnelRouter.delete("/availability/:availability_UUID", async (req, res) => {
 // body: { emp_UUID, kind, name, reference?, date_issued, expiry_date?, renewal_date?, file_path?, remarks? }
 personnelRouter.post("/documents", async (req, res) => {
     const input = parseOrThrow(createDocumentSchema, req.body);
-    res.status(201).json(await createDocument(input, req.user!.emp_UUID));
+    res.status(201).json(await createDocument(input));
 });
 
 // POST /api/personnel/documents/upload (multipart/form-data with file)
@@ -182,7 +188,7 @@ personnelRouter.post("/documents", async (req, res) => {
 // file: "file"
 personnelRouter.post("/documents/upload", upload.single("file"), async (req, res) => {
     const input = parseOrThrow(createDocumentSchema, req.body);
-    res.status(201).json(await createDocumentWithFile(input, req.file, req.user!.emp_UUID));
+    res.status(201).json(await createDocumentWithFile(input, req.file));
 });
 
 // GET /api/personnel/documents/file/:filename - serve uploaded file
@@ -218,11 +224,34 @@ personnelRouter.get("/documents/:document_UUID", async (req, res) => {
 personnelRouter.patch("/documents/:document_UUID", async (req, res) => {
     const document_UUID = parseUuid(req.params.document_UUID, "document ID");
     const input = parseOrThrow(updateDocumentSchema, req.body);
-    res.json(await updateDocument(document_UUID, input, req.user!.emp_UUID));
+    res.json(await updateDocument(document_UUID, input));
 });
 
 // DELETE /api/personnel/documents/:document_UUID
 personnelRouter.delete("/documents/:document_UUID", async (req, res) => {
     const document_UUID = parseUuid(req.params.document_UUID, "document ID");
-    res.json(await deleteDocument(document_UUID, req.user!.emp_UUID));
+    res.json(await deleteDocument(document_UUID));
+});
+
+// -----------------------------------------------------------------------------
+// Lookup endpoints for document form dropdowns
+
+// GET /api/personnel/lookup/license-types
+personnelRouter.get("/lookup/license-types", async (req, res) => {
+    res.json(await listLicenseTypes());
+});
+
+// GET /api/personnel/lookup/renewal-statuses
+personnelRouter.get("/lookup/renewal-statuses", async (req, res) => {
+    res.json(await listRenewalStatuses());
+});
+
+// GET /api/personnel/lookup/training-types
+personnelRouter.get("/lookup/training-types", async (req, res) => {
+    res.json(await listTrainingTypes());
+});
+
+// GET /api/personnel/lookup/training-providers
+personnelRouter.get("/lookup/training-providers", async (req, res) => {
+    res.json(await listTrainingProviders());
 });

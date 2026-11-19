@@ -2,8 +2,48 @@ import { z } from "zod";
 import type { Prisma } from "../../generated/prisma/client.js";
 import { HttpError } from "../../lib/httpError.js";
 import { prisma } from "../../lib/prisma.js";
-import { dateField, throwIfIssues, toDbDate, uuidField } from "../common/fields.js";
+import { dateField, toDbDate, uuidField } from "../common/fields.js";
 import { getFileUrl, resolveFilePath, deleteFile } from "../../lib/upload.js";
+
+// Type for Prisma transaction client
+type TransactionClient = Omit<typeof prisma, "$connect" | "$disconnect" | "$on" | "$use" | "$extends">;
+
+// Helper to get default license type (ATPL) and renewal status (Current)
+async function getDefaultLicenseType() {
+  const licenseType = await prisma.licenseType.findFirst({
+    orderBy: { license_type_name: "asc" },
+    select: { license_type_UUID: true },
+  });
+  if (!licenseType) throw new HttpError(500, "No license types configured");
+  return licenseType.license_type_UUID;
+}
+
+async function getDefaultRenewalStatus() {
+  const renewalStatus = await prisma.renewalStatus.findFirst({
+    where: { status_name: "Current" },
+    select: { renewal_status_UUID: true },
+  });
+  if (!renewalStatus) throw new HttpError(500, "No 'Current' renewal status configured");
+  return renewalStatus.renewal_status_UUID;
+}
+
+async function getDefaultTrainingType() {
+  const trainingType = await prisma.trainingType.findFirst({
+    orderBy: { training_name: "asc" },
+    select: { training_type_UUID: true },
+  });
+  if (!trainingType) throw new HttpError(500, "No training types configured");
+  return trainingType.training_type_UUID;
+}
+
+async function getDefaultTrainingProvider() {
+  const trainingProvider = await prisma.trainingProvider.findFirst({
+    orderBy: { provider_name: "asc" },
+    select: { training_provider_UUID: true },
+  });
+  if (!trainingProvider) throw new HttpError(500, "No training providers configured");
+  return trainingProvider.training_provider_UUID;
+}
 
 // =============================================================================
 // Personal Document Service
@@ -28,6 +68,19 @@ export const createDocumentSchema = z.object({
   renewal_date: dateField("renewal_date").optional().nullable(),
   file_path: z.string().max(500, "File path must be at most 500 characters").optional().nullable(),
   remarks: z.string().max(1000, "Remarks must be at most 1000 characters").optional().nullable(),
+  // License-specific fields
+  license_type_UUID: uuidField("license_type_UUID").optional(),
+  renewal_status_UUID: uuidField("renewal_status_UUID").optional(),
+  license_number: z.string().max(100).optional(),
+  issuing_authority: z.string().max(200).optional(),
+  // Medical-specific fields
+  medical_class: z.string().max(50).optional(),
+  clinical_hospital: z.string().max(200).optional(),
+  // Training-specific fields
+  training_type_UUID: uuidField("training_type_UUID").optional(),
+  training_provider_UUID: uuidField("training_provider_UUID").optional(),
+  certificate_number: z.string().max(100).optional(),
+  date_completed: dateField("date_completed").optional(),
 }).strict();
 
 export type CreateDocumentInput = z.infer<typeof createDocumentSchema>;
@@ -95,22 +148,29 @@ async function assertEmployeeExists(emp_UUID: string) {
 // CREATE
 // POST /api/personnel/documents
 
-export async function createDocument(input: CreateDocumentInput, actor_emp_UUID: string) {
+export async function createDocument(input: CreateDocumentInput) {
   await assertEmployeeExists(input.emp_UUID);
 
-  const created = await prisma.personalDocument.create({
-    data: {
-      emp_UUID: input.emp_UUID,
-      kind: input.kind,
-      name: input.name,
-      reference: input.reference ?? null,
-      date_issued: toDbDate(input.date_issued),
-      expiry_date: input.expiry_date ? toDbDate(input.expiry_date) : null,
-      renewal_date: input.renewal_date ? toDbDate(input.renewal_date) : null,
-      file_path: input.file_path ?? null,
-      remarks: input.remarks ?? null,
-    },
-    select: documentSelect,
+  const created = await prisma.$transaction(async (tx) => {
+    const doc = await tx.personalDocument.create({
+      data: {
+        emp_UUID: input.emp_UUID,
+        kind: input.kind,
+        name: input.name,
+        reference: input.reference ?? null,
+        date_issued: toDbDate(input.date_issued),
+        expiry_date: input.expiry_date ? toDbDate(input.expiry_date) : null,
+        renewal_date: input.renewal_date ? toDbDate(input.renewal_date) : null,
+        file_path: input.file_path ?? null,
+        remarks: input.remarks ?? null,
+      },
+      select: documentSelect,
+    });
+
+    // Also create domain-specific record based on kind
+    await createDomainSpecificRecord(input, tx);
+
+    return doc;
   });
 
   return toDocumentResponse(created);
@@ -121,7 +181,6 @@ export async function createDocument(input: CreateDocumentInput, actor_emp_UUID:
 export async function createDocumentWithFile(
   input: CreateDocumentInput,
   file: Express.Multer.File | undefined,
-  actor_emp_UUID: string,
 ) {
   await assertEmployeeExists(input.emp_UUID);
 
@@ -132,22 +191,89 @@ export async function createDocumentWithFile(
     fileUrl = input.file_path;
   }
 
-  const created = await prisma.personalDocument.create({
-    data: {
-      emp_UUID: input.emp_UUID,
-      kind: input.kind,
-      name: input.name,
-      reference: input.reference ?? null,
-      date_issued: toDbDate(input.date_issued),
-      expiry_date: input.expiry_date ? toDbDate(input.expiry_date) : null,
-      renewal_date: input.renewal_date ? toDbDate(input.renewal_date) : null,
-      file_path: fileUrl,
-      remarks: input.remarks ?? null,
-    },
-    select: documentSelect,
+  const created = await prisma.$transaction(async (tx) => {
+    const doc = await tx.personalDocument.create({
+      data: {
+        emp_UUID: input.emp_UUID,
+        kind: input.kind,
+        name: input.name,
+        reference: input.reference ?? null,
+        date_issued: toDbDate(input.date_issued),
+        expiry_date: input.expiry_date ? toDbDate(input.expiry_date) : null,
+        renewal_date: input.renewal_date ? toDbDate(input.renewal_date) : null,
+        file_path: fileUrl,
+        remarks: input.remarks ?? null,
+      },
+      select: documentSelect,
+    });
+
+    // Also create domain-specific record based on kind
+    await createDomainSpecificRecord(input, tx);
+
+    return doc;
   });
 
   return toDocumentResponse(created);
+}
+
+// Create domain-specific record (EmployeeLicense, MedicalCertificate, TrainingRecord)
+async function createDomainSpecificRecord(
+  input: CreateDocumentInput,
+  tx: TransactionClient,
+) {
+  const { emp_UUID, kind, name, reference, date_issued, expiry_date, remarks } = input;
+
+  if (kind === "License") {
+    const licenseTypeUUID = input.license_type_UUID ?? await getDefaultLicenseType();
+    const renewalStatusUUID = input.renewal_status_UUID ?? await getDefaultRenewalStatus();
+    const licenseNumber = input.license_number ?? reference ?? name;
+    const issuingAuthority = input.issuing_authority ?? "Unknown";
+
+    await tx.employeeLicense.create({
+      data: {
+        emp_UUID,
+        license_type_UUID: licenseTypeUUID,
+        renewal_status_UUID: renewalStatusUUID,
+        license_number: licenseNumber,
+        issuing_authority: issuingAuthority,
+        date_issued: toDbDate(date_issued),
+        expiry_date: expiry_date ? toDbDate(expiry_date) : null,
+        remarks: remarks ?? null,
+      },
+    });
+  } else if (kind === "Medical") {
+    if (!input.medical_class || !input.clinical_hospital) {
+      throw new HttpError(400, "Medical documents require medical_class and clinical_hospital");
+    }
+    await tx.medicalCertificate.create({
+      data: {
+        emp_UUID,
+        medical_class: input.medical_class,
+        date_issued: toDbDate(date_issued),
+        expiry_date: toDbDate(expiry_date ?? date_issued), // Medical certs require expiry
+        clinical_hospital: input.clinical_hospital,
+        remarks: remarks ?? null,
+      },
+    });
+  } else if (kind === "Training") {
+    const trainingTypeUUID = input.training_type_UUID ?? await getDefaultTrainingType();
+    const trainingProviderUUID = input.training_provider_UUID ?? await getDefaultTrainingProvider();
+    const certificateNumber = input.certificate_number ?? reference ?? name;
+    const dateCompleted = input.date_completed ?? date_issued;
+
+    await tx.trainingRecord.create({
+      data: {
+        emp_UUID,
+        training_type_UUID: trainingTypeUUID,
+        training_provider_UUID: trainingProviderUUID,
+        certificate_number: certificateNumber,
+        date_completed: toDbDate(dateCompleted),
+        expiry_date: expiry_date ? toDbDate(expiry_date) : null,
+        remarks: remarks ?? null,
+      },
+    });
+  }
+  // For "Company ID" and "Other", only PersonalDocument is created
 }
 
 // -----------------------------------------------------------------------------
@@ -211,7 +337,6 @@ export async function getDocument(document_UUID: string) {
 export async function updateDocument(
   document_UUID: string,
   input: UpdateDocumentInput,
-  actor_emp_UUID: string,
 ) {
   const existing = await findDocumentOr404(document_UUID);
 
@@ -249,7 +374,7 @@ export async function updateDocument(
 // DELETE
 // DELETE /api/personnel/documents/:document_UUID
 
-export async function deleteDocument(document_UUID: string, actor_emp_UUID: string) {
+export async function deleteDocument(document_UUID: string) {
   const existing = await findDocumentOr404(document_UUID);
   // Delete physical file if it exists and is a local upload
   if (existing.file_path?.startsWith("/api/personnel/documents/file/")) {
