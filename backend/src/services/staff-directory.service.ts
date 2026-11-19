@@ -29,6 +29,32 @@ export const listStaffDirectoryQuerySchema = z.object({
 });
 export type ListStaffDirectoryQuery = z.infer<typeof listStaffDirectoryQuerySchema>;
 
+// Fields returned for each employee. Shared with the eligible-employees list in
+// user.service.ts so both endpoints return the same shape.
+export const staffDirectorySelect = {
+    emp_UUID: true,
+    emp_number: true,
+    f_name: true,
+    m_name: true,
+    l_name: true,
+    suffix: true,
+    position: { select: { position_name: true } },
+    personnel_category: { select: { category_name: true } },
+    department: true,
+    base: { select: { base_name: true } },
+} satisfies Prisma.EmployeeSelect;
+
+// Same as the gated personnel endpoint: the category is returned as its
+// plain name string, not as a nested object.
+export function toStaffDirectoryEntry<
+    T extends { personnel_category: { category_name: string } },
+>({ personnel_category, ...rest }: T) {
+    return {
+        ...rest,
+        personnel_category: personnel_category.category_name,
+    };
+}
+
 export async function listStaffDirectory(query: ListStaffDirectoryQuery = {}) {
     const tokens = (query.q ?? "").split(/\s+/).filter(Boolean);
 
@@ -54,24 +80,8 @@ export async function listStaffDirectory(query: ListStaffDirectoryQuery = {}) {
     const employees = await prisma.employee.findMany({
         where,
         orderBy: [{ l_name: "asc" }, { f_name: "asc" }],
-        select: {
-            emp_UUID: true,
-            emp_number: true,
-            f_name: true,
-            m_name: true,
-            l_name: true,
-            suffix: true,
-            position: { select: { position_name: true } },
-            personnel_category: { select: { category_name: true } },
-            department: true,
-            base: { select: { base_name: true } },
-        },
+        select: staffDirectorySelect,
     });
 
-    // Same as the gated personnel endpoint: the category is returned as its
-    // plain name string, not as a nested object.
-    return employees.map(({ personnel_category, ...rest }) => ({
-        ...rest,
-        personnel_category: personnel_category.category_name,
-    }));
+    return employees.map(toStaffDirectoryEntry);
 }

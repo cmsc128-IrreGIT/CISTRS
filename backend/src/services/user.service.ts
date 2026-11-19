@@ -3,6 +3,10 @@ import { z } from "zod";
 import { env } from "../config/env.js";
 import { HttpError } from "../lib/httpError.js";
 import { prisma } from "../lib/prisma.js";
+import {
+    staffDirectorySelect,
+    toStaffDirectoryEntry,
+} from "./staff-directory.service.js";
 
 // Rules for the request body of POST /api/users.
 export const createUserSchema = z.object({
@@ -121,6 +125,23 @@ export function listPositions() {
     });
 }
 
+// Employees an account can be created for right now. Same checks as
+// createUserAccount: active employee, active position, no account yet.
+// Returns the same fields as the staff directory, ordered by last then first name.
+export async function listEligibleEmployees() {
+    const employees = await prisma.employee.findMany({
+        where: {
+            record_status: "Active",
+            user_account: { is: null },
+            position: { is_active: true },
+        },
+        orderBy: [{ l_name: "asc" }, { f_name: "asc" }],
+        select: staffDirectorySelect,
+    });
+
+    return employees.map(toStaffDirectoryEntry);
+}
+
 const accountSummary = {
     account_UUID: true,
     username: true,
@@ -153,6 +174,3 @@ export async function listUsers() {
         select: accountSummary,
     });
 }
-
-
-
