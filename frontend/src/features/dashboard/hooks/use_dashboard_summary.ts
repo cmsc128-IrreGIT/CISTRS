@@ -44,7 +44,7 @@ export default function useDashboardSummary(
   const recent_logbook = [...logbook].sort((first, second) =>
     second.entry_date.localeCompare(first.entry_date),
   );
-  const current_availability = availability.find(
+  const current_availability = availability.records.find(
     (row) =>
       employee_id &&
       row.personnel === employee_id &&
