@@ -11,7 +11,7 @@ Your Laptop
 │
 ├── PostgreSQL 18
 │   └── cistrs database
-│       ├── 38 CISTRS tables   (created by Prisma migrations)
+│       ├── 42 CISTRS tables   (created by Prisma migrations)
 │       └── Seed data          (loaded by the Prisma seeder)
 │
 └── CISTRS Backend
@@ -264,7 +264,7 @@ The repository contains two migrations, applied in this order:
 
 Together they create:
 
-- 38 CISTRS tables
+- 42 CISTRS tables
 - 6 enum types
 - All indexes and foreign keys
 - Prisma's own `_prisma_migrations` table, which tracks what has been applied
@@ -435,7 +435,7 @@ You should be able to see the CISTRS database models/tables managed by Prisma, n
 
 1. Expand `cistrs → Schemas → public → Tables`.
 2. Right-click **Tables** and select **Refresh**.
-3. Confirm you see 38 CISTRS tables plus `_prisma_migrations`.
+3. Confirm you see 42 CISTRS tables plus `_prisma_migrations`.
 
 Look at the tables, but **do not edit their structure in pgAdmin**.
 
@@ -630,7 +630,7 @@ These are the database files in the repository:
 ```text
 backend/
 ├── prisma/
-│   ├── schema.prisma                    # All 38 models, enums, relations, indexes
+│   ├── schema.prisma                    # All 42 models, enums, relations, indexes
 │   ├── checks.sql                       # Pointer only: the CHECK rules are now in a migration
 │   └── migrations/
 │       ├── 20261106175237_init/         # Creates the tables
