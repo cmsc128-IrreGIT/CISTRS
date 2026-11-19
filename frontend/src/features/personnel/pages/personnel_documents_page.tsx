@@ -105,6 +105,22 @@ export default function PersonnelDocumentsPage() {
         if (draft.renewal_date) formData.append("renewal_date", draft.renewal_date);
         if (draft.file) formData.append("file", draft.file);
 
+        // License-specific fields
+        if (draft.license_type_UUID) formData.append("license_type_UUID", draft.license_type_UUID);
+        if (draft.renewal_status_UUID) formData.append("renewal_status_UUID", draft.renewal_status_UUID);
+        if (draft.license_number) formData.append("license_number", draft.license_number);
+        if (draft.issuing_authority) formData.append("issuing_authority", draft.issuing_authority);
+
+        // Medical-specific fields
+        if (draft.medical_class) formData.append("medical_class", draft.medical_class);
+        if (draft.clinical_hospital) formData.append("clinical_hospital", draft.clinical_hospital);
+
+        // Training-specific fields
+        if (draft.training_type_UUID) formData.append("training_type_UUID", draft.training_type_UUID);
+        if (draft.training_provider_UUID) formData.append("training_provider_UUID", draft.training_provider_UUID);
+        if (draft.certificate_number) formData.append("certificate_number", draft.certificate_number);
+        if (draft.date_completed) formData.append("date_completed", draft.date_completed);
+
         const token = sessionStorage.getItem("cistrs.session");
         const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api"}/personnel/documents/upload`, {
             method: "POST",
