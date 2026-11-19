@@ -502,6 +502,44 @@ async function seedAll(tx: Prisma.TransactionClient) {
         }),
     );
 
+    await insert("NOTIFICATION_TYPE", (data) =>
+        tx.notificationType.createMany({
+            data: data as Prisma.NotificationTypeCreateManyInput[],
+            skipDuplicates: true,
+        }),
+    );
+
+    await insert("NOTIFICATION_TYPE_POSITION", (data) =>
+        tx.notificationTypePosition.createMany({
+            data: data as Prisma.NotificationTypePositionCreateManyInput[],
+            skipDuplicates: true,
+        }),
+    );
+
+    await insert(
+        "NOTIFICATION",
+        (data) =>
+            tx.notification.createMany({
+                data: data as Prisma.NotificationCreateManyInput[],
+                skipDuplicates: true,
+            }),
+        (row) => ({ ...row, created_at: toDate(row.created_at) }),
+    );
+
+    await insert(
+        "NOTIFICATION_RECIPIENT",
+        (data) =>
+            tx.notificationRecipient.createMany({
+                data: data as Prisma.NotificationRecipientCreateManyInput[],
+                skipDuplicates: true,
+            }),
+        (row) => ({
+            ...row,
+            created_at: toDate(row.created_at),
+            read_at: toDate(row.read_at),
+        }),
+    );
+
     return counts;
 }
 
@@ -512,7 +550,7 @@ async function seedAll(tx: Prisma.TransactionClient) {
 async function verify() {
     const problems: string[] = [];
 
-    // 1. Verify row counts for all 38 models.
+    // 1. Verify row counts for all 42 models.
     const expected: Record<string, () => Promise<number>> = {
         BASE: () => prisma.base.count(),
         EMPLOYMENT_STATUS: () => prisma.employmentStatus.count(),
@@ -560,6 +598,10 @@ async function verify() {
         DELAY_CATEGORY: () => prisma.delayCategory.count(),
         FLIGHT_SECTOR: () => prisma.flightSector.count(),
         FUEL_TRANSACTION: () => prisma.fuelTransaction.count(),
+        NOTIFICATION_TYPE: () => prisma.notificationType.count(),
+        NOTIFICATION_TYPE_POSITION: () => prisma.notificationTypePosition.count(),
+        NOTIFICATION: () => prisma.notification.count(),
+        NOTIFICATION_RECIPIENT: () => prisma.notificationRecipient.count(),
     };
 
     for (const [table, count] of Object.entries(expected)) {

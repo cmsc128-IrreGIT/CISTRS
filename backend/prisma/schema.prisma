@@ -61,6 +61,7 @@ enum Sex {
 enum ContactType {
   Email
   Phone
+  WhatsApp
 
   @@map("contact_type")
 }
@@ -296,6 +297,13 @@ model PersonnelCategory {
   @@map("personnel_category")
 }
 
+enum AvailabilityType {
+  Available
+  Unavailable
+
+  @@map("availability_type")
+}
+
 model Employee {
   emp_UUID                String       @id @default(uuid()) @db.Uuid
   emp_number              String       @unique
@@ -309,6 +317,7 @@ model Employee {
   photo                   String?
   date_hired              DateTime     @db.Date
   department              String
+  availability            AvailabilityType @default(Available)
   record_status           RecordStatus @default(Active)
   supervisor_emp_UUID     String?      @db.Uuid
   base_UUID               String       @db.Uuid
@@ -346,6 +355,7 @@ model Employee {
   sectors_as_sic         FlightSector[]         @relation("SectorSic")
   sectors_as_observer    FlightSector[]         @relation("SectorObserver")
   sectors_entered        FlightSector[]         @relation("SectorEntryBy")
+  notifications          NotificationRecipient[]
 
   @@index([supervisor_emp_UUID])
   @@index([base_UUID])
@@ -495,6 +505,7 @@ model Position {
 
   employees Employee[]
   features  PositionFeatureAccess[]
+  notification_types NotificationTypePosition[]
 
   @@map("position")
 }
@@ -740,4 +751,129 @@ model FuelTransaction {
   @@index([issued_to])
   @@index([transaction_date])
   @@map("fuel_transaction")
+}
+
+// =============================================================================
+// NOTIFICATIONS 
+//
+//   NotificationType         = catalog of event codes (PER_LIC_EXPIRING, ...)
+//   NotificationTypePosition = which positions receive each type
+//   Notification             = what happened (one row per occurrence)
+//   NotificationRecipient    = who sees it, whether they read it,
+//                              and the WhatsApp delivery state
+//
+// Channels
+//   System   = every recipient row appears in the in-app inbox. No extra columns.
+//   WhatsApp = the whatsapp_* columns on NotificationRecipient.
+// =============================================================================
+
+// -----------------------------------------------------------------------------
+// ENUMS
+// -----------------------------------------------------------------------------
+
+// Matches the UI filter. "All features" = no filter applied.
+enum NotificationCategory {
+  Personnel
+  Inventory
+  Aircraft
+  Maintenance
+  System
+
+  @@map("notification_category")
+}
+
+// UI colors: Info = Blue, Warning = Orange, Critical = Red.
+enum NotificationSeverity {
+  Info
+  Warning
+  Critical
+
+  @@map("notification_severity")
+}
+
+enum WhatsappStatus {
+  Pending
+  Sent
+  Delivered
+  Read
+  Failed
+
+  @@map("whatsapp_status")
+}
+
+// -----------------------------------------------------------------------------
+// MODELS
+// -----------------------------------------------------------------------------
+
+// Seed from the spec: one row per Event Code.
+model NotificationType {
+  type_UUID         String               @id @default(uuid()) @db.Uuid
+  event_code        String               @unique 
+  category          NotificationCategory
+  description       String
+  default_severity  NotificationSeverity
+  threshold_days    Int[] 
+  threshold_hours   Decimal?             @db.Decimal(10, 2) 
+  whatsapp_template String? 
+  notify_subject    Boolean @default(false)
+
+
+  positions     NotificationTypePosition[]
+  notifications Notification[]
+
+  @@index([category])
+  @@map("notification_type")
+}
+
+// Decides who receives each type ("Recipients / Target Roles" in the spec).
+model NotificationTypePosition {
+  type_UUID     String @db.Uuid
+  position_UUID String @db.Uuid
+
+  type     NotificationType @relation(fields: [type_UUID], references: [type_UUID], onDelete: Cascade)
+  position Position         @relation(fields: [position_UUID], references: [position_UUID], onDelete: Cascade)
+
+  @@id([type_UUID, position_UUID])
+  @@index([position_UUID])
+  @@map("notification_type_position")
+}
+
+// One occurrence of an event.
+model Notification {
+  notification_UUID String               @id @default(uuid()) @db.Uuid
+  type_UUID         String               @db.Uuid
+  severity          NotificationSeverity 
+  title             String
+  message           String
+  created_at        DateTime             @default(now()) @db.Timestamptz(6)
+
+  type       NotificationType        @relation(fields: [type_UUID], references: [type_UUID], onDelete: Restrict)
+  recipients NotificationRecipient[]
+
+  @@index([type_UUID])
+  @@index([created_at])
+  @@map("notification")
+}
+
+// One row per employee per notification. This is the inbox.
+model NotificationRecipient {
+  recipient_UUID    String    @id @default(uuid()) @db.Uuid
+  notification_UUID String    @db.Uuid
+  emp_UUID          String    @db.Uuid
+  read_at           DateTime? @db.Timestamptz(6) // null = unread
+  created_at        DateTime  @default(now()) @db.Timestamptz(6)
+
+  whatsapp_status     WhatsappStatus?
+  whatsapp_message_id String? 
+  whatsapp_attempts   Int             @default(0)
+  whatsapp_error      String?
+
+  notification Notification @relation(fields: [notification_UUID], references: [notification_UUID], onDelete: Cascade)
+  employee     Employee     @relation(fields: [emp_UUID], references: [emp_UUID], onDelete: Cascade)
+
+  @@unique([notification_UUID, emp_UUID])
+  @@index([emp_UUID, read_at])
+  @@index([whatsapp_status])
+  @@index([whatsapp_message_id])
+  @@map("notification_recipient")
 }
