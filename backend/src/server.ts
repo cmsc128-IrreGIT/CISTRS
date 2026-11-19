@@ -13,6 +13,7 @@ import { aircraftRouter } from "./routes/aircraft.js";
 import { authRouter } from "./routes/auth.js";
 import { inventoryRouter } from "./routes/inventory.js";
 import { logbookRouter } from "./routes/logbook.js";
+import { lookupsRouter } from "./routes/lookups.js";
 import { maintenanceRouter } from "./routes/maintenance.js";
 import { personnelRouter } from "./routes/personnel.js";
 import { staffDirectoryRouter } from "./routes/staff_directory.js";
@@ -39,6 +40,7 @@ app.use("/api/auth", authRouter);
 // ---------------------------------------------------------------------------
 // PROTECTED routes: everything below this line needs a valid token
 app.use("/api", requireAuth);
+app.use("/api/lookups", lookupsRouter);
 
 // Each module also needs its own feature (granted through the user's roles).
 app.use("/api/users", requireFeature(FEATURE.UserAccounts), usersRouter);
