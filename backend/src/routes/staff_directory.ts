@@ -1,29 +1,18 @@
 import { Router } from "express";
-import { prisma } from "../lib/prisma.js";
+import { parseOrThrow } from "../lib/validate.js";
+import {
+    listStaffDirectory,
+    listStaffDirectoryQuerySchema,
+} from "../services/staff-directory.service.js";
 
 // Staff directory: authenticated employees can view basic work details.
 // This endpoint does not expose sensitive Personnel records or support writes.
+// Mounted in server.ts behind requireAuth only, ahead of the gated /api/personnel.
 export const staffDirectoryRouter = Router();
 
-staffDirectoryRouter.get("/", async (_req, res, next) => {
-    try {
-        const employees = await prisma.employee.findMany({
-            where: { record_status: "Active" },
-            orderBy: [{ l_name: "asc" }, { f_name: "asc" }],
-            select: {
-                emp_UUID: true,
-                emp_number: true,
-                f_name: true,
-                m_name: true,
-                l_name: true,
-                suffix: true,
-                position: { select: { position_name: true } },
-                department: true,
-                base: { select: { base_name: true } },
-            },
-        });
-        res.json(employees);
-    } catch (error) {
-        next(error);
-    }
+// GET /api/personnel/directory?category=Pilot&q=
+// -> active employees (basic work details), ordered by last then first name.
+staffDirectoryRouter.get("/", async (req, res) => {
+    const query = parseOrThrow(listStaffDirectoryQuerySchema, req.query);
+    res.json(await listStaffDirectory(query));
 });
