@@ -45,7 +45,7 @@ export type PersonnelRecord = PersonnelFormValues & {
     preview: boolean;
 };
 
-export type PersonnelDocumentKind = "License" | "Training" | "Medical" | "Company ID";
+export type PersonnelDocumentKind = "License" | "Training" | "Medical" | "Company ID" | "Other";
 
 export type PersonnelDocument = {
     id: string;
@@ -54,8 +54,9 @@ export type PersonnelDocument = {
     reference: string;
     issued: string;
     expires: string;
-    renewal: string;
+    renewal_date: string; // YYYY-MM-DD format, optional
     file?: File;
+    file_path?: string;
 };
 
 export type PersonnelDocumentDraft = Omit<PersonnelDocument, "id"> & { personnel_id: string };
