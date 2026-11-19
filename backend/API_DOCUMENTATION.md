@@ -19,6 +19,7 @@ endpoints, request bodies, response shapes, validation rules and error behaviour
 | Maintenance | `GET·POST /maintenance/ad-records` <br> `GET·PATCH /maintenance/ad-records/:id` <br> `GET·POST /maintenance/cpcp-tasks` <br> `GET·PATCH /maintenance/cpcp-tasks/:id` <br> `GET /maintenance/aircraft/:id` |
 | Logbook | `GET·POST /logbook/sectors` <br> `GET·PATCH /logbook/sectors/:id` <br> `POST /logbook/sectors/:id/fuel-transactions` <br> `GET·PATCH /logbook/fuel-transactions/:id` <br> `POST /logbook/export` |
 | Lookups | `GET /lookups` <br> `GET /lookups/aircraft` |
+| Admin (add dropdown entries) | `POST /admin/aircraft` <br> `POST /admin/flight-statuses` <br> `POST /admin/flight-types` <br> `POST /admin/delay-categories` <br> `POST /admin/personnel-categories` <br> `POST /admin/locations` <br> `POST /admin/manufacturers` <br> `POST /admin/suppliers` |
 
 ## Contents
 
@@ -32,7 +33,8 @@ endpoints, request bodies, response shapes, validation rules and error behaviour
 8. [Maintenance](#8-maintenance)
 9. [Logbook](#9-logbook)
 10. [Reference data and known gaps](#10-reference-data-and-known-gaps)
-11. [Frontend snippets](#11-frontend-snippets)
+11. [Admin: add dropdown entries](#11-admin-add-dropdown-entries)
+12. [Frontend snippets](#12-frontend-snippets)
 
 ---
 
@@ -120,6 +122,7 @@ Access is **position-based**. Every employee has one position; a position grants
 | Module (URL prefix) | Required feature |
 | --- | --- |
 | `/api/users` | `User Accounts` |
+| `/api/admin` | `User Accounts` (the administration feature) |
 | `/api/inventory` | `Inventory` |
 | `/api/aircraft` | `Aircraft` |
 | `/api/logbook` | `Logbook` |
@@ -316,7 +319,7 @@ Requires feature `Aircraft`. "Status information" is the aircraft's status plus 
 - Both POST and PATCH return the full aircraft status object.
 - Errors: `404 Aircraft not found`, `404 Aircraft status not found`, `400` validation.
 
-> There is no endpoint to create an aircraft or list aircraft types.
+> An administrator (feature `User Accounts`) adds aircraft with `POST /api/admin/aircraft` (see section 11). There is no endpoint to create an aircraft type; aircraft types are listed in `GET /api/lookups` as `aircraft_types`.
 >
 > Users without the `Aircraft` feature (Captain, First Officer, Chief Aircraft Mechanic, Inventory Officer) can read the same list from `GET /api/lookups/aircraft` (see section 10). The gated `GET /api/aircraft` is unchanged.
 
@@ -914,7 +917,9 @@ All dropdown lists for the forms, in one request. Any authenticated account can 
   "personnel_categories": [{ "personnel_category_UUID": "…", "category_name": "Pilot", "description": "…" }],
   "positions":            [{ "position_UUID": "…", "position_name": "Captain", "description": "…" }],
   "aircraft_types":       [{ "aircraft_type_UUID": "…", "type_name": "Cessna 208B Grand Caravan", "description": "…" }],
-  "aircraft_statuses":    [{ "aircraft_status_UUID": "…", "status_name": "Airworthy", "description": "…" }]
+  "aircraft_statuses":    [{ "aircraft_status_UUID": "…", "status_name": "Airworthy", "description": "…" }],
+  "suppliers":            [{ "organization_UUID": "…", "organization_name": "AeroParts Cebu", "organization_location": "Cebu, Philippines" }],
+  "manufacturers":        [{ "organization_UUID": "…", "organization_name": "AeroParts Cebu", "organization_location": "Cebu, Philippines" }]
 }
 ```
 
@@ -926,6 +931,7 @@ Errors: `401` without a valid token.
 | Create employee | `bases`, `employment_statuses`, `positions`, `personnel_categories` |
 | Pilot / mechanic dropdowns, fuel `issued_to`, supervisor | `GET /api/personnel/directory` (see section 6) |
 | Aircraft | `aircraft_types`, `aircraft_statuses` |
+| Supplier / manufacturer pickers | `suppliers`, `manufacturers` (send `organization_UUID`) |
 | Logbook, maintenance and part-assignment aircraft picker | `GET /api/lookups/aircraft` |
 
 Send the UUID from the row (for example `base_UUID`), never the name. `GET /api/aircraft/statuses` still exists and returns the same data as `aircraft_statuses`.
@@ -947,6 +953,7 @@ Lookups that `GET /api/lookups` does **not** cover:
 | Parts | Yes | `GET /api/inventory/parts` |
 | Inventory location (`location_UUID`) | Yes | `GET /api/inventory/locations` (needs the `Inventory` feature) |
 | License type, renewal status | **No endpoint** | n/a |
+| Suppliers, manufacturers | Yes | `GET /api/lookups` (`suppliers`, `manufacturers`) |
 
 Seeded values in the dev database (names only; IDs must be fetched, never hard-coded): bases Cebu / Manila / Davao; employment statuses Regular, Probationary, On-call, Contractual, Owner; personnel categories Pilot, Operations Personnel, Aircraft Maintenance Technician, Inventory Personnel, Quality / Safety Personnel; inventory locations Cebu Main Store, Cebu Maintenance Room, Manila Store, Davao Store; flight statuses Completed, Delayed; flight types Charter, Cargo, Positioning; delay categories Weather, Maintenance; aircraft statuses Airworthy, In Maintenance, AOG.
 
@@ -960,7 +967,64 @@ Seeded values in the dev database (names only; IDs must be fetched, never hard-c
 
 ---
 
-## 11. Frontend snippets
+## 11. Admin: add dropdown entries
+
+Requires feature `User Accounts` (in the seeded data only President / CEO holds it). Every endpoint is **create only** (`POST`, success **201**). A new entry shows up in the matching list straight away:
+
+| Adds | Endpoint | Read the list from |
+| --- | --- | --- |
+| Aircraft | `POST /api/admin/aircraft` | `GET /api/lookups/aircraft` |
+| Flight status | `POST /api/admin/flight-statuses` | `GET /api/lookups` → `flight_statuses` |
+| Flight type | `POST /api/admin/flight-types` | `GET /api/lookups` → `flight_types` |
+| Delay category | `POST /api/admin/delay-categories` | `GET /api/lookups` → `delay_categories` |
+| Category (personnel category) | `POST /api/admin/personnel-categories` | `GET /api/lookups` → `personnel_categories` |
+| Location (inventory location) | `POST /api/admin/locations` | `GET /api/inventory/locations` |
+| Manufacturer | `POST /api/admin/manufacturers` | `GET /api/lookups` → `manufacturers` |
+| Supplier | `POST /api/admin/suppliers` | `GET /api/lookups` → `suppliers` |
+
+**Bodies and responses**
+
+```json
+// POST /api/admin/aircraft   (current_hours optional, starts at 0)
+{ "registration": "RP-C9999", "aircraft_type_UUID": "…", "aircraft_status_UUID": "…", "current_hours": 120.5 }
+// -> the aircraft status object from section 5
+
+// POST /api/admin/flight-statuses  (description optional, stored as "" when left out)
+{ "status_name": "Cancelled", "description": "Sector cancelled before departure." }
+// -> { "flight_status_UUID": "…", "status_name": "Cancelled", "description": "…" }
+
+// POST /api/admin/flight-types
+{ "type_name": "Training", "description": "Crew training flight." }
+// -> { "flight_type_UUID": "…", "type_name": "Training", "description": "…" }
+
+// POST /api/admin/delay-categories  and  POST /api/admin/personnel-categories
+{ "category_name": "Crew Availability", "description": "…" }
+// -> { "delay_category_UUID" | "personnel_category_UUID": "…", "category_name": "…", "description": "…" }
+
+// POST /api/admin/locations
+{ "location_name": "Iloilo Store", "storage_area": "Shelf A1" }
+// -> { "location_UUID": "…", "location_name": "Iloilo Store", "storage_area": "Shelf A1" }
+
+// POST /api/admin/manufacturers  and  POST /api/admin/suppliers
+{ "organization_name": "Lycoming", "organization_location": "Pennsylvania, USA" }
+// -> { "organization_UUID": "…", "organization_name": "…", "organization_location": "…",
+//      "is_supplier": false, "is_manufacturer": true }
+```
+
+**Rules**
+
+- Text is trimmed. Names are required (max 100 characters; organization fields max 150; description max 500). Unknown fields are rejected (`400`).
+- Duplicates are checked **ignoring case**: `409` for the same flight status / flight type / delay category / personnel category name, the same location name **and** storage area, or the same aircraft registration.
+- `registration` is stored upper-case, letters / numbers / hyphens only, 2 to 12 characters.
+- `aircraft_type_UUID` and `aircraft_status_UUID` must exist (`404 Aircraft type not found`, `404 Aircraft status not found`).
+- A supplier and a manufacturer are roles on one organization. If an organization with the same name and location already exists, the new role is attached to it (no duplicate organization, `is_supplier` / `is_manufacturer` show both). Adding a role it already has gives `409 This organization is already a supplier` (or `manufacturer`).
+- Errors: `401` without a token, `403` without `User Accounts`, `400` validation.
+
+**Not covered:** editing or deleting a dropdown entry, creating an aircraft type, and attaching suppliers or manufacturers to a part (part create does not accept them yet).
+
+---
+
+## 12. Frontend snippets
 
 ### API client with auth and error handling
 
