@@ -14,7 +14,8 @@
         "test:personnel": "tsx scripts/personnel-test.ts",
         "test:inventory": "tsx scripts/inventory-test.ts",
         "test:maintenance": "tsx scripts/maintenance-test.ts",
-        "test:logbook": "tsx scripts/logbook-test.ts"
+        "test:logbook": "tsx scripts/logbook-test.ts",
+        "test:notification": "tsx scripts/notification-test.ts"
     },
     "keywords": [],
     "author": "",

@@ -13,6 +13,19 @@ export const errorHandler: ErrorRequestHandler = (error, _req, res, _next) => {
         return;
     }
 
+    // Malformed JSON request body from express.json().
+    if (
+        error instanceof SyntaxError &&
+        "status" in error &&
+        error.status === 400 &&
+        "body" in error
+    ) {
+        res.status(400).json({
+            message: "Invalid JSON payload",
+        });
+        return;
+    }
+
     // Unique constraint violated (for example a duplicate username).
     if (
         error instanceof Prisma.PrismaClientKnownRequestError &&
