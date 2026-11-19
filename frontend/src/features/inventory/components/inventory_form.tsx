@@ -1,7 +1,7 @@
 import { CalendarDays, ChevronDown } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import type { FormEvent, SubmitEvent } from "react";
+import type { ChangeEvent, SubmitEvent } from "react";
 import FeatureHelp from "../../../shared/components/feedback/feature_help";
 import FormField from "../../../shared/components/forms/form_field";
 import Button from "../../../shared/components/ui/button";
@@ -59,7 +59,7 @@ export default function InventoryForm({
         if (save_error) save_alert.current?.focus();
     }, [save_error]);
 
-    function clear_error(event: FormEvent<HTMLFormElement>) {
+    function clear_error(event: ChangeEvent<HTMLFormElement>) {
         const field = event.target;
         if (!(field instanceof HTMLInputElement || field instanceof HTMLSelectElement)) return;
         clear_field_error(field.name as FieldName, field.value);
@@ -194,7 +194,7 @@ export default function InventoryForm({
                                     {...props}
                                     name="part_number"
                                     placeholder="Enter part number"
-                                    maxLength={150}
+                                    maxLength={50}
                                     defaultValue={initial_values?.part_number ?? ""}
                                     className={INVENTORY_FORM_INPUT}
                                 />

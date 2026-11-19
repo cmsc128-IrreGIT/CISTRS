@@ -1,21 +1,24 @@
 import { Link } from "react-router";
 import StatusBadge from "../../../shared/components/ui/status_badge";
-import type { PreviewRecord } from "../../../shared/types/record_types";
+import type { MaintenanceSummaryRecord } from "../../maintenance/utils/maintenance_summary";
+import Button from "../../../shared/components/ui/button";
 import DashboardDate from "./dashboard_date";
 import DashboardOverflowText from "./dashboard_overflow_text";
 import DashboardPanel from "./dashboard_panel";
 
-const pending_tasks_path = "/maintenance?status=pending";
+const pending_tasks_path = "/maintenance";
 
 export default function PendingMaintenanceCard({
   maintenance,
-  today = new Date(),
+  loading = false,
+  error = "",
+  on_retry,
 }: {
-  maintenance: PreviewRecord[];
-  today?: Date;
+  maintenance: MaintenanceSummaryRecord[];
+  loading?: boolean;
+  error?: string;
+  on_retry?: () => void;
 }) {
-  const start_of_day = new Date(today);
-  start_of_day.setHours(0, 0, 0, 0);
   const sorted = [...maintenance].sort((first, second) =>
     (first.due_date || "9999").localeCompare(second.due_date || "9999"),
   );
@@ -27,17 +30,16 @@ export default function PendingMaintenanceCard({
         to: pending_tasks_path,
       }}
     >
-      {sorted.length ? (
+      {loading ? <p className="text-sm text-slate-600">Loading maintenance...</p> : error ? <div role="alert"><p className="text-sm text-red-700">{error}</p><Button variant="ghost" onClick={on_retry}>Retry</Button></div> : sorted.length ? (
         <div role="region" aria-label="Pending maintenance list" tabIndex={0} className="thin-scrollbar dashboard-scroll rounded-md">
           <ul className="space-y-2">
             {sorted.map((record) => {
-              const overdue =
-                new Date(`${record.due_date}T00:00:00`) < start_of_day;
+              const overdue = record.overdue;
               return (
                 <li key={record.id} className="rounded-md bg-[#f4f7fa] p-2.5">
                   <div className="flex items-start gap-2">
                     <Link
-                      to={`${pending_tasks_path}#record=${encodeURIComponent(record.id)}`}
+                      to={`/maintenance/${record.id}`}
                       className="min-w-0 flex-1 text-sm font-semibold text-link"
                       title={record.title}
                     >
@@ -45,7 +47,7 @@ export default function PendingMaintenanceCard({
                     </Link>
                     <StatusBadge
                       tone={
-                        overdue ? "danger" : record.status ? "info" : "neutral"
+                        overdue ? "danger" : record.status === "Current" ? "success" : "neutral"
                       }
                     >
                       {overdue ? "Overdue" : record.status || "Not recorded"}
@@ -62,7 +64,7 @@ export default function PendingMaintenanceCard({
                         Due: <DashboardDate value={record.due_date} />
                       </>
                     ) : (
-                      "Due date not recorded"
+                      record.due_hours !== null ? `Due at ${record.due_hours} aircraft hours` : "Due date not recorded"
                     )}
                   </p>
                 </li>

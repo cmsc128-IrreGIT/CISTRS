@@ -22,6 +22,22 @@ export function normalize_personnel(employee: PersonnelEmployeeResponse): Person
         phone: contacts.find((contact) => /phone|mobile|telephone/i.test(contact.contact_type))?.contact_value ?? "",
         licenses: employee.licenses ?? [],
         preview: false,
+        f_name: employee.f_name,
+        m_name: employee.m_name ?? "",
+        l_name: employee.l_name,
+        suffix: employee.suffix ?? "",
+        date_of_birth: employee.date_of_birth ?? "",
+        sex: employee.sex ?? "",
+        blood_type: employee.blood_type ?? "",
+        date_hired: employee.date_hired ?? "",
+        base_UUID: employee.base_UUID ?? employee.base?.base_UUID ?? "",
+        base_status: employee.base?.base_status ?? "",
+        emp_status_UUID: employee.emp_status_UUID ?? employee.employment_status?.emp_status_UUID ?? "",
+        personnel_category_UUID: employee.personnel_category_UUID ?? "",
+        position_UUID: employee.position_UUID ?? (typeof employee.position === "object" ? employee.position?.position_UUID : undefined) ?? "",
+        supervisor_emp_UUID: employee.supervisor_emp_UUID ?? employee.supervisor?.emp_UUID ?? "",
+        supervisor_name: employee.supervisor ? employee_name(employee.supervisor) : "",
+        photo: employee.photo ?? "",
     };
 }
 

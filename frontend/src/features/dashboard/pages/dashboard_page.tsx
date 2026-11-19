@@ -153,16 +153,17 @@ export default function DashboardPage() {
     },
     pending: {
       label: "Pending maintenance",
-      value: summary.pending_maintenance.length,
+      value: summary.maintenance_state.loading ? "Loading..." : summary.maintenance_state.error ? "Unavailable" : summary.pending_maintenance.length,
       icon: Wrench,
-      to: "/maintenance?status=pending",
+      to: "/maintenance",
+      hint: "AD records and CPCP tasks with a due date or aircraft-hour limit",
     },
     due: {
       label: "Due soon",
-      value: summary.due_count,
+      value: summary.maintenance_state.loading ? "Loading..." : summary.maintenance_state.error ? "Unavailable" : summary.due_count,
       icon: TriangleAlert,
       tone: summary.due_count ? "danger" : undefined,
-      to: "/maintenance?status=due",
+      to: "/maintenance",
       hint: "Overdue work and tasks due within 30 days",
     },
     requests: {
@@ -172,10 +173,10 @@ export default function DashboardPage() {
       to: INVENTORY_REQUESTS_PATH,
     },
     work: {
-      label: "Work records",
-      value: summary.completed_work.length,
+      label: "Accomplishment records",
+      value: summary.maintenance_state.loading ? "Loading..." : summary.maintenance_state.error ? "Unavailable" : summary.completed_work.length,
       icon: Wrench,
-      to: "/maintenance?status=Completed",
+      to: "/maintenance",
     },
     availability: {
       label: "My availability",
@@ -256,12 +257,12 @@ export default function DashboardPage() {
               .slice(0, dashboard_list_limit)
               .map((row) => (
                 <li
-                  key={row.id}
+                  key={row.sector_UUID}
                   className="rounded-md bg-[#f4f7fa] p-2.5 text-sm"
                 >
-                  <p className="font-semibold">{row.aircraft}</p>
+                  <p className="font-semibold">{row.aircraft.registration}</p>
                   <p className="mt-1 text-xs text-slate-600">
-                    <DashboardDate value={row.entry_date} />
+                    <DashboardDate value={row.flight_date} />
                   </p>
                 </li>
               ))}
@@ -275,7 +276,9 @@ export default function DashboardPage() {
     maintenance: (
       <PendingMaintenanceCard
         maintenance={summary.pending_maintenance}
-        today={summary.today}
+        loading={summary.maintenance_state.loading}
+        error={summary.maintenance_state.error}
+        on_retry={summary.maintenance_state.reload}
       />
     ),
     requests: (
@@ -294,11 +297,11 @@ export default function DashboardPage() {
       <DashboardPanel
         title="Recent maintenance"
         footer={{
-          label: "View work history",
-          to: "/maintenance?status=Completed",
+          label: "View maintenance",
+          to: "/maintenance",
         }}
       >
-        {summary.completed_work.length ? (
+        {summary.maintenance_state.loading ? <p className="text-sm text-slate-600">Loading maintenance...</p> : summary.maintenance_state.error ? <p role="alert" className="text-sm text-red-700">{summary.maintenance_state.error}</p> : summary.completed_work.length ? (
           <ul className="space-y-2">
             {summary.completed_work
               .slice(0, dashboard_list_limit)
@@ -314,14 +317,14 @@ export default function DashboardPage() {
                     >
                       {row.title}
                     </Link>
-                    <StatusBadge tone="success">Completed</StatusBadge>
+                    <StatusBadge tone="success">Accomplishment recorded</StatusBadge>
                   </div>
                   <p className="mt-1 text-xs text-slate-600">{row.aircraft}</p>
                 </li>
               ))}
           </ul>
         ) : (
-          <p className="text-sm text-slate-600">No completed work recorded.</p>
+          <p className="text-sm text-slate-600">No maintenance accomplishments recorded.</p>
         )}
       </DashboardPanel>
     ),
@@ -401,10 +404,10 @@ export default function DashboardPage() {
         : [],
     },
     maintenance: {
-      to: "/maintenance?status=Completed",
+      to: "/maintenance",
       rows: summary.completed_work.map((row) => ({
         id: row.id,
-        date: row.due_date,
+        date: row.accomplished_date,
         activity: (
           <Link to={`/maintenance/${row.id}`} className="text-link">
             {row.title}
@@ -417,11 +420,11 @@ export default function DashboardPage() {
     logbook: {
       to: "/logbook",
       rows: summary.recent_logbook.map((row) => ({
-        id: row.id,
-        date: row.entry_date,
-        activity: `Logbook entry for ${row.aircraft}`,
-        reference: row.log_page || row.aircraft,
-        processed_by: row.recorded_by,
+        id: row.sector_UUID,
+        date: row.flight_date,
+        activity: `Logbook flight ${row.route}`,
+        reference: row.flight_type.type_name,
+        processed_by: `${row.entered_by.f_name} ${row.entered_by.l_name}`.trim(),
       })),
     },
   }[config.activity];

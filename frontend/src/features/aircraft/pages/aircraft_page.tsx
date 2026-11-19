@@ -4,37 +4,37 @@ import { Link } from "react-router";
 import SearchInput from "../../../shared/components/forms/search_input";
 import Card from "../../../shared/components/ui/card";
 import DataTable from "../../../shared/components/ui/data_table";
+import ScreenLoading from "../../../shared/components/feedback/screen_loading";
+import Button from "../../../shared/components/ui/button";
 import useTablePagination from "../../../shared/hooks/use_table_pagination";
 import Pagination from "../../../shared/components/ui/pagination";
 import AircraftBreadcrumbs from "../components/aircraft_breadcrumbs";
 import AircraftStatusBadge from "../components/aircraft_status_badge";
-import { aircraft_config } from "../config/aircraft_config";
-import useAircraft from "../hooks/use_aircraft";
+import { useAircraftData } from "../hooks/use_aircraft";
+import useAircraftStatuses from "../hooks/use_aircraft_statuses";
 
 const select_field =
     "min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 focus-visible:outline-2 focus-visible:outline-[#1d4ed8]";
 
 export default function AircraftPage() {
-    const rows = useAircraft();
+    const { aircraft: rows, is_loading, error, reload } = useAircraftData();
+    const {
+        statuses: available_statuses,
+        is_loading: statuses_loading,
+        error: statuses_error,
+    } = useAircraftStatuses();
     const [search, set_search] = useState("");
     const [status, set_status] = useState("");
-    const statuses = [
-        ...new Set([
-            ...(
-                aircraft_config.fields.find((field) => field.key === "status")
-                    ?.options || []
-            ).map((option) =>
-                typeof option === "string" ? option : option.value,
-            ),
-            ...rows.map((row) => row.status).filter(Boolean),
-        ]),
-    ];
     const term = search.trim().toLowerCase();
     const filtered = rows.filter(
         (row) =>
-            (!status || row.status === status) &&
-            [row.registration, row.model, row.current_aircraft_hours].some(
-                (value) => value?.toLowerCase().includes(term),
+            (!status || row.status.aircraft_status_UUID === status) &&
+            [
+                row.registration,
+                row.aircraft_type.type_name,
+                String(row.current_hours),
+            ].some(
+                (value) => value.toLowerCase().includes(term),
             ),
     );
     const { visible_rows, footer } = useTablePagination(
@@ -47,6 +47,12 @@ export default function AircraftPage() {
             <AircraftBreadcrumbs />
             <h1 id="page_title" className="sr-only">Aircraft</h1>
             <Card>
+                {error && (
+                    <div role="alert" className="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-800">
+                        <p>{error}</p>
+                        <Button variant="ghost" onClick={() => void reload()}>Retry</Button>
+                    </div>
+                )}
                 <div className="filter-toolbar mb-4 rounded-lg bg-slate-50 p-3">
                     <div className="filter-toolbar-search grid gap-1.5">
                         <p aria-hidden="true" className="text-sm text-slate-700">
@@ -73,20 +79,25 @@ export default function AircraftPage() {
                             className={select_field}
                         >
                             <option value="">All statuses</option>
-                            {statuses.map((value) => (
-                                <option key={value} value={value}>
-                                    {value}
+                            {available_statuses.map((option) => (
+                                <option key={option.aircraft_status_UUID} value={option.aircraft_status_UUID}>
+                                    {option.status_name}
                                 </option>
                             ))}
                         </select>
                     </label>
                 </div>
-                <DataTable
+                {statuses_error && (
+                    <p role="alert" className="mb-3 rounded-md bg-red-50 p-3 text-sm text-red-800">
+                        Could not load aircraft statuses: {statuses_error}
+                    </p>
+                )}
+                {is_loading || statuses_loading ? <ScreenLoading compact label="Loading aircraft…" /> : <DataTable
                     inventory
                     bounded
                     caption="Aircraft records"
                     rows={visible_rows}
-                    get_row_key={(row) => row.id}
+                    get_row_key={(row) => row.aircraft_UUID}
                     empty_title={
                         search || status
                             ? "No matching aircraft"
@@ -99,7 +110,7 @@ export default function AircraftPage() {
                             header: "Registration / Tail No.",
                             render: (row) => (
                                 <Link
-                                    to={`/aircraft/${row.id}`}
+                                    to={`/aircraft/${row.aircraft_UUID}`}
                                     className="font-medium text-link"
                                 >
                                     {row.registration || "Not recorded"}
@@ -109,21 +120,19 @@ export default function AircraftPage() {
                         {
                             id: "model",
                             header: "Aircraft Type",
-                            render: (row) => row.model || "Not recorded",
+                            render: (row) => row.aircraft_type.type_name || "Not recorded",
                         },
                         {
-                            id: "current_aircraft_hours",
+                            id: "current_hours",
                             header: "Current Aircraft Hours",
                             render: (row) =>
-                                row.current_aircraft_hours
-                                    ? `${row.current_aircraft_hours} hrs`
-                                    : "Not recorded",
+                                `${row.current_hours.toLocaleString()} hrs`,
                         },
                         {
                             id: "status",
                             header: "Recorded Status",
                             render: (row) => (
-                                <AircraftStatusBadge status={row.status} />
+                                <AircraftStatusBadge status={row.status.status_name} />
                             ),
                         },
                         {
@@ -132,14 +141,14 @@ export default function AircraftPage() {
                             render: (row) => (
                                 <div className="flex flex-wrap items-center gap-4">
                                     <Link
-                                        to={`/aircraft/${row.id}`}
+                                        to={`/aircraft/${row.aircraft_UUID}`}
                                         aria-label={`View ${row.registration}`}
                                         className="inline-flex min-h-11 items-center font-medium text-link"
                                     >
                                         View
                                     </Link>
                                     <Link
-                                        to={`/aircraft/${row.id}/status`}
+                                        to={`/aircraft/${row.aircraft_UUID}/status`}
                                         title="Update status"
                                         aria-label={`Update status for ${row.registration}`}
                                         className="inline-flex size-11 items-center justify-center rounded text-[#1d4ed8] hover:bg-blue-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1d4ed8]"
@@ -150,12 +159,10 @@ export default function AircraftPage() {
                             ),
                         },
                     ]}
-                />
-                <Pagination
-                    {...footer}
-                    item_label="aircraft"
-                    plural_label="aircraft"
-                />
+                />}
+                {!is_loading && !statuses_loading && (
+                    <Pagination {...footer} item_label="aircraft" plural_label="aircraft" />
+                )}
             </Card>
         </section>
     );

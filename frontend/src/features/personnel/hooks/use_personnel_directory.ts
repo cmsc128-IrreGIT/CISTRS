@@ -2,17 +2,14 @@ import { useEffect, useState } from "react";
 import { useOutletContext } from "react-router";
 import { ApiError } from "../../../shared/api/client";
 import useAvailability from "./use_availability";
-import { list_personnel, list_staff_directory } from "../services/personnel_service";
-import type { PersonnelFormValues, PersonnelRecord } from "../types/personnel_types";
+import { create_personnel, list_personnel, list_staff_directory, update_personnel } from "../services/personnel_service";
+import type { PersonnelEmployeeInput, PersonnelRecord } from "../types/personnel_types";
 import { latest_availability } from "../utils/personnel_records";
-
-const preview_by_account = new Map<string, Map<string, PersonnelFormValues>>();
 
 export function usePersonnelRecords(account_id: string, enabled = true, full_access = true) {
     const [records, set_records] = useState<PersonnelRecord[]>();
     const [error, set_error] = useState<Error>();
     const [attempt, set_attempt] = useState(0);
-    const [previews, set_previews] = useState(() => preview_by_account.get(account_id) ?? new Map<string, PersonnelFormValues>());
     const availability = useAvailability();
 
     useEffect(() => {
@@ -30,25 +27,19 @@ export function usePersonnelRecords(account_id: string, enabled = true, full_acc
         return () => controller.abort();
     }, [account_id, attempt, enabled, full_access]);
 
-    const rows = (records ?? []).map((row) => {
-        const preview = full_access ? previews.get(row.id) : undefined;
-        return preview ? { ...row, ...preview, preview: true } : row;
-    });
-    for (const [id, preview] of previews) {
-        if (full_access && id.startsWith("preview-")) {
-            rows.push({ ...preview, id, category: "", base: "", record_status: "", licenses: [], preview: true });
-        }
-    }
+    const rows = records ?? [];
 
-    function save(values: PersonnelFormValues, id = `preview-${crypto.randomUUID()}`) {
+    async function save(values: PersonnelEmployeeInput, id?: string) {
         if (!full_access) throw new Error("Staff directory is read-only.");
-        if (rows.some((row) => row.id !== id && row.employee_number.trim().toLowerCase() === values.employee_number.toLowerCase())) {
-            throw new Error("This employee ID is already in use.");
-        }
-        const next = new Map(previews).set(id, values);
-        preview_by_account.set(account_id, next);
-        set_previews(next);
-        return id;
+        const employee = id
+            ? await update_personnel(id, values)
+            : await create_personnel(values);
+        set_records((current) => current
+            ? current.some((row) => row.id === employee.id)
+                ? current.map((row) => row.id === employee.id ? employee : row)
+                : [employee, ...current]
+            : [employee]);
+        return employee.id;
     }
 
     return {

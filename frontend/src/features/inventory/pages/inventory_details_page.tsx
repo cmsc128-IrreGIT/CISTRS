@@ -55,6 +55,7 @@ function InventoryDetails({
         get_inventory_access(useContext(AuthContext)?.user ?? null) === "read";
     const { decommission_item, is_decommissioned } = useDecommissionedInventory();
     const [decommission_id, set_decommission_id] = useState<string | null>(null);
+    const [history_version, set_history_version] = useState(0);
     const [workflow, set_workflow] = useState<{ part_id: string; mode: keyof typeof STOCK_WORKFLOW_TITLES }>();
     const { items, is_loading, error, reload } = inventory;
 
@@ -186,24 +187,27 @@ function InventoryDetails({
                                         variant="secondary"
                                         onClick={() => set_workflow({ part_id: item.part_UUID, mode: "correction" })}
                                     >
-                                        Request stock correction
+                                        Correct stock quantity
                                     </Button>
                                 </div>
                             )}
                             <InventoryItemStockHistory
-                                key={item.part_UUID}
+                                key={`${item.part_UUID}-${history_version}`}
                                 part_id={item.part_UUID}
                             />
                         </>
                     )}
                     {active_tab.id === "record-changes" && (
                         <EmptyState
-                            title="Record changes are unavailable"
-                            description="Past edits to this item aren’t available in this workspace yet."
+                            title="No item edit history yet."
+                            description="Past edits to an inventory item are not available in this workspace yet."
                         />
                     )}
                     {active_tab.id === "history-and-usage" && (
-                        <InventoryItemUsage part_number={item.part_number} />
+                        <InventoryItemUsage item={item} items={items} read_only={read_only || decommissioned} on_saved={() => {
+                            set_history_version((version) => version + 1);
+                            void inventory.refresh();
+                        }} />
                     )}
                 </section>
             </Card>
@@ -216,7 +220,11 @@ function InventoryDetails({
 
             {workflow?.part_id === item.part_UUID && !read_only && !decommissioned && (
                 <InventoryStockWorkflowDialog key={workflow.mode} mode={workflow.mode} item={item}
-                    items={items} on_close={() => set_workflow(undefined)} />
+                    items={items} on_close={() => set_workflow(undefined)} on_saved={() => {
+                        set_workflow(undefined);
+                        set_history_version((version) => version + 1);
+                        void inventory.refresh();
+                    }} />
             )}
 
             {decommission_id === item.part_UUID && !read_only && !decommissioned && (
