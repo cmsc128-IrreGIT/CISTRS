@@ -7,6 +7,7 @@ import { listPositions } from "./user.service.js";
 //   GET /api/lookups
 //   Only Base and Position carry an active flag, so only they are filtered.
 //   Every list is sorted by name.
+//   suppliers and manufacturers are organizations (organization_UUID).
 // =============================================================================
 
 export async function listLookups() {
@@ -20,6 +21,8 @@ export async function listLookups() {
         positions,
         aircraft_types,
         aircraft_statuses,
+        suppliers,
+        manufacturers,
     ] = await Promise.all([
         prisma.flightType.findMany({
             orderBy: { type_name: "asc" },
@@ -52,6 +55,8 @@ export async function listLookups() {
             select: { aircraft_type_UUID: true, type_name: true, description: true },
         }),
         listAircraftStatuses(),
+        listSuppliers(),
+        listManufacturers(),
     ]);
 
     return {
@@ -64,5 +69,44 @@ export async function listLookups() {
         positions,
         aircraft_types,
         aircraft_statuses,
+        suppliers,
+        manufacturers,
     };
+}
+
+// Suppliers and manufacturers are roles on an organization; the dropdown shows the
+// organization, so the id is organization_UUID (the same id the admin POST returns).
+const organizationName = {
+    organization: {
+        select: { organization_name: true, organization_location: true },
+    },
+} as const;
+
+async function listSuppliers() {
+    const rows = await prisma.supplier.findMany({
+        select: { organization_UUID: true, ...organizationName },
+    });
+    return flattenOrganizations(rows);
+}
+
+async function listManufacturers() {
+    const rows = await prisma.manufacturer.findMany({
+        select: { organization_UUID: true, ...organizationName },
+    });
+    return flattenOrganizations(rows);
+}
+
+function flattenOrganizations(
+    rows: {
+        organization_UUID: string;
+        organization: { organization_name: string; organization_location: string };
+    }[],
+) {
+    return rows
+        .map((row) => ({
+            organization_UUID: row.organization_UUID,
+            organization_name: row.organization.organization_name,
+            organization_location: row.organization.organization_location,
+        }))
+        .sort((a, b) => a.organization_name.localeCompare(b.organization_name));
 }

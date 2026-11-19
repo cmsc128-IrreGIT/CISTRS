@@ -9,6 +9,7 @@ import { requireAuth, requireFeature } from "./middleware/auth.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 
 // routes
+import { adminRouter } from "./routes/admin.js";
 import { aircraftRouter } from "./routes/aircraft.js";
 import { authRouter } from "./routes/auth.js";
 import { inventoryRouter } from "./routes/inventory.js";
@@ -44,6 +45,8 @@ app.use("/api/lookups", lookupsRouter);
 
 // Each module also needs its own feature (granted through the user's roles).
 app.use("/api/users", requireFeature(FEATURE.UserAccounts), usersRouter);
+// Adding new dropdown entries is an administration task, so it uses the same feature.
+app.use("/api/admin", requireFeature(FEATURE.UserAccounts), adminRouter);
 app.use("/api/inventory", requireFeature(FEATURE.Inventory), inventoryRouter);
 app.use("/api/aircraft", requireFeature(FEATURE.Aircraft), aircraftRouter);
 app.use("/api/logbook", requireFeature(FEATURE.Logbook), logbookRouter);
