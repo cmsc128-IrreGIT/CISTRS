@@ -14,6 +14,8 @@ import { AuthContext } from "../../auth/hooks/auth_context";
 import { InventoryBreadcrumbs, InventoryTabs } from "../components/inventory_workspace";
 import { RequestDetailsDialog, RequestResultDialog, RequestStockDialog } from "../components/inventory_request_dialog";
 import { WorkflowError } from "../components/inventory_workflow_fields";
+import { StockMovementDetails, StockMovementTable } from "../components/stock_movements";
+import useInventoryHistory from "../hooks/use_inventory_history";
 import { INVENTORY_CORRECTIONS_PATH, INVENTORY_PRIMARY_ACTION } from "../constants/inventory_constants";
 import {
     INVENTORY_REQUEST_PAGE_COPY,
@@ -22,10 +24,40 @@ import {
 } from "../constants/inventory_workflow_constants";
 import useActiveInventory from "../hooks/use_active_inventory";
 import { useInventoryRequestPreviews } from "../hooks/use_inventory_request_previews";
-import type { InventoryRequestPreview } from "../types/inventory_types";
+import type { InventoryRequestPreview, InventoryTransaction } from "../types/inventory_types";
 import { can_review_inventory_requests, inventory_location_label, inventory_request_date } from "../utils/inventory_workflows";
 
 export default function InventoryRequestsPage({
+    correction = false,
+}: {
+    correction?: boolean;
+}) {
+    return correction ? <StockCorrectionsPage /> : <InventoryRequestPreviewsPage />;
+}
+
+function StockCorrectionsPage() {
+    const { history, is_loading, error, reload } = useInventoryHistory();
+    const [selected, set_selected] = useState<InventoryTransaction | null>(null);
+    const rows = history.filter((row) => row.transaction_type === "ADJUSTMENT");
+    const { visible_rows, footer } = useTablePagination(rows, "saved-stock-corrections");
+    return <section aria-labelledby="page_title" className="space-y-4">
+        <InventoryBreadcrumbs current="Stock corrections" />
+        <h1 id="page_title" className="sr-only">Stock corrections</h1>
+        <Card>
+            <InventoryTabs />
+            <p className="mb-4 text-sm text-slate-600">Saved stock adjustments across all items. Receipts are also stored as adjustments; open a record to see its reason.</p>
+            {error ? <><WorkflowError message={error} /><Button variant="ghost" onClick={() => void reload()}>Retry</Button></>
+                : is_loading ? <ScreenLoading compact label="Loading stock corrections..." />
+                : <>
+                    <StockMovementTable rows={visible_rows} has_history={rows.length > 0} show_reference on_view={set_selected} />
+                    {rows.length > footer.default_page_size && <Pagination {...footer} item_label="adjustment" />}
+                </>}
+        </Card>
+        {selected && <StockMovementDetails selected={selected} on_close={() => set_selected(null)} />}
+    </section>;
+}
+
+function InventoryRequestPreviewsPage({
     correction = false,
 }: {
     correction?: boolean;

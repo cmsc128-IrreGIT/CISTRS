@@ -4,6 +4,7 @@ import { Link, Outlet } from "react-router";
 import SearchInput from "../../../shared/components/forms/search_input";
 import WorkspaceBreadcrumbs from "../../../shared/components/navigation/workspace_breadcrumbs";
 import Card from "../../../shared/components/ui/card";
+import Button from "../../../shared/components/ui/button";
 import DataTable from "../../../shared/components/ui/data_table";
 import Pagination from "../../../shared/components/ui/pagination";
 import useTablePagination from "../../../shared/hooks/use_table_pagination";
@@ -27,8 +28,7 @@ export default function UsersPage() {
         account,
         name: account_name(account),
         role: account.employee.position?.position_name || "Not recorded",
-        status: workspace.previews?.get(account.account_UUID)?.status ?? account.account_status,
-        preview: workspace.previews?.has(account.account_UUID),
+        status: account.account_status,
     }));
     const roles = [...new Set(rows.map((row) => row.role))].sort();
     const statuses = [...new Set(rows.map((row) => row.status))].sort();
@@ -65,6 +65,7 @@ export default function UsersPage() {
                         </select>
                     </label>
                     <div className="filter-toolbar-actions">
+                        {(term || role || status) && <Button variant="ghost" onClick={() => { set_search(""); set_role(""); set_status(""); }}>Clear filters</Button>}
                         <Link to="/users/new" className={`${button_styles()} ${account_action_style}`}>
                             <Plus size={16} aria-hidden="true" /> Add account
                         </Link>
@@ -76,7 +77,7 @@ export default function UsersPage() {
                             <><span className="block font-medium">{row.name}</span><span className="text-slate-600">{row.account.username}</span></>
                         ) },
                         { id: "role", header: "System role", render: (row) => row.role },
-                        { id: "status", header: "Account status", render: (row) => <AccountStatus status={row.status} preview={row.preview} /> },
+                        { id: "status", header: "Account status", render: (row) => <AccountStatus status={row.status} /> },
                         { id: "last_login", header: "Last sign-in", render: ({ account }) => {
                             const login = Date.parse(account.last_login_at ?? "");
                             return Number.isFinite(login) ? sign_in_format.format(login) : "Not yet signed in";

@@ -1,22 +1,101 @@
-import type { PreviewRecord } from "../../../shared/types/record_types";
-import { aircraft_status_history, aircraft_store } from "../data/aircraft_store";
+import { api } from "../../../shared/api/client";
+import type {
+    AircraftRecord,
+    AircraftStatusOption,
+    UpdateAircraftStatusInput,
+} from "../types/aircraft_types";
 
-// The fleet and status history use preview data until the backend exposes aircraft routes.
-export const aircraft_service = {
-    list: aircraft_store.get_snapshot,
-    subscribe: aircraft_store.subscribe,
-    list_status_history: aircraft_status_history.get_snapshot,
-    subscribe_to_status_history: aircraft_status_history.subscribe,
+type AircraftState = {
+    aircraft: AircraftRecord[];
+    is_loading: boolean;
+    error: string | null;
+};
 
-    update_status(aircraft_id: string | undefined, values: Omit<PreviewRecord, "id">) {
-        const aircraft = aircraft_store.get_snapshot().find(({ id }) => id === aircraft_id);
-        if (!aircraft) throw new Error("Aircraft not found.");
+const listeners = new Set<() => void>();
+let state: AircraftState = {
+    aircraft: [],
+    is_loading: true,
+    error: null,
+};
+let pending_load: Promise<void> | null = null;
+let loaded = false;
 
-        aircraft_status_history.save({
-            ...values,
-            aircraft_id: aircraft.id,
-            previous_status: aircraft.status,
+function notify() {
+    listeners.forEach((listener) => listener());
+}
+
+function set_state(next: AircraftState) {
+    state = next;
+    notify();
+}
+
+async function load(force = false): Promise<void> {
+    if (pending_load) return pending_load;
+    if (loaded && !force) return;
+
+    set_state({ ...state, is_loading: true, error: null });
+    pending_load = api<AircraftRecord[]>("/aircraft")
+        .then((aircraft) => {
+            loaded = true;
+            set_state({ aircraft, is_loading: false, error: null });
+        })
+        .catch((cause: unknown) => {
+            set_state({
+                ...state,
+                is_loading: false,
+                error:
+                    cause instanceof Error
+                        ? cause.message
+                        : "Failed to load aircraft records.",
+            });
+        })
+        .finally(() => {
+            pending_load = null;
         });
-        return aircraft_store.save({ ...aircraft, ...values }, aircraft.id);
+    return pending_load;
+}
+
+export const aircraft_service = {
+    subscribe(listener: () => void) {
+        listeners.add(listener);
+        return () => listeners.delete(listener);
+    },
+    get_snapshot() {
+        return state;
+    },
+    load() {
+        return load();
+    },
+    reload() {
+        return load(true);
+    },
+    list_statuses() {
+        return api<AircraftStatusOption[]>("/aircraft/statuses");
+    },
+    async update_status(
+        aircraft_UUID: string,
+        values: UpdateAircraftStatusInput,
+    ) {
+        const updated = await api<AircraftRecord>(
+            `/aircraft/${encodeURIComponent(aircraft_UUID)}/status`,
+            {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(values),
+            },
+        );
+        set_state({
+            ...state,
+            aircraft: state.aircraft
+                .map((row) =>
+                    row.aircraft_UUID === updated.aircraft_UUID ? updated : row,
+                )
+                .sort((first, second) =>
+                    first.registration.localeCompare(second.registration),
+                ),
+            error: null,
+        });
+        loaded = true;
+        return updated;
     },
 };
