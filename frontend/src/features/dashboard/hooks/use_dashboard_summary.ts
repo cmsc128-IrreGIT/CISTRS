@@ -1,12 +1,13 @@
+import { useEffect, useState } from "react";
 import type { DonutChartEntry } from "../../../shared/components/charts/donut_chart";
 import useAircraft from "../../aircraft/hooks/use_aircraft";
 import useActiveInventory from "../../inventory/hooks/use_active_inventory";
 import { get_stock_status } from "../../inventory/utils/stock_status";
 import useInventoryHistory from "../../inventory/hooks/use_inventory_history";
 import useLogbook from "../../logbook/hooks/use_logbook";
-import usePersonnel from "../../personnel/hooks/use_personnel";
 import useMaintenance from "../../maintenance/hooks/use_maintenance";
 import useAvailability from "../../personnel/hooks/use_availability";
+import { list_personnel } from "../../personnel/services/personnel_service";
 
 export default function useDashboardSummary(
   include_inventory = true,
@@ -17,8 +18,20 @@ export default function useDashboardSummary(
   const aircraft = useAircraft();
   const maintenance = useMaintenance();
   const logbook = useLogbook();
-  const personnel = usePersonnel();
   const availability = useAvailability();
+  const [personnel_count, set_personnel_count] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    list_personnel()
+      .then((personnel) => {
+        if (!cancelled) set_personnel_count(personnel.length);
+      })
+      .catch(() => {
+        if (!cancelled) set_personnel_count(0);
+      });
+    return () => { cancelled = true; };
+  }, []);
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -44,7 +57,7 @@ export default function useDashboardSummary(
   const recent_logbook = [...logbook].sort((first, second) =>
     second.entry_date.localeCompare(first.entry_date),
   );
-  const current_availability = availability.find(
+  const current_availability = availability.records.find(
     (row) =>
       employee_id &&
       row.personnel === employee_id &&
@@ -64,7 +77,7 @@ export default function useDashboardSummary(
   return {
     inventory,
     transactions,
-    personnel_count: personnel.length,
+    personnel_count,
     stock_alerts,
     recent_changes,
     aircraft_count: aircraft.length,

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Check, ChevronDown, Settings2 } from "lucide-react";
+import { Check, ChevronDown, Settings2, RefreshCw } from "lucide-react";
 import { Link } from "react-router";
 import { toast } from "sonner";
 import { get_inventory_access } from "../../../shared/components/navigation/workspace";
@@ -11,7 +11,6 @@ import { useAuth } from "../../auth/hooks/auth_context";
 import NotificationItem from "../components/notification_item";
 import { notification_categories } from "../config/notification_categories";
 import useNotifications from "../hooks/use_notifications";
-import { notification_service } from "../services/notification_service";
 import type { NotificationCategory } from "../types/notification_types";
 import { notification_date_group } from "../utils/notification_time";
 
@@ -19,20 +18,16 @@ const group_order = ["Today", "Yesterday", "Earlier", "Other dates", "Date unava
 
 export default function NotificationsPage() {
     const { user } = useAuth();
-    return user && <Inbox key={user.account_UUID} account_id={user.account_UUID} features={user.features}
+    return user && <Inbox key={user.account_UUID} features={user.features}
         can_view_stock_history={get_inventory_access(user) === "manage"} />;
 }
 
-function Inbox({ account_id, features, can_view_stock_history }: {
-    account_id: string; features: string[]; can_view_stock_history: boolean;
+function Inbox({ features, can_view_stock_history }: {
+    features: string[]; can_view_stock_history: boolean;
 }) {
-    const inbox = useNotifications(account_id);
+    const { notifications: inbox, loading, error, setRead, markAllRead, refresh } = useNotifications();
     const categories = notification_categories.filter(({ key, label }) =>
         key === "all" || key === "system" || features.includes(label),
-    );
-    const rows = inbox.filter((row) =>
-        categories.some(({ key }) => key === row.category) &&
-        (row.to !== "/inventory/history" || can_view_stock_history),
     );
     const [unread_only, set_unread_only] = useState(false);
     const [category, set_category] = useState<NotificationCategory | "all">("all");
@@ -45,23 +40,26 @@ function Inbox({ account_id, features, can_view_stock_history }: {
         return () => window.clearInterval(timer);
     }, []);
 
-    async function update_read(id?: string, is_read = true) {
+    async function update_read(id?: string) {
         if (saving_ref.current) return;
         saving_ref.current = true;
         set_is_saving(true);
 
         try {
-            const service = notification_service(account_id);
-            if (id) await service.set_read(id, is_read);
-            else await service.mark_all_read();
-        } catch {
-            toast.error("Could not update notifications. Please try again.");
+            if (id) await setRead(id, true); // Only mark as read (backend doesn't support unread)
+            else await markAllRead();
+        } catch (err) {
+            toast.error(err instanceof Error ? err.message : "Could not update notifications. Please try again.");
         } finally {
             saving_ref.current = false;
             set_is_saving(false);
         }
     }
 
+    const rows = inbox.filter((row) =>
+        categories.some(({ key }) => key === row.category) &&
+        (row.to !== "/inventory/history" || can_view_stock_history),
+    );
     const category_rows = rows.filter((row) => category === "all" || row.category === category);
     const unread_rows = category_rows.filter((row) => row.read_at === null);
     const visible = [...(unread_only ? unread_rows : category_rows)].sort(
@@ -79,10 +77,17 @@ function Inbox({ account_id, features, can_view_stock_history }: {
             <WorkspaceBreadcrumbs current="Notifications" />
             <h1 id="page_title" className="sr-only">Notifications</h1>
             <div className="flex flex-wrap items-center justify-between gap-3">
-                <p className="text-sm text-slate-600">Preview inbox. Read changes are kept for this browser session.</p>
-                <Link to="/notifications/preferences" className={button_styles("secondary")}>
-                    <Settings2 size={16} aria-hidden="true" /> Notification preferences
-                </Link>
+                {loading && <span className="text-sm text-slate-600 animate-pulse">Loading notifications…</span>}
+                {error && <span className="text-sm text-red-600" role="alert">{error}</span>}
+                {!loading && !error && <p className="text-sm text-slate-600">Real-time inbox from server.</p>}
+                <div className="flex items-center gap-2">
+                    <Link to="/notifications/preferences" className={button_styles("secondary")}>
+                        <Settings2 size={16} aria-hidden="true" /> Notification preferences
+                    </Link>
+                    <Button variant="ghost" onClick={refresh} disabled={loading} aria-label="Refresh notifications">
+                        <RefreshCw size={16} aria-hidden="true" className={loading ? "animate-spin" : ""} />
+                    </Button>
+                </div>
             </div>
             <Card>
                 <div className="mb-4 flex flex-wrap items-center gap-2 border-b border-slate-200 pb-4">
@@ -109,7 +114,7 @@ function Inbox({ account_id, features, can_view_stock_history }: {
                         </select>
                         <ChevronDown size={15} aria-hidden="true" className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-slate-600" />
                     </div>
-                    <Button variant="secondary" className="sm:ml-auto" disabled={is_saving || !has_unread} onClick={() => void update_read()}>
+                    <Button variant="secondary" className="sm:ml-auto" disabled={is_saving || !has_unread || loading} onClick={() => void update_read()}>
                         <Check size={15} aria-hidden="true" /> Mark all as read
                     </Button>
                 </div>
@@ -123,7 +128,7 @@ function Inbox({ account_id, features, can_view_stock_history }: {
                                 <ul className="space-y-2">
                                     {group_rows.map((row) => (
                                         <NotificationItem key={row.id} notification={row} now={now} disabled={is_saving}
-                                            on_read_change={(id, is_read) => void update_read(id, is_read)} />
+                                            on_mark_read={(id) => void update_read(id)} />
                                     ))}
                                 </ul>
                             </section>

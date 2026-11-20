@@ -511,7 +511,7 @@ export async function updateEmployee(
 }
 
 // -----------------------------------------------------------------------------
-// LICENSES (unchanged)
+// LICENSES
 
 export async function listExpiringLicenses(days: number) {
     const limit = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
@@ -525,4 +525,212 @@ export async function listExpiringLicenses(days: number) {
             },
         },
     });
+}
+
+// License CRUD
+
+const licenseInclude = {
+    license_type: true,
+    renewal_status: true,
+} satisfies Prisma.EmployeeLicenseInclude;
+
+type LicenseWithRelations = Prisma.EmployeeLicenseGetPayload<{
+    include: typeof licenseInclude;
+}>;
+
+function toLicenseResponse(license: LicenseWithRelations) {
+    return {
+        emp_license_UUID: license.emp_license_UUID,
+        emp_UUID: license.emp_UUID,
+        license_type_UUID: license.license_type_UUID,
+        license_type_name: license.license_type.license_type_name,
+        renewal_status_UUID: license.renewal_status_UUID,
+        renewal_status_name: license.renewal_status?.status_name ?? null,
+        license_number: license.license_number,
+        issuing_authority: license.issuing_authority,
+        date_issued: license.date_issued.toISOString().slice(0, 10),
+        expiry_date: license.expiry_date?.toISOString().slice(0, 10) ?? null,
+        remarks: license.remarks,
+        created_at: license.created_at,
+        updated_at: license.updated_at,
+    };
+}
+
+const licenseFields = {
+    license_type_UUID: uuidField("license_type_UUID"),
+    renewal_status_UUID: uuidField("renewal_status_UUID"),
+    license_number: z.string().min(1, "License number is required").max(100, "License number must be at most 100 characters"),
+    issuing_authority: z.string().min(1, "Issuing authority is required").max(200, "Issuing authority must be at most 200 characters"),
+    date_issued: dateField("date_issued"),
+    expiry_date: dateField("expiry_date").nullable().optional(),
+    remarks: z.string().max(1000, "Remarks must be at most 1000 characters").nullable().optional(),
+};
+
+export const createLicenseSchema = z.object({
+    emp_UUID: uuidField("emp_UUID"),
+    ...licenseFields,
+}).strict();
+
+export type CreateLicenseInput = z.infer<typeof createLicenseSchema>;
+
+export const updateLicenseSchema = z.object({
+    ...licenseFields,
+}).partial().strict().refine(
+    (input) => Object.values(input).some((value) => value !== undefined),
+    "At least one field must be provided",
+);
+
+export type UpdateLicenseInput = z.infer<typeof updateLicenseSchema>;
+
+async function findLicenseOr404(emp_license_UUID: string) {
+    const license = await prisma.employeeLicense.findUnique({
+        where: { emp_license_UUID },
+        include: licenseInclude,
+    });
+    if (!license) throw new HttpError(404, "License not found");
+    return license;
+}
+
+async function assertLicenseReferences(input: { license_type_UUID?: string; renewal_status_UUID?: string }) {
+    if (input.license_type_UUID) {
+        const type = await prisma.licenseType.findUnique({
+            where: { license_type_UUID: input.license_type_UUID },
+            select: { license_type_UUID: true },
+        });
+        if (!type) throw new HttpError(404, "License type not found");
+    }
+    if (input.renewal_status_UUID) {
+        const status = await prisma.renewalStatus.findUnique({
+            where: { renewal_status_UUID: input.renewal_status_UUID },
+            select: { renewal_status_UUID: true },
+        });
+        if (!status) throw new HttpError(404, "Renewal status not found");
+    }
+}
+
+// POST /api/personnel/employees/:emp_UUID/licenses
+export async function createLicense(emp_UUID: string, input: CreateLicenseInput, actor_emp_UUID: string) {
+    await assertEmployeeExistsOr404(emp_UUID);
+    await assertLicenseReferences(input);
+
+    // Check duplicate: same employee, license type, and license number
+    const existing = await prisma.employeeLicense.findFirst({
+        where: {
+            emp_UUID,
+            license_type_UUID: input.license_type_UUID,
+            license_number: input.license_number,
+        },
+        select: { emp_license_UUID: true },
+    });
+    if (existing) throw new HttpError(409, "License with this number already exists for this employee and type");
+
+    const created = await prisma.employeeLicense.create({
+        data: {
+            emp_UUID,
+            license_type_UUID: input.license_type_UUID,
+            renewal_status_UUID: input.renewal_status_UUID,
+            license_number: input.license_number,
+            issuing_authority: input.issuing_authority,
+            date_issued: toDbDate(input.date_issued),
+            expiry_date: input.expiry_date ? toDbDate(input.expiry_date) : null,
+            remarks: input.remarks ?? null,
+        },
+        include: licenseInclude,
+    });
+
+    return toLicenseResponse(created);
+}
+
+// GET /api/personnel/employees/:emp_UUID/licenses
+export async function listLicenses(emp_UUID: string) {
+    await assertEmployeeExistsOr404(emp_UUID);
+
+    const licenses = await prisma.employeeLicense.findMany({
+        where: { emp_UUID },
+        orderBy: { date_issued: "desc" },
+        include: licenseInclude,
+    });
+
+    return licenses.map(toLicenseResponse);
+}
+
+// GET /api/personnel/licenses/:emp_license_UUID
+export async function getLicense(emp_license_UUID: string) {
+    return toLicenseResponse(await findLicenseOr404(emp_license_UUID));
+}
+
+// PATCH /api/personnel/licenses/:emp_license_UUID
+export async function updateLicense(
+    emp_license_UUID: string,
+    input: UpdateLicenseInput,
+    actor_emp_UUID: string,
+) {
+    const existing = await findLicenseOr404(emp_license_UUID);
+
+    // Check references if changed
+    if (input.license_type_UUID || input.renewal_status_UUID) {
+        await assertLicenseReferences({
+            license_type_UUID: input.license_type_UUID ?? existing.license_type_UUID,
+            renewal_status_UUID: input.renewal_status_UUID ?? existing.renewal_status_UUID,
+        });
+    }
+
+    // Check duplicate if license_number or license_type_UUID changed
+    if (input.license_number !== undefined || input.license_type_UUID !== undefined) {
+        const checkType = input.license_type_UUID ?? existing.license_type_UUID;
+        const checkNumber = input.license_number ?? existing.license_number;
+        const duplicate = await prisma.employeeLicense.findFirst({
+            where: {
+                emp_UUID: existing.emp_UUID,
+                license_type_UUID: checkType,
+                license_number: checkNumber,
+                NOT: { emp_license_UUID },
+            },
+            select: { emp_license_UUID: true },
+        });
+        if (duplicate) throw new HttpError(409, "License with this number already exists for this employee and type");
+    }
+
+    const data: Prisma.EmployeeLicenseUncheckedUpdateInput = {};
+    // Handle each field individually for proper type narrowing
+    if (input.date_issued !== undefined) {
+        data.date_issued = toDbDate(input.date_issued);
+    }
+    if (input.expiry_date !== undefined) {
+        data.expiry_date = input.expiry_date === null ? null : toDbDate(input.expiry_date);
+    }
+    if (input.license_type_UUID !== undefined) data.license_type_UUID = input.license_type_UUID;
+    if (input.renewal_status_UUID !== undefined) data.renewal_status_UUID = input.renewal_status_UUID;
+    if (input.license_number !== undefined) data.license_number = input.license_number;
+    if (input.issuing_authority !== undefined) data.issuing_authority = input.issuing_authority;
+    if (input.remarks !== undefined) data.remarks = input.remarks;
+
+    if (Object.keys(data).length === 0) {
+        return toLicenseResponse(existing);
+    }
+
+    const updated = await prisma.employeeLicense.update({
+        where: { emp_license_UUID },
+        data,
+        include: licenseInclude,
+    });
+
+    return toLicenseResponse(updated);
+}
+
+// DELETE /api/personnel/licenses/:emp_license_UUID
+export async function deleteLicense(emp_license_UUID: string, actor_emp_UUID: string) {
+    await findLicenseOr404(emp_license_UUID);
+    await prisma.employeeLicense.delete({ where: { emp_license_UUID } });
+    return { deleted: true };
+}
+
+// Helper to check employee exists and is active
+async function assertEmployeeExistsOr404(emp_UUID: string) {
+    const employee = await prisma.employee.findUnique({
+        where: { emp_UUID },
+        select: { emp_UUID: true, record_status: true },
+    });
+    if (!employee) throw new HttpError(404, "Employee not found");
+    if (employee.record_status !== "Active") throw new HttpError(400, "Employee is not active");
 }

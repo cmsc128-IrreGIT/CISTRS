@@ -14,7 +14,8 @@
         "test:personnel": "tsx scripts/personnel-test.ts",
         "test:inventory": "tsx scripts/inventory-test.ts",
         "test:maintenance": "tsx scripts/maintenance-test.ts",
-        "test:logbook": "tsx scripts/logbook-test.ts"
+        "test:logbook": "tsx scripts/logbook-test.ts",
+        "test:notification": "tsx scripts/notification-test.ts"
     },
     "keywords": [],
     "author": "",
@@ -23,12 +24,14 @@
     "dependencies": {
         "@prisma/adapter-pg": "7.10.0",
         "@prisma/client": "7.10.0",
+        "@types/multer": "^2.3.0",
         "bcryptjs": "^3.0.3",
         "cistrs": "file:..",
         "cors": "^2.8.6",
         "dotenv": "^18.0.9",
         "express": "^5.2.1",
         "jsonwebtoken": "^9.0.3",
+        "multer": "^2.5.0",
         "pg": "^8.23.1",
         "zod": "^4.6.7"
     },

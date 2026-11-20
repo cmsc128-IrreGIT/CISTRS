@@ -87,6 +87,7 @@
             "photo": null,
             "date_hired": "2005-01-10",
             "department": "Pilot",
+            "availability": "Available",
             "personnel_category_UUID": "12000000-0000-4000-8000-000000000001",
             "record_status": "Active",
             "supervisor_emp_UUID": null,
@@ -107,6 +108,7 @@
             "photo": null,
             "date_hired": "2010-03-01",
             "department": "Operations Personnel",
+            "availability": "Available",
             "personnel_category_UUID": "12000000-0000-4000-8000-000000000002",
             "record_status": "Active",
             "supervisor_emp_UUID": "20000000-0000-4000-8000-000000000001",
@@ -127,6 +129,7 @@
             "photo": null,
             "date_hired": "2012-06-18",
             "department": "Aircraft Maintenance Technician",
+            "availability": "Available",
             "personnel_category_UUID": "12000000-0000-4000-8000-000000000003",
             "record_status": "Active",
             "supervisor_emp_UUID": "20000000-0000-4000-8000-000000000002",
@@ -147,6 +150,7 @@
             "photo": null,
             "date_hired": "2019-02-04",
             "department": "Pilot",
+            "availability": "Available",
             "personnel_category_UUID": "12000000-0000-4000-8000-000000000001",
             "record_status": "Active",
             "supervisor_emp_UUID": "20000000-0000-4000-8000-000000000007",
@@ -167,6 +171,7 @@
             "photo": null,
             "date_hired": "2016-09-12",
             "department": "Quality / Safety Personnel",
+            "availability": "Available",
             "personnel_category_UUID": "12000000-0000-4000-8000-000000000005",
             "record_status": "Active",
             "supervisor_emp_UUID": "20000000-0000-4000-8000-000000000002",
@@ -187,6 +192,7 @@
             "photo": null,
             "date_hired": "2023-04-17",
             "department": "Inventory Personnel",
+            "availability": "Available",
             "personnel_category_UUID": "12000000-0000-4000-8000-000000000004",
             "record_status": "Active",
             "supervisor_emp_UUID": "20000000-0000-4000-8000-000000000003",
@@ -207,6 +213,7 @@
             "photo": null,
             "date_hired": "2014-11-03",
             "department": "Pilot",
+            "availability": "Available",
             "personnel_category_UUID": "12000000-0000-4000-8000-000000000001",
             "record_status": "Active",
             "supervisor_emp_UUID": "20000000-0000-4000-8000-000000000002",
@@ -227,6 +234,7 @@
             "photo": null,
             "date_hired": "2024-08-05",
             "department": "Quality / Safety Personnel",
+            "availability": "Unavailable",
             "personnel_category_UUID": "12000000-0000-4000-8000-000000000005",
             "record_status": "Inactive",
             "supervisor_emp_UUID": "20000000-0000-4000-8000-000000000005",
@@ -244,7 +252,7 @@
         {
             "contact_UUID": "30000000-0000-4000-8000-000000000002",
             "contact_type": "Phone",
-            "contact_value": "+63-917-555-0101"
+            "contact_value": "+639175550101"
         },
         {
             "contact_UUID": "30000000-0000-4000-8000-000000000003",
@@ -254,7 +262,7 @@
         {
             "contact_UUID": "30000000-0000-4000-8000-000000000004",
             "contact_type": "Phone",
-            "contact_value": "+63-917-555-0102"
+            "contact_value": "+639175550102"
         },
         {
             "contact_UUID": "30000000-0000-4000-8000-000000000005",
@@ -264,7 +272,7 @@
         {
             "contact_UUID": "30000000-0000-4000-8000-000000000006",
             "contact_type": "Phone",
-            "contact_value": "+63-917-555-0103"
+            "contact_value": "+639175550103"
         },
         {
             "contact_UUID": "30000000-0000-4000-8000-000000000007",
@@ -274,7 +282,7 @@
         {
             "contact_UUID": "30000000-0000-4000-8000-000000000008",
             "contact_type": "Phone",
-            "contact_value": "+63-917-555-0104"
+            "contact_value": "+639175550104"
         },
         {
             "contact_UUID": "30000000-0000-4000-8000-000000000009",
@@ -284,7 +292,7 @@
         {
             "contact_UUID": "30000000-0000-4000-8000-000000000010",
             "contact_type": "Phone",
-            "contact_value": "+63-917-555-0105"
+            "contact_value": "+639175550105"
         },
         {
             "contact_UUID": "30000000-0000-4000-8000-000000000011",
@@ -294,7 +302,7 @@
         {
             "contact_UUID": "30000000-0000-4000-8000-000000000012",
             "contact_type": "Phone",
-            "contact_value": "+63-917-555-0106"
+            "contact_value": "+639175550106"
         },
         {
             "contact_UUID": "30000000-0000-4000-8000-000000000013",
@@ -304,7 +312,7 @@
         {
             "contact_UUID": "30000000-0000-4000-8000-000000000014",
             "contact_type": "Phone",
-            "contact_value": "+63-917-555-0107"
+            "contact_value": "+639175550107"
         },
         {
             "contact_UUID": "30000000-0000-4000-8000-000000000015",
@@ -314,17 +322,17 @@
         {
             "contact_UUID": "30000000-0000-4000-8000-000000000016",
             "contact_type": "Phone",
-            "contact_value": "+63-917-555-0108"
+            "contact_value": "+639175550108"
         },
         {
             "contact_UUID": "30000000-0000-4000-8000-000000000017",
             "contact_type": "Phone",
-            "contact_value": "+63-917-555-0201"
+            "contact_value": "+639175550201"
         },
         {
             "contact_UUID": "30000000-0000-4000-8000-000000000018",
             "contact_type": "Phone",
-            "contact_value": "+63-917-555-0202"
+            "contact_value": "+639175550202"
         },
         {
             "contact_UUID": "70000000-0000-4000-8000-000000000001",
@@ -355,6 +363,26 @@
             "contact_UUID": "70000000-0000-4000-8000-000000000006",
             "contact_type": "Email",
             "contact_value": "info@northstar.example"
+        },
+        { 
+            "contact_UUID": "30000000-0000-4000-8000-000000000019", 
+            "contact_type": "WhatsApp", 
+            "contact_value": "+639175550101" 
+        },
+        { 
+            "contact_UUID": "30000000-0000-4000-8000-000000000020", 
+            "contact_type": "WhatsApp", 
+            "contact_value": "+639175550103" 
+        },
+        { 
+            "contact_UUID": "30000000-0000-4000-8000-000000000021", 
+            "contact_type": "WhatsApp", 
+            "contact_value": "+639175550104" 
+        },
+        { 
+            "contact_UUID": "30000000-0000-4000-8000-000000000022",
+            "contact_type": "WhatsApp", 
+            "contact_value": "+639175550106" 
         }
     ],
     "EMPLOYEE_CONTACT": [
@@ -421,6 +449,22 @@
         {
             "employee_UUID": "20000000-0000-4000-8000-000000000008",
             "contact_UUID": "30000000-0000-4000-8000-000000000016"
+        },
+        { 
+            "employee_UUID": "20000000-0000-4000-8000-000000000001", 
+            "contact_UUID": "30000000-0000-4000-8000-000000000019" 
+        },
+        { 
+            "employee_UUID": "20000000-0000-4000-8000-000000000003", 
+            "contact_UUID": "30000000-0000-4000-8000-000000000020" 
+        },
+        { 
+            "employee_UUID": "20000000-0000-4000-8000-000000000004", 
+            "contact_UUID": "30000000-0000-4000-8000-000000000021" 
+        },
+        { 
+            "employee_UUID": "20000000-0000-4000-8000-000000000006", 
+            "contact_UUID": "30000000-0000-4000-8000-000000000022" 
         }
     ],
     "LICENSE_TYPE": [
@@ -1692,6 +1736,393 @@
             "quantity_gals": 100.0,
             "recorded_by": "20000000-0000-4000-8000-000000000006",
             "remarks": "Refueled Jet A-1 at Mactan-Cebu Depot."
+        }
+    ],
+    
+    "NOTIFICATION_TYPE": [
+        {
+        "type_UUID": "84000000-0000-4000-8000-000000000001",
+        "event_code": "PER_LIC_EXPIRING",
+        "category": "Personnel",
+        "description": "Pilot or personnel license expiring soon.",
+        "default_severity": "Warning",
+        "threshold_days": [
+            60,
+            30,
+            15
+        ],
+        "threshold_hours": null,
+        "whatsapp_template": "per_lic_expiring",
+        "notify_subject": true
+        },
+        {
+        "type_UUID": "84000000-0000-4000-8000-000000000002",
+        "event_code": "PER_LIC_EXPIRED",
+        "category": "Personnel",
+        "description": "Pilot or personnel license has expired.",
+        "default_severity": "Critical",
+        "threshold_days": [],
+        "threshold_hours": null,
+        "whatsapp_template": "per_lic_expired",
+        "notify_subject": true
+        },
+        {
+        "type_UUID": "84000000-0000-4000-8000-000000000003",
+        "event_code": "PER_MED_EXPIRING",
+        "category": "Personnel",
+        "description": "Medical certificate expiring soon.",
+        "default_severity": "Warning",
+        "threshold_days": [
+            30,
+            15
+        ],
+        "threshold_hours": null,
+        "whatsapp_template": "per_med_expiring",
+        "notify_subject": true
+        },
+        {
+        "type_UUID": "84000000-0000-4000-8000-000000000004",
+        "event_code": "PER_MED_EXPIRED",
+        "category": "Personnel",
+        "description": "Medical certificate has expired.",
+        "default_severity": "Critical",
+        "threshold_days": [],
+        "threshold_hours": null,
+        "whatsapp_template": "per_med_expired",
+        "notify_subject": true
+        },
+        {
+        "type_UUID": "84000000-0000-4000-8000-000000000005",
+        "event_code": "PER_TRN_EXPIRING",
+        "category": "Personnel",
+        "description": "Recurrent training due soon.",
+        "default_severity": "Warning",
+        "threshold_days": [
+            30
+        ],
+        "threshold_hours": null,
+        "whatsapp_template": "per_trn_expiring",
+        "notify_subject": false
+        },
+        {
+        "type_UUID": "84000000-0000-4000-8000-000000000006",
+        "event_code": "INV_LOW_STOCK",
+        "category": "Inventory",
+        "description": "Part quantity is at or below minimum stock level.",
+        "default_severity": "Warning",
+        "threshold_days": [],
+        "threshold_hours": null,
+        "whatsapp_template": "inv_low_stock",
+        "notify_subject": false
+        },
+        {
+        "type_UUID": "84000000-0000-4000-8000-000000000007",
+        "event_code": "INV_OUT_OF_STOCK",
+        "category": "Inventory",
+        "description": "Part quantity reached zero.",
+        "default_severity": "Critical",
+        "threshold_days": [],
+        "threshold_hours": null,
+        "whatsapp_template": "inv_out_of_stock",
+        "notify_subject": false
+        },
+        {
+        "type_UUID": "84000000-0000-4000-8000-000000000008",
+        "event_code": "INV_PART_EXPIRING",
+        "category": "Inventory",
+        "description": "Part shelf-life or seal expiration approaching.",
+        "default_severity": "Warning",
+        "threshold_days": [
+            30
+        ],
+        "threshold_hours": null,
+        "whatsapp_template": "inv_part_expiring",
+        "notify_subject": false
+        },
+        {
+        "type_UUID": "84000000-0000-4000-8000-000000000009",
+        "event_code": "MAINT_AD_DUE_DATE",
+        "category": "Maintenance",
+        "description": "Airworthiness Directive due date approaching.",
+        "default_severity": "Warning",
+        "threshold_days": [
+            30,
+            15,
+            7
+        ],
+        "threshold_hours": null,
+        "whatsapp_template": "maint_ad_due_date",
+        "notify_subject": false
+        },
+        {
+        "type_UUID": "84000000-0000-4000-8000-000000000010",
+        "event_code": "MAINT_AD_DUE_HOURS",
+        "category": "Maintenance",
+        "description": "Aircraft hours approaching Airworthiness Directive due hours.",
+        "default_severity": "Warning",
+        "threshold_days": [],
+        "threshold_hours": 20,
+        "whatsapp_template": "maint_ad_due_hours",
+        "notify_subject": false
+        },
+        {
+        "type_UUID": "84000000-0000-4000-8000-000000000011",
+        "event_code": "MAINT_AD_OVERDUE",
+        "category": "Maintenance",
+        "description": "Airworthiness Directive is overdue.",
+        "default_severity": "Critical",
+        "threshold_days": [],
+        "threshold_hours": null,
+        "whatsapp_template": "maint_ad_overdue",
+        "notify_subject": false
+        },
+        {
+        "type_UUID": "84000000-0000-4000-8000-000000000012",
+        "event_code": "MAINT_CPCP_DUE",
+        "category": "Maintenance",
+        "description": "CPCP task due date or hours approaching.",
+        "default_severity": "Warning",
+        "threshold_days": [
+            30,
+            15,
+            7
+        ],
+        "threshold_hours": null,
+        "whatsapp_template": "maint_cpcp_due",
+        "notify_subject": false
+        },
+        {
+        "type_UUID": "84000000-0000-4000-8000-000000000013",
+        "event_code": "AIRCRAFT_STATUS_CHANGE",
+        "category": "Aircraft",
+        "description": "Aircraft status changed to AOG or Maintenance.",
+        "default_severity": "Info",
+        "threshold_days": [],
+        "threshold_hours": null,
+        "whatsapp_template": "aircraft_status_change",
+        "notify_subject": false
+        },
+        {
+        "type_UUID": "84000000-0000-4000-8000-000000000014",
+        "event_code": "FLT_QA_PENDING",
+        "category": "Aircraft",
+        "description": "Logbook sector added with QA check pending.",
+        "default_severity": "Info",
+        "threshold_days": [],
+        "threshold_hours": null,
+        "whatsapp_template": null,
+        "notify_subject": false
+        },
+        {
+        "type_UUID": "84000000-0000-4000-8000-000000000015",
+        "event_code": "FUEL_DISCREPANCY",
+        "category": "Aircraft",
+        "description": "Fuel departure minus fuel used does not match fuel arrival.",
+        "default_severity": "Warning",
+        "threshold_days": [],
+        "threshold_hours": null,
+        "whatsapp_template": "fuel_discrepancy",
+        "notify_subject": false
+        }
+    ],
+    "NOTIFICATION_TYPE_POSITION": [
+        {
+        "type_UUID": "84000000-0000-4000-8000-000000000001",
+        "position_UUID": "83000000-0000-4000-8000-000000000001"
+        },
+        {
+        "type_UUID": "84000000-0000-4000-8000-000000000001",
+        "position_UUID": "83000000-0000-4000-8000-000000000005"
+        },
+        {
+        "type_UUID": "84000000-0000-4000-8000-000000000001",
+        "position_UUID": "83000000-0000-4000-8000-000000000002"
+        },
+        {
+        "type_UUID": "84000000-0000-4000-8000-000000000002",
+        "position_UUID": "83000000-0000-4000-8000-000000000001"
+        },
+        {
+        "type_UUID": "84000000-0000-4000-8000-000000000002",
+        "position_UUID": "83000000-0000-4000-8000-000000000002"
+        },
+        {
+        "type_UUID": "84000000-0000-4000-8000-000000000003",
+        "position_UUID": "83000000-0000-4000-8000-000000000001"
+        },
+        {
+        "type_UUID": "84000000-0000-4000-8000-000000000004",
+        "position_UUID": "83000000-0000-4000-8000-000000000001"
+        },
+        {
+        "type_UUID": "84000000-0000-4000-8000-000000000005",
+        "position_UUID": "83000000-0000-4000-8000-000000000001"
+        },
+        {
+        "type_UUID": "84000000-0000-4000-8000-000000000005",
+        "position_UUID": "83000000-0000-4000-8000-000000000002"
+        },
+        {
+        "type_UUID": "84000000-0000-4000-8000-000000000006",
+        "position_UUID": "83000000-0000-4000-8000-000000000006"
+        },
+        {
+        "type_UUID": "84000000-0000-4000-8000-000000000006",
+        "position_UUID": "83000000-0000-4000-8000-000000000001"
+        },
+        {
+        "type_UUID": "84000000-0000-4000-8000-000000000007",
+        "position_UUID": "83000000-0000-4000-8000-000000000006"
+        },
+        {
+        "type_UUID": "84000000-0000-4000-8000-000000000007",
+        "position_UUID": "83000000-0000-4000-8000-000000000003"
+        },
+        {
+        "type_UUID": "84000000-0000-4000-8000-000000000007",
+        "position_UUID": "83000000-0000-4000-8000-000000000001"
+        },
+        {
+        "type_UUID": "84000000-0000-4000-8000-000000000008",
+        "position_UUID": "83000000-0000-4000-8000-000000000006"
+        },
+        {
+        "type_UUID": "84000000-0000-4000-8000-000000000009",
+        "position_UUID": "83000000-0000-4000-8000-000000000003"
+        },
+        {
+        "type_UUID": "84000000-0000-4000-8000-000000000010",
+        "position_UUID": "83000000-0000-4000-8000-000000000003"
+        },
+        {
+        "type_UUID": "84000000-0000-4000-8000-000000000011",
+        "position_UUID": "83000000-0000-4000-8000-000000000001"
+        },
+        {
+        "type_UUID": "84000000-0000-4000-8000-000000000011",
+        "position_UUID": "83000000-0000-4000-8000-000000000002"
+        },
+        {
+        "type_UUID": "84000000-0000-4000-8000-000000000011",
+        "position_UUID": "83000000-0000-4000-8000-000000000003"
+        },
+        {
+        "type_UUID": "84000000-0000-4000-8000-000000000012",
+        "position_UUID": "83000000-0000-4000-8000-000000000003"
+        },
+        {
+        "type_UUID": "84000000-0000-4000-8000-000000000013",
+        "position_UUID": "83000000-0000-4000-8000-000000000002"
+        },
+        {
+        "type_UUID": "84000000-0000-4000-8000-000000000013",
+        "position_UUID": "83000000-0000-4000-8000-000000000007"
+        },
+        {
+        "type_UUID": "84000000-0000-4000-8000-000000000013",
+        "position_UUID": "83000000-0000-4000-8000-000000000004"
+        },
+        {
+        "type_UUID": "84000000-0000-4000-8000-000000000013",
+        "position_UUID": "83000000-0000-4000-8000-000000000001"
+        },
+        {
+        "type_UUID": "84000000-0000-4000-8000-000000000014",
+        "position_UUID": "83000000-0000-4000-8000-000000000007"
+        },
+        {
+        "type_UUID": "84000000-0000-4000-8000-000000000014",
+        "position_UUID": "83000000-0000-4000-8000-000000000002"
+        },
+        {
+        "type_UUID": "84000000-0000-4000-8000-000000000015",
+        "position_UUID": "83000000-0000-4000-8000-000000000002"
+        }
+    ],
+    "NOTIFICATION": [
+        {
+        "notification_UUID": "85000000-0000-4000-8000-000000000001",
+        "type_UUID": "84000000-0000-4000-8000-000000000004",
+        "severity": "Critical",
+        "title": "Medical certificate expired",
+        "message": "Medical certificate of Angela Cruz expired on 2026-11-10.",
+        "created_at": "2026-11-11T00:05:00Z"
+        },
+        {
+        "notification_UUID": "85000000-0000-4000-8000-000000000002",
+        "type_UUID": "84000000-0000-4000-8000-000000000001",
+        "severity": "Warning",
+        "title": "License expiring",
+        "message": "English Language Proficiency of Angela Cruz expires in 15 days.",
+        "created_at": "2026-11-16T00:05:00Z"
+        }
+    ],
+    "NOTIFICATION_RECIPIENT": [
+        {
+        "recipient_UUID": "86000000-0000-4000-8000-000000000001",
+        "notification_UUID": "85000000-0000-4000-8000-000000000001",
+        "emp_UUID": "20000000-0000-4000-8000-000000000004",
+        "read_at": null,
+        "created_at": "2026-11-11T00:05:00Z",
+        "whatsapp_status": "Delivered",
+        "whatsapp_message_id": null,
+        "whatsapp_attempts": 1,
+        "whatsapp_error": null
+        },
+        {
+        "recipient_UUID": "86000000-0000-4000-8000-000000000002",
+        "notification_UUID": "85000000-0000-4000-8000-000000000001",
+        "emp_UUID": "20000000-0000-4000-8000-000000000001",
+        "read_at": "2026-11-11T02:10:00Z",
+        "created_at": "2026-11-11T00:05:00Z",
+        "whatsapp_status": "Delivered",
+        "whatsapp_message_id": null,
+        "whatsapp_attempts": 1,
+        "whatsapp_error": null
+        },
+        {
+        "recipient_UUID": "86000000-0000-4000-8000-000000000003",
+        "notification_UUID": "85000000-0000-4000-8000-000000000002",
+        "emp_UUID": "20000000-0000-4000-8000-000000000004",
+        "read_at": null,
+        "created_at": "2026-11-16T00:05:00Z",
+        "whatsapp_status": "Sent",
+        "whatsapp_message_id": null,
+        "whatsapp_attempts": 1,
+        "whatsapp_error": null
+        },
+        {
+        "recipient_UUID": "86000000-0000-4000-8000-000000000004",
+        "notification_UUID": "85000000-0000-4000-8000-000000000002",
+        "emp_UUID": "20000000-0000-4000-8000-000000000001",
+        "read_at": null,
+        "created_at": "2026-11-16T00:05:00Z",
+        "whatsapp_status": "Sent",
+        "whatsapp_message_id": null,
+        "whatsapp_attempts": 1,
+        "whatsapp_error": null
+        },
+        {
+        "recipient_UUID": "86000000-0000-4000-8000-000000000005",
+        "notification_UUID": "85000000-0000-4000-8000-000000000002",
+        "emp_UUID": "20000000-0000-4000-8000-000000000002",
+        "read_at": null,
+        "created_at": "2026-11-16T00:05:00Z",
+        "whatsapp_status": null,
+        "whatsapp_message_id": null,
+        "whatsapp_attempts": 0,
+        "whatsapp_error": null
+        },
+        {
+        "recipient_UUID": "86000000-0000-4000-8000-000000000006",
+        "notification_UUID": "85000000-0000-4000-8000-000000000002",
+        "emp_UUID": "20000000-0000-4000-8000-000000000005",
+        "read_at": "2026-11-16T03:00:00Z",
+        "created_at": "2026-11-16T00:05:00Z",
+        "whatsapp_status": null,
+        "whatsapp_message_id": null,
+        "whatsapp_attempts": 0,
+        "whatsapp_error": null
         }
     ]
 

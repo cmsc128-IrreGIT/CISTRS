@@ -52,7 +52,7 @@ export function usePersonnelRecords(account_id: string, enabled = true, full_acc
     }
 
     return {
-        rows, availability: latest_availability(availability), save, error,
+        rows, availability: latest_availability(availability.records), save, error,
         loading: enabled && !records && !error,
         denied: error instanceof ApiError && error.status === 403,
         reload: () => { set_error(undefined); set_attempt((value) => value + 1); },

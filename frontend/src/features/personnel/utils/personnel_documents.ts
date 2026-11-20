@@ -2,6 +2,7 @@ import { seeded_license_renewal } from "../config/personnel_document_config";
 import type { PersonnelDocument, PersonnelLicense } from "../types/personnel_types";
 
 export function license_document(license: PersonnelLicense): PersonnelDocument {
+    const renewal_status = license.renewal_status?.status_name ?? seeded_license_renewal.get(license.renewal_status_UUID ?? "") ?? "";
     return {
         id: license.emp_license_UUID,
         kind: "License",
@@ -9,8 +10,10 @@ export function license_document(license: PersonnelLicense): PersonnelDocument {
         reference: license.license_number,
         issued: license.date_issued ?? "",
         expires: license.expiry_date ?? "",
-        renewal: license.renewal_status?.status_name ?? seeded_license_renewal.get(license.renewal_status_UUID ?? "") ?? "",
-    };
+        renewal_date: "", // Licenses don't have a renewal date, show status in UI instead
+        // Store renewal status for display in the renewal column
+        renewal_status: renewal_status,
+    } as PersonnelDocument & { renewal_status?: string };
 }
 
 export function document_validity(expires: string, now = new Date()) {

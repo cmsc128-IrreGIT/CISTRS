@@ -19,6 +19,8 @@ import { maintenanceRouter } from "./routes/maintenance.js";
 import { personnelRouter } from "./routes/personnel.js";
 import { staffDirectoryRouter } from "./routes/staff_directory.js";
 import { usersRouter } from "./routes/users.js";
+import { notificationsRouter } from "./routes/notifications.js";
+import { startNotificationScheduler } from "./services/notification/scheduler.js";
 
 const app = express();
 const port = Number(process.env.PORT ?? 5000);
@@ -55,6 +57,7 @@ app.use("/api/maintenance", requireFeature(FEATURE.Maintenance), maintenanceRout
 // Full employee records remain protected by the Personnel feature.
 app.use("/api/personnel/directory", staffDirectoryRouter);
 app.use("/api/personnel", requireFeature(FEATURE.Personnel), personnelRouter);
+app.use("/api/notifications", requireFeature(FEATURE.Notifications), notificationsRouter);
 
 // Unknown /api paths answer with JSON instead of Express's HTML 404 page.
 app.use("/api", (_req, res) => {
@@ -66,6 +69,8 @@ app.use(errorHandler);	// Must be the LAST app.use
 const server = app.listen(port, () => {
     console.log(`CISTRS backend running on http://localhost:${port}`);
 });
+
+startNotificationScheduler();
 
 // Close the server and the database connection on Ctrl+C.
 async function shutdown() {

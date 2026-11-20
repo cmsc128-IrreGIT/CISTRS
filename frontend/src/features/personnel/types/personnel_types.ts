@@ -45,7 +45,9 @@ export type PersonnelRecord = PersonnelFormValues & {
     preview: boolean;
 };
 
-export type PersonnelDocumentKind = "License" | "Training" | "Medical" | "Company ID";
+export type LookupItem = { id: string; name: string };
+
+export type PersonnelDocumentKind = "License" | "Training" | "Medical" | "Company ID" | "Other";
 
 export type PersonnelDocument = {
     id: string;
@@ -54,8 +56,24 @@ export type PersonnelDocument = {
     reference: string;
     issued: string;
     expires: string;
-    renewal: string;
+    renewal_date: string; // YYYY-MM-DD format, optional
     file?: File;
+    file_path?: string;
 };
 
-export type PersonnelDocumentDraft = Omit<PersonnelDocument, "id"> & { personnel_id: string };
+export type PersonnelDocumentDraft = Omit<PersonnelDocument, "id"> & {
+    personnel_id: string;
+    // License-specific fields
+    license_type_UUID?: string;
+    renewal_status_UUID?: string;
+    license_number?: string;
+    issuing_authority?: string;
+    // Medical-specific fields
+    medical_class?: string;
+    clinical_hospital?: string;
+    // Training-specific fields
+    training_type_UUID?: string;
+    training_provider_UUID?: string;
+    certificate_number?: string;
+    date_completed?: string;
+};
