@@ -1,7 +1,6 @@
 import {
-    Bell,
     BookOpen,
-    CalendarDays,
+    CircleHelp,
     LayoutDashboard,
     Package,
     Plane,
@@ -17,11 +16,6 @@ export const navigation_items = [
     { to: "/maintenance", label: "Maintenance", icon: Wrench },
     { to: "/logbook", label: "Logbook", icon: BookOpen },
     { to: "/personnel", label: "Personnel", icon: Users },
-    {
-        to: "/personnel/availability",
-        label: "Availability",
-        icon: CalendarDays,
-    },
-    { to: "/notifications", label: "Notifications", icon: Bell },
     { to: "/users", label: "User Accounts", icon: ShieldCheck },
+    { to: "/help", label: "Help & guides", icon: CircleHelp },
 ];

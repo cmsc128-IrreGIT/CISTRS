@@ -42,23 +42,55 @@ export function create_notifications_store(
     };
 }
 
-export const notifications_store = create_notifications_store([
-    {
-        id: "alert-demo-1",
-        title: "Sample stock alert",
-        message: "Sample Seal has zero quantity in the initial preview.",
-        category: "inventory",
-        to: "/inventory/sample-002",
-        read_at: null,
-        created_at: "2026-10-06T08:00:00Z",
-    },
-    {
-        id: "alert-demo-2",
-        title: "Sample maintenance reminder",
-        message: "Review the fictional inspection record.",
-        category: "maintenance",
-        to: "/maintenance",
-        read_at: null,
-        created_at: "2026-10-06T09:00:00Z",
-    },
-]);
+const preview_inboxes = new Map<string, ReturnType<typeof create_notifications_store>>();
+
+export function notification_inbox(account_id: string) {
+    const existing = preview_inboxes.get(account_id);
+    if (existing) return existing;
+
+    const now = Date.now();
+    const store = create_notifications_store([
+        {
+            id: "alert-demo-1",
+            title: "Stock review: Brake Pad Set",
+            message: "Review the current quantity and minimum stock level.",
+            category: "inventory",
+            to: "/inventory",
+            record_id: "BRK-001",
+            read_at: null,
+            created_at: new Date(now).toISOString(),
+        },
+        {
+            id: "alert-demo-2",
+            title: "Maintenance reminder",
+            message: "RP-C1738 · Review the routine inspection.",
+            category: "maintenance",
+            to: "/maintenance?status=pending",
+            record_id: "maintenance-demo-1",
+            read_at: null,
+            created_at: new Date(now - 60_000).toISOString(),
+        },
+        {
+            id: "alert-demo-3",
+            title: "License expiry reminder",
+            message: "Review the personnel license record.",
+            category: "personnel",
+            to: "/personnel",
+            record_id: "SA-0004",
+            read_at: null,
+            created_at: new Date(now - 120_000).toISOString(),
+        },
+        {
+            id: "alert-demo-4",
+            title: "Stock adjustment",
+            message: "Brake Pad Set · Review the recorded quantity change.",
+            category: "inventory",
+            to: "/inventory/history",
+            record_id: "b72e4d13-8a56-4c21-a735-6e9b02d4f817",
+            read_at: new Date(now - 180_000).toISOString(),
+            created_at: new Date(now - 180_000).toISOString(),
+        },
+    ]);
+    preview_inboxes.set(account_id, store);
+    return store;
+}

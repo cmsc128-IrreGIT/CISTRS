@@ -30,8 +30,8 @@ export default function SettingsPage() {
                             Change Password
                         </h3>
                         <p className="mt-2 text-sm leading-6 text-slate-600">
-                            Password changes will be available once
-                            authentication and the account API are connected.
+                            Contact your administrator for password assistance.
+                            The current API does not provide password changes.
                         </p>
                     </div>
                 </div>
@@ -49,7 +49,7 @@ export default function SettingsPage() {
                     id="password_preview_note"
                     className="mt-2 text-xs text-slate-500"
                 >
-                    Unavailable in this preview.
+                    Contact your administrator.
                 </p>
             </Card>
         </section>

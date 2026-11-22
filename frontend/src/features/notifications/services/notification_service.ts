@@ -1,18 +1,39 @@
-import { notifications_store } from "../data/notifications_store";
+import { notificationsApi, type NotificationItem } from "../../../shared/api/client";
 import type { NotificationService } from "../types/notification_types";
 
-// Preview adapter. Replace these methods with authenticated API requests.
-// The frontend never contacts an SMS/email provider directly.
-export const notification_service: NotificationService = {
-    async list() {
-        return notifications_store
-            .get_snapshot()
-            .map((record) => ({ ...record }));
-    },
-    async set_read(id, is_read) {
-        notifications_store.set_read(id, is_read);
-    },
-    async mark_all_read() {
-        notifications_store.mark_all_read();
-    },
-};
+// Map backend notification item to frontend NotificationRecord
+function mapNotification(item: NotificationItem) {
+    return {
+        id: item.recipient_UUID,
+        title: item.title,
+        message: item.message,
+        category: item.category.toLowerCase() as "inventory" | "maintenance" | "aircraft" | "personnel" | "system",
+        to: null, // Could be derived from event_code/category if needed
+        record_id: undefined,
+        created_at: item.created_at,
+        read_at: item.read_at,
+    };
+}
+
+export function notification_service(): NotificationService {
+    return {
+        async list() {
+            const response = await notificationsApi.list({ limit: 100 });
+            return response.items.map(mapNotification);
+        },
+
+        async set_read(id: string, is_read: boolean) {
+            if (is_read) {
+                await notificationsApi.markRead(id);
+            } else {
+                // Backend doesn't have "mark unread" - would need to be implemented
+                // For now, we'll throw an error if trying to mark as unread
+                throw new Error("Marking notifications as unread is not supported yet.");
+            }
+        },
+
+        async mark_all_read() {
+            await notificationsApi.markAllRead();
+        },
+    };
+}

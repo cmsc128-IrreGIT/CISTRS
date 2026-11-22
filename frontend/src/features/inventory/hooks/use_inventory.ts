@@ -1,9 +1,8 @@
-import { useSyncExternalStore } from "react";
-import {
-    get_inventory_snapshot,
-    subscribe_inventory,
-} from "../data/inventory_store";
+import { get_inventory } from "../services/inventory_services";
+import useInventoryQuery from "./use_inventory_query";
 
-export default function useInventory() {
-    return useSyncExternalStore(subscribe_inventory, get_inventory_snapshot);
+export default function useInventory(enabled = true) {
+  const { rows: items, is_loading, error, reload, refresh } =
+    useInventoryQuery(get_inventory, enabled);
+  return { items, is_loading, error, reload, refresh };
 }

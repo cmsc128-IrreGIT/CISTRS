@@ -1,14 +1,35 @@
-import { Outlet, useLocation } from "react-router";
+import { Suspense } from "react";
+import { Outlet, useMatch } from "react-router";
+import ScreenLoading from "../components/feedback/screen_loading";
 import AppHeader from "../components/header/app_header";
 import MobileNavbar from "../components/navigation/mobile_navbar";
 import Sidebar from "../components/navigation/sidebar";
-import PageTransition from "../components/transitions/page_transition";
+import { WORKSPACE_CONTENT_WIDTH } from "../styles/layout_styles";
 
 export default function AppLayout() {
-    const location = useLocation();
-
+    const is_dashboard = Boolean(useMatch("/dashboard"));
+    const is_inventory = Boolean(useMatch("/inventory/*"));
+    const is_aircraft = Boolean(useMatch("/aircraft/*"));
+    const is_maintenance = Boolean(useMatch("/maintenance/*"));
+    const is_logbook = Boolean(useMatch("/logbook/*"));
+    const print_report = Boolean(useMatch("/logbook/report"));
+    const is_personnel = Boolean(useMatch("/personnel/*"));
+    const is_user_accounts = Boolean(useMatch("/users/*"));
+    const is_notifications = Boolean(useMatch("/notifications/*"));
+    const is_profile = Boolean(useMatch("/profile"));
+    const is_help = Boolean(useMatch("/help"));
+    const aligned_workspace = is_dashboard || is_inventory || is_aircraft || is_maintenance || is_logbook || is_personnel || is_user_accounts || is_profile || is_notifications || is_help;
+    const workspace_background = aligned_workspace;
+    const content_width = aligned_workspace
+        ? WORKSPACE_CONTENT_WIDTH
+        : "mx-auto w-full max-w-[1440px] px-4 md:px-6 xl:px-8";
+    const report_print_style = print_report
+        ? "print:block print:min-h-0 print:bg-white print:bg-none print:[&>aside]:hidden print:[&>nav]:hidden print:[&>div>header]:hidden"
+        : "";
     return (
-        <div className="flex min-h-dvh bg-slate-100">
+        <div
+            className={`grid min-h-dvh grid-cols-[minmax(0,1fr)] md:grid-cols-[auto_minmax(0,1fr)] ${workspace_background ? "bg-linear-to-br from-[#f3f6f9] via-[#f6f8fa] to-[#edf0f3]" : "bg-[#f4f6f9]"} ${report_print_style}`}
+        >
             <a
                 href="#main_content"
                 className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-lg focus:bg-white focus:p-3"
@@ -18,17 +39,17 @@ export default function AppLayout() {
 
             <Sidebar />
 
-            <div className="min-w-0 flex-1">
+            <div className="@container/workspace min-w-0">
                 <AppHeader />
 
                 <main
                     id="main_content"
                     tabIndex={-1}
-                    className="p-4 pb-[calc(6rem+env(safe-area-inset-bottom))] md:px-8 md:py-6"
+                    className={`${content_width} pt-4 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-5 ${workspace_background ? "md:pt-8" : "md:pt-5"} ${print_report ? "print:max-w-none print:p-0" : ""}`}
                 >
-                    <PageTransition key={location.pathname}>
+                    <Suspense fallback={<ScreenLoading />}>
                         <Outlet />
-                    </PageTransition>
+                    </Suspense>
                 </main>
             </div>
 

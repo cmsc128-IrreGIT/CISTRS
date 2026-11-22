@@ -1,0 +1,5 @@
+-- These CHECK constraints were first listed here as an optional extra.
+-- They are now part of the migration:
+--     prisma/migrations/20261111120000_integrity_audit_hardening/migration.sql
+-- (section "6. CHECK CONSTRAINTS", along with new personnel, aircraft and logbook rules).
+-- Do not paste anything from this file into a migration any more.

@@ -1,92 +1,115 @@
-import { Link } from "react-router";
+import { Pencil } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useAuth } from "../../auth/hooks/auth_context";
+import type { SessionUser } from "../../auth/hooks/auth_context";
+import { get_personnel } from "../../personnel/services/personnel_service";
+import type { PersonnelRecord } from "../../personnel/types/personnel_types";
+import FormField from "../../../shared/components/forms/form_field";
+import WorkspaceBreadcrumbs from "../../../shared/components/navigation/workspace_breadcrumbs";
+import Button from "../../../shared/components/ui/button";
 import Card from "../../../shared/components/ui/card";
-import { account_preview } from "../data/account_preview";
+import FormDialog from "../../../shared/components/ui/form_dialog";
+import StatusBadge from "../../../shared/components/ui/status_badge";
 
 export default function ProfilePage() {
-    const account = account_preview;
+    const { user } = useAuth();
+    return user && <Profile key={user.account_UUID} user={user} />;
+}
 
-    const details = [
-        { label: "Full Name", value: account.display_name },
-        { label: "Username", value: account.username },
-        { label: "Email Address", value: account.email },
-        { label: "Position", value: account.position },
-        { label: "System Role", value: account.role },
+function Profile({ user }: { user: SessionUser }) {
+    const [record, set_record] = useState<PersonnelRecord>();
+    const [correcting, set_correcting] = useState(false);
+    const [draft, set_draft] = useState("");
+    const [copy_status, set_copy_status] = useState("");
+    const can_read_personnel = user.features.includes("Personnel");
+
+    useEffect(() => {
+        if (!can_read_personnel) return;
+        const controller = new AbortController();
+        void get_personnel(user.emp_UUID, controller.signal).then((person) => {
+            if (!controller.signal.aborted) set_record(person);
+        }).catch(() => {
+            // The authenticated account fields remain available if the directory is unreachable.
+        });
+        return () => controller.abort();
+    }, [can_read_personnel, user.emp_UUID]);
+
+    const full_name = record?.name || user.full_name?.trim() || "";
+    const name = full_name || user.username;
+    const initials = name.split(/[\s._-]+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
+    const sections = [
+        { title: "Account", entries: [
+            { label: "Username", value: user.username },
+            { label: "Full name", value: full_name || "Unavailable from the current session" },
+            { label: "Work email", value: record?.email || "Not available" },
+            { label: "Account status", value: <StatusBadge tone="success">Active</StatusBadge> },
+        ] },
+        { title: "Work information", entries: [
+            { label: "Position", value: user.position?.position_name || record?.position || "Not recorded" },
+            { label: "Department", value: record?.department || "Not available" },
+            { label: "Access", value: user.features.join(", ") || "Not assigned" },
+        ] },
     ];
 
-    const initials = account.display_name
-        .split(/\s+/)
-        .slice(0, 2)
-        .map((part) => part[0])
-        .join("")
-        .toUpperCase();
+    async function copy_request() {
+        const correction = draft.trim();
+        if (!correction) return;
+        try {
+            await navigator.clipboard.writeText(`Profile correction request for ${name} (${user.username})\n\n${correction}`);
+            set_copy_status("Request copied. Share it with your administrator.");
+        } catch {
+            set_copy_status("Clipboard unavailable. Select and copy the details to share with your administrator.");
+        }
+    }
 
     return (
-        <section
-            aria-labelledby="page_title"
-            className="mx-auto max-w-3xl space-y-6"
-        >
-            <div>
-                <h1
-                    id="page_title"
-                    className="text-2xl font-bold text-slate-900"
-                >
-                    My Profile
-                </h1>
-                <p className="mt-1 text-sm text-slate-600">
-                    Your account identity and assigned access.
-                </p>
-            </div>
-
-            <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-                Preview only. These are fictional account details.
-            </p>
-
+        <section aria-labelledby="page_title" className="space-y-4">
+            <WorkspaceBreadcrumbs current="My profile" />
+            <h1 id="page_title" className="sr-only">My profile</h1>
             <Card>
-                <div className="flex items-center gap-4">
-                    <div
-                        aria-hidden="true"
-                        className="flex size-16 shrink-0 items-center justify-center rounded-full bg-red-50 text-xl font-bold text-red-700"
-                    >
-                        {initials}
+                <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex min-w-0 items-center gap-3">
+                        <span aria-hidden="true" className="flex size-10 shrink-0 items-center justify-center rounded-full bg-blue-50 font-semibold text-[#0b2238]">{initials}</span>
+                        <h2 className="wrap-anywhere text-lg font-semibold text-[#0b2238]">{name}</h2>
                     </div>
-                    <div className="min-w-0">
-                        <h2 className="break-words text-lg font-semibold text-slate-900">
-                            {account.display_name}
-                        </h2>
-                        <p className="text-sm text-slate-600">
-                            {account.position}
-                        </p>
-                        <span className="mt-2 inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">
-                            {account.role}
-                        </span>
-                    </div>
+                    <Button variant="secondary" onClick={() => { set_copy_status(""); set_correcting(true); }}>
+                        <Pencil size={16} aria-hidden="true" /> Request correction
+                    </Button>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                    {sections.map(({ title, entries }) => (
+                        <section key={title} className="min-w-0 rounded-lg bg-slate-100 p-4">
+                            <h3 className="mb-3 font-semibold text-[#0b2238]">{title}</h3>
+                            <dl className="space-y-3">
+                                {entries.map(({ label, value }) => (
+                                    <div key={label}>
+                                        <dt className="text-sm text-slate-600">{label}</dt>
+                                        <dd className="mt-1 wrap-anywhere font-medium text-slate-900">{value}</dd>
+                                    </div>
+                                ))}
+                            </dl>
+                        </section>
+                    ))}
                 </div>
             </Card>
-
-            <Card title="Account Information">
-                <dl className="grid gap-5 sm:grid-cols-2">
-                    {details.map(({ label, value }) => (
-                        <div key={label}>
-                            <dt className="text-sm text-slate-500">{label}</dt>
-                            <dd className="mt-1 break-words font-medium text-slate-900">
-                                {value}
-                            </dd>
-                        </div>
-                    ))}
-                </dl>
-
-                <p className="mt-6 border-t border-slate-200 pt-4 text-sm text-slate-500">
-                    Account editing is not connected yet. Roles and permissions
-                    are managed by an administrator.
-                </p>
-            </Card>
-
-            <Link
-                to="/settings"
-                className="inline-flex min-h-11 items-center rounded-lg bg-red-600 px-4 text-sm font-medium text-white hover:bg-red-700"
-            >
-                Account Settings
-            </Link>
+            {correcting && (
+                <FormDialog title="Request profile correction" compact on_close={() => set_correcting(false)}>
+                    <div className="space-y-3 p-4 sm:px-5">
+                        <p className="text-sm text-slate-600">Describe the correction and share it with your administrator.</p>
+                        <FormField label="Correction details">
+                            {(props) => <textarea {...props} rows={3} maxLength={1000} value={draft} placeholder="Enter the details to update"
+                                onChange={(event) => { set_draft(event.currentTarget.value); set_copy_status(""); }}
+                                className="w-full resize-y rounded-lg border border-slate-300 p-3 text-sm" />}
+                        </FormField>
+                        {copy_status && <p role="status" className="text-sm text-slate-600">{copy_status}</p>}
+                    </div>
+                    <div className="flex justify-end gap-2 border-t border-slate-200 p-4 sm:px-5">
+                        <Button variant="secondary" onClick={() => set_correcting(false)}>Close</Button>
+                        <Button disabled={!draft.trim()} onClick={() => void copy_request()}>Copy request</Button>
+                    </div>
+                </FormDialog>
+            )}
         </section>
     );
 }
+

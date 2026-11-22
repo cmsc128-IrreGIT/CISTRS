@@ -1,256 +1,86 @@
 import { ChevronDown, Pencil } from "lucide-react";
+import { useContext } from "react";
+import { AuthContext } from "../../auth/hooks/auth_context";
 import { Link } from "react-router";
-import Button from "../../../shared/components/ui/button";
 import Card from "../../../shared/components/ui/card";
 import DetailsList from "../../../shared/components/ui/details_list";
+import StatusBadge from "../../../shared/components/ui/status_badge";
 import { button_styles } from "../../../shared/styles/button_styles";
+import useMaintenance from "../../maintenance/hooks/use_maintenance";
 import { logbook_sections } from "../config/logbook_config";
-import type { LogbookEntry, LogbookFieldKey } from "../types/logbook_types";
+import type { LogbookEntry } from "../types/logbook_types";
+import { entry_aircraft_hours, entry_date, entry_reference, entry_updated_at, logbook_condition } from "../utils/logbook_entries";
 
-const section_descriptions: Record<string, string> = {
-    flight: "Route, UTC times, flight duration, and commander reference.",
-    totals: "Recorded totals for the airframe, engines, and propellers.",
-    fluids: "Recorded oil and fuel quantities. Values are not calculated.",
-    inspection: "Inspector reference details recorded for this entry.",
-};
-
-export default function LogbookDetails({
-    entry,
-    on_close,
-}: {
-    entry: LogbookEntry;
-    on_close: () => void;
-}) {
-    function value(key: LogbookFieldKey) {
-        return entry[key]?.trim() || "Not recorded";
-    }
+export default function LogbookDetails({ entry }: { entry: LogbookEntry }) {
+    const can_open_maintenance = useContext(AuthContext)?.user?.features.includes("Maintenance") ?? true;
+    const maintenance = useMaintenance().find(
+        (record) => record.id === entry.maintenance_id && record.aircraft === entry.aircraft,
+    );
+    const condition = logbook_condition(entry);
 
     return (
-        <Card
-            title="Log Entry Details"
-            action={
+        <Card>
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                <h2 className="wrap-anywhere text-lg font-semibold text-[#0b2238]">{entry_reference(entry)}</h2>
                 <div className="flex flex-wrap items-center gap-2">
-                    <Link
-                        to={`/logbook/${entry.id}/edit`}
-                        className={button_styles("secondary")}
-                    >
+                    <span className="inline-flex">
+                        <StatusBadge tone={condition === "Defect reported" ? "danger" : "neutral"}>
+                            {condition}
+                        </StatusBadge>
+                    </span>
+                    <Link to={`/logbook/${entry.id}/edit`} className={button_styles("secondary")}>
                         <Pencil size={16} aria-hidden="true" />
-                        Edit Entry
+                        Edit entry
                     </Link>
-                    <Button variant="ghost" onClick={on_close}>
-                        Close details
-                    </Button>
                 </div>
-            }
-        >
-            <div className="space-y-6">
-                <section
-                    aria-label="Entry summary"
-                    className="rounded-xl border border-slate-200 bg-slate-50 p-4 sm:p-5"
-                >
-                    <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                        Aircraft registration
-                    </p>
-                    <h3 className="mt-1 break-words text-xl font-semibold text-[#0b2238]">
-                        {value("aircraft")}
-                    </h3>
-                    <dl className="mt-4 grid gap-4 sm:grid-cols-2">
-                        <div>
-                            <dt className="text-sm text-slate-500">
-                                Entry date (UTC)
-                            </dt>
-                            <dd className="mt-1 font-medium text-slate-900">
-                                {value("entry_date")}
-                            </dd>
-                        </div>
-                        <div>
-                            <dt className="text-sm text-slate-500">
-                                Paper log page
-                            </dt>
-                            <dd className="mt-1 break-words font-medium text-slate-900">
-                                {value("log_page")}
-                            </dd>
-                        </div>
-                    </dl>
-                </section>
-
-                <section aria-label="Defects and action">
-                    <h3 className="text-base font-semibold text-slate-900">
-                        Defects and action
-                    </h3>
-                    <div className="mt-3 grid gap-4 lg:grid-cols-2">
-                        {(
-                            [
-                                { key: "defects", label: "Defects / Remarks" },
-                                { key: "action_taken", label: "Action taken" },
-                            ] as const
-                        ).map(({ key, label }) => (
-                            <div
-                                key={key}
-                                className="rounded-lg border border-slate-200 p-4"
-                            >
-                                <h4 className="text-sm font-medium text-slate-600">
-                                    {label}
-                                </h4>
-                                <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-6 text-slate-900">
-                                    {value(key)}
-                                </p>
-                            </div>
-                        ))}
-                    </div>
-                </section>
-
-                <div className="space-y-3">
-                    {logbook_sections
-                        .filter(
-                            (section) =>
-                                !["identity", "defects"].includes(section.id),
-                        )
-                        .map((section) => {
-                            const recorded_fields = section.fields.filter(
-                                (field) => entry[field.key]?.trim(),
-                            );
-                            const has_records = recorded_fields.length > 0;
-                            return (
-                                <details
-                                    key={`${entry.id}_${section.id}`}
-                                    open={
-                                        section.id === "flight" && has_records
-                                    }
-                                    className="group rounded-xl border border-slate-200"
-                                >
-                                    <summary className="flex cursor-pointer list-none items-start justify-between gap-3 rounded-xl p-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-600 [&::-webkit-details-marker]:hidden">
-                                        <span>
-                                            <span className="block font-semibold text-slate-900">
-                                                {section.title}
-                                            </span>
-                                            <span className="mt-1 block text-sm text-slate-500">
-                                                {
-                                                    section_descriptions[
-                                                        section.id
-                                                    ]
-                                                }
-                                            </span>
-                                            <span className="mt-2 block text-xs font-medium text-slate-600">
-                                                {has_records
-                                                    ? `${recorded_fields.length} of ${section.fields.length} fields recorded`
-                                                    : "No information recorded"}
-                                            </span>
-                                        </span>
-                                        <ChevronDown
-                                            size={18}
-                                            aria-hidden="true"
-                                            className="mt-1 shrink-0 text-slate-500 transition-transform group-open:rotate-180 motion-reduce:transition-none"
-                                        />
-                                    </summary>
-                                    <div className="border-t border-slate-200 p-4 sm:p-5">
-                                        {!has_records ? (
-                                            <p className="text-sm text-slate-500">
-                                                No {section.title.toLowerCase()}{" "}
-                                                information was recorded for
-                                                this entry.
-                                            </p>
-                                        ) : section.id === "totals" ||
-                                          section.id === "fluids" ? (
-                                            <div className="space-y-5">
-                                                {Array.from(
-                                                    new Set(
-                                                        section.fields.map(
-                                                            (field) =>
-                                                                field.label.includes(
-                                                                    ":",
-                                                                )
-                                                                    ? field.label.split(
-                                                                          ":",
-                                                                      )[0]
-                                                                    : "Recorded totals",
-                                                        ),
-                                                    ),
-                                                ).map((group) => {
-                                                    const fields =
-                                                        section.fields.filter(
-                                                            (field) =>
-                                                                (field.label.includes(
-                                                                    ":",
-                                                                )
-                                                                    ? field.label.split(
-                                                                          ":",
-                                                                      )[0]
-                                                                    : "Recorded totals") ===
-                                                                group,
-                                                        );
-                                                    if (
-                                                        !fields.some((field) =>
-                                                            entry[
-                                                                field.key
-                                                            ]?.trim(),
-                                                        )
-                                                    )
-                                                        return null;
-                                                    return (
-                                                        <section key={group}>
-                                                            <h4 className="mb-3 text-sm font-semibold text-slate-900">
-                                                                {group}
-                                                            </h4>
-                                                            <DetailsList
-                                                                entries={fields.map(
-                                                                    (
-                                                                        field,
-                                                                    ) => ({
-                                                                        id: field.key,
-                                                                        label: field.label.includes(
-                                                                            ":",
-                                                                        )
-                                                                            ? field.label
-                                                                                  .split(
-                                                                                      ":",
-                                                                                  )
-                                                                                  .slice(
-                                                                                      1,
-                                                                                  )
-                                                                                  .join(
-                                                                                      ":",
-                                                                                  )
-                                                                                  .trim()
-                                                                            : field.label,
-                                                                        value: value(
-                                                                            field.key,
-                                                                        ),
-                                                                    }),
-                                                                )}
-                                                            />
-                                                        </section>
-                                                    );
-                                                })}
-                                                {section.id === "fluids" && (
-                                                    <p className="text-xs text-slate-500">
-                                                        Oil: quarts · Fuel: US
-                                                        gallons
-                                                    </p>
-                                                )}
-                                            </div>
-                                        ) : (
-                                            <DetailsList
-                                                entries={section.fields.map(
-                                                    (field) => ({
-                                                        id: field.key,
-                                                        label: field.label,
-                                                        value: value(field.key),
-                                                    }),
-                                                )}
-                                            />
-                                        )}
-                                    </div>
-                                </details>
-                            );
-                        })}
-                </div>
-                <p className="border-t border-slate-200 pt-4 text-xs leading-5 text-slate-500">
-                    Preview record. Blank fields mean information was not
-                    recorded. This entry does not indicate maintenance approval
-                    or release to service.
-                </p>
             </div>
+            <section aria-label="Entry summary" className="rounded-lg bg-slate-100 p-4">
+                <DetailsList entries={[
+                    { id: "aircraft", label: "Aircraft", value: entry.aircraft || "Not recorded" },
+                    { id: "entry_date", label: "Entry date", value: entry_date(entry.entry_date) },
+                    { id: "entry_time", label: "Entry time (UTC)", value: entry.entry_time || "Not recorded" },
+                    { id: "aircraft_hours", label: "Aircraft hours", value: entry_aircraft_hours(entry.airframe_total_to_date) },
+                    { id: "recorded_by", label: "Recorded by", value: entry.recorded_by || "Not recorded" },
+                    { id: "updated_at", label: "Last updated (UTC)", value: entry_updated_at(entry.updated_at) },
+                ]} />
+            </section>
+            <section className="mt-4 space-y-2 text-sm">
+                <h3 className="font-semibold text-[#0b2238]">Observed condition</h3>
+                <p className="whitespace-pre-wrap wrap-anywhere">{entry.defects.trim() || "No condition recorded."}</p>
+                {entry.action_taken.trim() && (
+                    <p className="whitespace-pre-wrap wrap-anywhere">
+                        <strong className="font-medium">Action taken</strong>{" · "}{entry.action_taken.trim()}
+                    </p>
+                )}
+                <p className="text-slate-600">
+                    Linked maintenance{" · "}
+                    {maintenance && can_open_maintenance ? (
+                        <Link to={`/maintenance/${maintenance.id}`} className="font-medium text-link">
+                            {maintenance.work_order || maintenance.title || "View maintenance record"}
+                        </Link>
+                    ) : entry.maintenance_id ? "Linked record unavailable." : "No record linked to this entry."}
+                </p>
+            </section>
+            {logbook_sections.filter(({ id }) => id !== "identity" && id !== "defects")
+                .map((section) => ({
+                    ...section,
+                    fields: section.fields.filter(({ key }) => key !== "airframe_total_to_date" && entry[key]?.trim()),
+                }))
+                .filter(({ fields }) => fields.length)
+                .map(({ id, title, fields }) => (
+                    <details key={id} className="group mt-3 rounded-lg border border-slate-200">
+                        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-lg p-3 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-[#1d4ed8] [&::-webkit-details-marker]:hidden">
+                            {title}
+                            <ChevronDown size={16} aria-hidden="true" className="group-open:rotate-180" />
+                        </summary>
+                        <div className="border-t border-slate-200 p-4">
+                            <DetailsList entries={fields.map(({ key, label }) => ({
+                                id: key, label, value: entry[key],
+                            }))} />
+                            {id === "fluids" && <p className="mt-3 text-xs text-slate-500">Oil: quarts · Fuel: US gallons</p>}
+                        </div>
+                    </details>
+                ))}
         </Card>
     );
 }

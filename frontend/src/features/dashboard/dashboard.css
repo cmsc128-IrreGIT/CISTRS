@@ -1,0 +1,104 @@
+.dashboard {
+    color: #0b2238;
+}
+
+.dashboard a:focus-visible,
+.dashboard button:focus-visible {
+    outline: 2px solid #1d4ed8;
+    outline-offset: 2px;
+}
+
+.dashboard-overview h2 {
+    font-size: 1.25rem;
+}
+
+.dashboard-text-overflow {
+    mask-image: linear-gradient(to right, black calc(100% - 0.8rem), transparent);
+}
+
+.dashboard-footer {
+    display: grid;
+    min-height: 2.25rem;
+    place-items: center;
+    border: 1px solid #d3dfed;
+    border-radius: 0.375rem;
+    padding: 0.25rem 0.5rem;
+    text-align: center;
+    font-size: 0.8125rem;
+    font-weight: 500;
+}
+
+.dashboard-aircraft figure {
+    display: block;
+}
+
+.dashboard-aircraft figure > div {
+    width: 9rem;
+    height: 9rem;
+    max-width: 100%;
+    margin-bottom: 0.6rem;
+}
+
+.dashboard-aircraft figure ul {
+    display: grid;
+    gap: 0.25rem;
+}
+
+.dashboard-aircraft figure li {
+    margin: 0;
+    font-size: 0.875rem;
+}
+
+.dashboard-aircraft figure li > span:first-child {
+    width: 0.375rem;
+    height: 0.375rem;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+    gap: 0.875rem;
+}
+
+.dashboard-scroll {
+    max-height: 15rem;
+    overflow: auto;
+    overscroll-behavior-y: contain;
+}
+
+.dashboard-scroll:focus-visible {
+    outline: 2px solid #0b2238;
+    outline-offset: 2px;
+}
+
+.dashboard-grid > section {
+    min-height: 24rem;
+}
+
+@container (width < 32rem) {
+    .dashboard-grid > section {
+        min-height: 0;
+    }
+}
+
+@container (57rem <= width < 68rem) {
+    .dashboard-grid.dashboard-inventory-layout {
+        grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr) minmax(0, 1fr);
+    }
+}
+
+.dashboard-activity table {
+    min-width: 26rem;
+}
+
+.dashboard-activity th:first-child {
+    width: 15%;
+}
+
+.dashboard-activity th:nth-child(2) {
+    width: 38%;
+}
+
+.dashboard-activity th:last-child {
+    width: 26%;
+}

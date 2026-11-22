@@ -1,12 +1,8 @@
-import { useSyncExternalStore } from "react";
-import {
-    get_inventory_history_snapshot,
-    subscribe_inventory,
-} from "../data/inventory_store";
+import { get_inventory_history } from "../services/inventory_services";
+import useInventoryQuery from "./use_inventory_query";
 
-export default function useInventoryHistory() {
-    return useSyncExternalStore(
-        subscribe_inventory,
-        get_inventory_history_snapshot,
-    );
+export default function useInventoryHistory(enabled = true) {
+  const { rows: history, is_loading, error, reload } =
+    useInventoryQuery(get_inventory_history, enabled);
+  return { history, is_loading, error, reload };
 }

@@ -1,69 +1,134 @@
-﻿import { useNavigate, useParams } from "react-router";
+import { useEffect, useRef, useState } from "react";
+import ScreenLoading from "../../../shared/components/feedback/screen_loading";
+import {
+    useLocation,
+    useNavigate,
+    useOutletContext,
+    useParams,
+} from "react-router";
 import { toast } from "sonner";
-import PreviewNotice from "../../../shared/components/feedback/preview_notice";
-import Card from "../../../shared/components/ui/card";
-import PageHeader from "../../../shared/components/ui/page_header";
+import FormDialog from "../../../shared/components/ui/form_dialog";
 import InventoryForm from "../components/inventory_form";
 import InventoryNotFound from "../components/inventory_not_found";
-import { save_inventory_item } from "../data/inventory_store";
-import useInventory from "../hooks/use_inventory";
-import type { InventoryFormValues } from "../types/inventory_types";
+import {
+    create_inventory_item,
+    update_inventory_item,
+} from "../services/inventory_services";
+import type useInventory from "../hooks/use_inventory";
+import type {
+    InitialStock,
+    InventoryFormValues,
+} from "../types/inventory_types";
+import { get_inventory_locations } from "../utils/inventory_workflows";
 
 export default function InventoryFormPage() {
     const { item_id } = useParams();
     const navigate = useNavigate();
-    const items = useInventory();
-    const existing_item = items.find((item) => item.id === item_id);
-    const is_editing = Boolean(item_id);
+    const location = useLocation();
+    const { items, is_loading, error, refresh } =
+        useOutletContext<ReturnType<typeof useInventory>>();
+    const [is_saving, set_is_saving] = useState(false);
+    const [save_error, set_save_error] = useState<string | null>(null);
+    const mounted = useRef(false);
 
-    function handle_save(values: InventoryFormValues) {
+    useEffect(() => {
+        mounted.current = true;
+        return () => {
+            mounted.current = false;
+        };
+    }, []);
+
+    function close_form() {
+        if (location.state?.from_inventory === true) {
+            void navigate(-1);
+        } else {
+            void navigate(
+                { pathname: "..", search: location.search },
+                { replace: true },
+            );
+        }
+    }
+    const locations = get_inventory_locations(items);
+    const existing_item = items.find((item) => item.part_UUID === item_id);
+    const is_editing = Boolean(item_id);
+    const units = [...new Set(items.map((item) => item.unit_of_measure.trim()).filter(Boolean))].sort();
+
+    async function handle_save(
+        values: InventoryFormValues,
+        initial_stock?: InitialStock,
+    ) {
+        if (is_saving) return;
+        set_is_saving(true);
+        set_save_error(null);
         try {
-            save_inventory_item(values, item_id);
-            toast.success(
-                is_editing
-                    ? "Preview item updated."
-                    : "Item added to preview inventory.",
-            );
-            navigate("/inventory");
+            if (item_id) {
+                await update_inventory_item(item_id, values);
+
+                toast.success("Inventory item updated.", { position: "bottom-right" });
+            } else {
+                await create_inventory_item({
+                    ...values,
+                    initial_stock,
+                });
+
+                toast.success("Inventory item added.", { position: "bottom-right" });
+            }
+
+            if (mounted.current) close_form();
+            void refresh();
         } catch (error) {
-            toast.error(
-                error instanceof Error
+            if (mounted.current) {
+                set_save_error(error instanceof Error && error.message
                     ? error.message
-                    : "Could not save the preview item.",
-            );
+                    : "The inventory request failed.");
+            }
+        } finally {
+            if (mounted.current) set_is_saving(false);
         }
     }
 
     return (
-        <section aria-labelledby="page_title" className="space-y-6">
-            <PageHeader
-                title={
-                    is_editing ? "Edit Inventory Item" : "Add Inventory Item"
-                }
-                title_id="page_title"
-                description="Record aircraft parts and supplies."
-            />
-
-            <PreviewNotice>
-                Preview only. Changes reset when you refresh the page.
-            </PreviewNotice>
-
-            <Card>
-                {is_editing && !existing_item ? (
-                    <InventoryNotFound />
-                ) : (
-                    <InventoryForm
-                        key={item_id ?? "new"}
-                        initial_values={existing_item}
-                        on_submit={handle_save}
-                        submit_text={
-                            is_editing
-                                ? "Update Preview Item"
-                                : "Add Preview Item"
-                        }
-                    />
-                )}
-            </Card>
-        </section>
+        <FormDialog
+            title={is_editing ? "Edit inventory item" : "Add inventory item"}
+            on_close={close_form}
+            compact
+            is_busy={is_saving}
+        >
+            {is_loading ? (
+                <div className="p-4">
+                    <ScreenLoading compact label="Loading inventory…" />
+                </div>
+            ) : error ? (
+                <p role="alert" className="p-4 text-sm text-red-700">
+                    {error}
+                </p>
+            ) : is_editing && !existing_item ? (
+                <div className="p-4"><InventoryNotFound /></div>
+            ) : (
+                <InventoryForm
+                    key={item_id ?? "new"}
+                    initial_values={
+                        existing_item
+                            ? {
+                                  part_name: existing_item.part_name,
+                                  part_number: existing_item.part_number,
+                                  unit_of_measure:
+                                      existing_item.unit_of_measure,
+                                  min_stock_level:
+                                      existing_item.min_stock_level,
+                                  description: existing_item.description ?? "",
+                              }
+                            : undefined
+                    }
+                    item={existing_item}
+                    locations={locations}
+                    units={units}
+                    on_submit={handle_save}
+                    on_cancel={close_form}
+                    is_saving={is_saving}
+                    save_error={save_error}
+                />
+            )}
+        </FormDialog>
     );
 }
