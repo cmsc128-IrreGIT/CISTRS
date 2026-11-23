@@ -31,7 +31,7 @@ export default function DashboardTable({
                             <th
                                 scope="col"
                                 key={index}
-                                className="px-2.5 py-2 font-medium"
+                                className="px-2.5 py-2 font-semibold"
                             >
                                 {header}
                             </th>
@@ -44,7 +44,7 @@ export default function DashboardTable({
                             {cells.map((cell, index) => (
                                 <td
                                     key={index}
-                                    className="px-2.5 py-2 align-middle wrap-anywhere"
+                                    className={`px-2.5 py-2 align-middle wrap-anywhere [&_a]:font-semibold [&_button]:font-semibold ${index === 0 ? "font-semibold" : "font-medium"}`}
                                 >
                                     {cell}
                                 </td>

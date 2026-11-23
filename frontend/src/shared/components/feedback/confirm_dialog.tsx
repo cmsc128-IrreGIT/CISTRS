@@ -60,7 +60,7 @@ export default function ConfirmDialog({
                     autoFocus
                     disabled={is_pending}
                     onClick={on_cancel}
-                    className="min-h-11 rounded-lg border border-slate-300 px-4 text-sm font-medium hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-600 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="mr-auto min-h-11 rounded-lg border border-slate-300 px-4 text-sm font-medium hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-600 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                     Cancel
                 </button>

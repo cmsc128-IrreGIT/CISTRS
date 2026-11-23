@@ -24,8 +24,17 @@ import useActiveInventory from "../hooks/use_active_inventory";
 import { useInventoryRequestPreviews } from "../hooks/use_inventory_request_previews";
 import type { InventoryRequestPreview } from "../types/inventory_types";
 import { can_review_inventory_requests, inventory_location_label, inventory_request_date } from "../utils/inventory_workflows";
+import InventoryCorrectionsPage from "./inventory_corrections_page";
 
 export default function InventoryRequestsPage({
+    correction = false,
+}: {
+    correction?: boolean;
+}) {
+    return correction ? <InventoryCorrectionsPage /> : <InventoryRequestPreviewsPage />;
+}
+
+function InventoryRequestPreviewsPage({
     correction = false,
 }: {
     correction?: boolean;

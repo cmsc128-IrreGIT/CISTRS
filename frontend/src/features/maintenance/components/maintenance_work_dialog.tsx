@@ -195,7 +195,7 @@ export function MaintenanceWorkDialog({
                         </div>
                     </section>
                     <div className="flex flex-wrap justify-end gap-2 border-t border-slate-200 pt-4">
-                        <Button variant="secondary" onClick={on_close}>Cancel</Button>
+                        <Button variant="secondary" className="mr-auto" onClick={on_close}>Cancel</Button>
                         <Button type="submit" className={work_button_style}>Review</Button>
                     </div>
                 </form>

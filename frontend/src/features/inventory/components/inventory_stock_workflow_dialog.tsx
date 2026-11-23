@@ -1,28 +1,22 @@
-import { useContext, useState } from "react";
+import { useRef, useState } from "react";
 import type { SubmitEvent } from "react";
 import { toast } from "sonner";
-import { CheckCircle2 } from "lucide-react";
-import Button from "../../../shared/components/ui/button";
-import StatusBadge from "../../../shared/components/ui/status_badge";
 import DetailsList from "../../../shared/components/ui/details_list";
 import FormDialog from "../../../shared/components/ui/form_dialog";
 import FormField from "../../../shared/components/forms/form_field";
-import useAircraft from "../../aircraft/hooks/use_aircraft";
-import { AuthContext } from "../../auth/hooks/auth_context";
+import { useAircraftData } from "../../aircraft/hooks/use_aircraft";
 import { INVENTORY_FORM_INPUT } from "../constants/inventory_form_constants";
 import {
     MAX_LOCATION_QUANTITY,
-    STOCK_PREVIEW_NOTICE,
     STOCK_WORKFLOW_DIALOG_CONTENT,
     STOCK_WORKFLOW_TITLES,
 } from "../constants/inventory_workflow_constants";
-import { add_inventory_request_preview } from "../hooks/use_inventory_request_previews";
+import useInventoryLocations from "../hooks/use_inventory_locations";
+import { assign_inventory_stock, get_inventory_item, set_inventory_stock } from "../services/inventory_services";
 import type { InventoryItem } from "../types/inventory_types";
 import { format_signed_quantity } from "../utils/stock_history";
 import {
-    get_inventory_locations,
     inventory_location_label,
-    inventory_today,
 } from "../utils/inventory_workflows";
 import InventoryQuantityField from "./inventory_quantity_field";
 import { WorkflowActions, WorkflowError, WorkflowInput, WorkflowNotice, WorkflowSelect } from "./inventory_workflow_fields";
@@ -30,9 +24,6 @@ import { WorkflowActions, WorkflowError, WorkflowInput, WorkflowNotice, Workflow
 type Mode = keyof typeof STOCK_WORKFLOW_TITLES;
 type Draft = {
     quantity: number;
-    movement_date: string;
-    reference: string;
-    contact: string;
     aircraft: string;
     remarks: string;
 };
@@ -40,30 +31,30 @@ type Draft = {
 export default function InventoryStockWorkflowDialog({
     mode,
     item,
-    items,
     on_close,
+    on_saved,
 }: {
     mode: Mode;
     item: InventoryItem;
-    items: InventoryItem[];
     on_close: () => void;
+    on_saved: () => void;
 }) {
-    const actor_name = useContext(AuthContext)?.user?.full_name || "Current user";
+    const [is_saving, set_is_saving] = useState(false);
+    const saving = useRef(false);
     const [save_error, set_save_error] = useState<string | null>(null);
     const [location_id, set_location_id] = useState("");
     const [draft, set_draft] = useState<Draft>();
     const [counted, set_counted] = useState("");
-    const [step, set_step] = useState<"form" | "review" | "issue_result">("form");
-    const [supplier_choice, set_supplier_choice] = useState("");
-    const aircraft = useAircraft();
+    const [step, set_step] = useState<"form" | "review">("form");
+    const aircraft_state = useAircraftData();
+    const aircraft = aircraft_state.aircraft;
     const issue = mode === "issue";
     const correction = mode === "correction";
     const unit = item.unit_of_measure;
-    const registrations = [...new Set(aircraft.map((row) => row.registration?.trim()).filter(Boolean))];
-    const suppliers = [...new Set(item.suppliers.map((name) => name.trim()).filter(Boolean))];
+    const location_state = useInventoryLocations();
     const quantity_at = (id: string) =>
         item.locations.find((location) => location.location_UUID === id)?.current_quantity ?? 0;
-    const locations = get_inventory_locations(items)
+    const locations = location_state.locations
         .filter((location) => !issue || quantity_at(location.location_UUID) > 0);
     const selected = locations.find((location) => location.location_UUID === location_id) ??
         (locations.length === 1 ? locations[0] : undefined);
@@ -75,30 +66,19 @@ export default function InventoryStockWorkflowDialog({
         const text = (name: string) => String(data.get(name) ?? "").trim();
         const values: Draft = {
             quantity: Number(text("quantity")),
-            movement_date: text("movement_date"),
-            reference: text("reference"),
-            contact: text("contact"),
             aircraft: text("aircraft"),
             remarks: text("remarks"),
         };
-        if (!selected || (!correction && !values.reference) || ((issue || correction) && !values.remarks) || (issue && !values.contact)) {
+        if (!selected || ((issue || correction) && !values.remarks)) {
             set_save_error("Complete all required fields before continuing.");
+        } else if (!Number.isSafeInteger(values.quantity) || values.quantity < (correction ? 0 : 1) || values.quantity > MAX_LOCATION_QUANTITY) {
+            set_save_error("Enter a valid whole quantity.");
+        } else if (issue && !aircraft.some((row) => row.id === values.aircraft)) {
+            set_save_error("Select the aircraft receiving this stock.");
         } else if (issue && values.quantity > balance) {
             set_save_error(`Only ${balance} ${unit} are available at this location.`);
         } else if (correction && values.quantity === balance) {
             set_save_error("The counted quantity already matches recorded stock.");
-        } else if (correction) {
-            add_inventory_request_preview({
-                kind: "CORRECTION",
-                part: item,
-                location: selected,
-                quantity: values.quantity,
-                recorded_quantity: balance,
-                reason: values.remarks,
-                reference: values.reference || null,
-            }, actor_name);
-            toast.success("Stock correction preview added.", { position: "bottom-right" });
-            on_close();
         } else {
             set_draft(values);
             set_save_error(null);
@@ -106,65 +86,80 @@ export default function InventoryStockWorkflowDialog({
         }
     }
 
-    if (step === "issue_result" && draft) {
-        const projected = item.total_quantity - draft.quantity;
-        return (
-            <FormDialog title="Stock issue result preview" compact on_close={on_close}>
-                <div className="space-y-4 p-5">
-                    <WorkflowNotice>{STOCK_PREVIEW_NOTICE}</WorkflowNotice>
-                    <div className="flex items-center gap-3 rounded-md bg-slate-100 p-4">
-                        <CheckCircle2 size={24} aria-hidden="true" className="text-emerald-700" />
-                        <div>
-                            <p className="text-xs text-slate-600">Projected total</p>
-                            <p className="font-semibold">{projected} {unit}</p>
-                        </div>
-                        <StatusBadge tone={projected === 0 ? "danger" : projected < item.min_stock_level ? "warning" : "success"}>
-                            {projected === 0 ? "Out of stock" : projected < item.min_stock_level ? "Low stock" : "In stock"}
-                        </StatusBadge>
-                    </div>
-                    <div className="flex justify-end">
-                        <Button onClick={on_close}>Done</Button>
-                    </div>
-                </div>
-            </FormDialog>
-        );
+    async function save() {
+        if (!draft || !selected || saving.current) return;
+        const remarks = draft.remarks;
+        if (remarks.length > 500) {
+            set_save_error("Remarks must be at most 500 characters. Use Back to shorten them.");
+            return;
+        }
+        saving.current = true;
+        set_is_saving(true);
+        set_save_error(null);
+        try {
+            if (issue) {
+                await assign_inventory_stock(item.part_UUID, draft.aircraft, selected.location_UUID, draft.quantity, remarks);
+            } else {
+                const fresh = await get_inventory_item(item.part_UUID);
+                const current = fresh.locations.find((location) => location.location_UUID === selected.location_UUID)?.current_quantity ?? 0;
+                if (current !== balance) throw new Error("Stock has changed since this form opened. Close and reopen it to review the latest quantity.");
+                const quantity = correction ? draft.quantity : current + draft.quantity;
+                if (quantity > MAX_LOCATION_QUANTITY) throw new Error("The resulting location quantity exceeds the allowed maximum.");
+                await set_inventory_stock(item.part_UUID, selected.location_UUID, quantity, remarks);
+            }
+            toast.success(issue ? "Stock issued." : correction ? "Stock corrected." : "Stock received.", { position: "bottom-right" });
+            on_saved();
+            on_close();
+        } catch (cause) {
+            set_save_error(cause instanceof Error ? cause.message : "Stock could not be saved. Try again.");
+        } finally {
+            saving.current = false;
+            set_is_saving(false);
+        }
     }
     return (
-        <FormDialog title={step === "review" ? (issue ? "Review stock issue" : "Review stock receipt") : STOCK_WORKFLOW_TITLES[mode]}
-            compact on_close={on_close}>
+        <FormDialog title={step === "review" ? (issue ? "Review stock issue" : correction ? "Review stock correction" : "Review stock receipt") : STOCK_WORKFLOW_TITLES[mode]}
+            compact on_close={on_close} is_busy={is_saving}>
             {step === "review" && draft && selected ? (
                 <>
                     <div className={STOCK_WORKFLOW_DIALOG_CONTENT}>
-                        <WorkflowNotice>{STOCK_PREVIEW_NOTICE}</WorkflowNotice>
+                        <WorkflowError message={save_error} />
+                        {issue && aircraft_state.error && <div><WorkflowError message={aircraft_state.error} /><button type="button" className="underline" onClick={() => void aircraft_state.reload()}>Retry aircraft</button></div>}
+                        {!issue && <WorkflowNotice>This quantity change is saved as an adjustment in Stock history.</WorkflowNotice>}
                         <div className="rounded-md bg-slate-100 p-4">
                             <DetailsList entries={[
                                 { id: "item", label: "Item", value: item.part_name },
-                                { id: "quantity", label: issue ? "Quantity issued" : "Quantity received", value: `${draft.quantity} ${unit}` },
-                                { id: "balance", label: "Projected location balance", value: `${balance + (issue ? -draft.quantity : draft.quantity)} ${unit}` },
-                                ...(!issue ? [{ id: "total", label: "Projected total", value: `${item.total_quantity + draft.quantity} ${unit}` }] : []),
-                                { id: "contact", label: issue ? "Recipient" : "Supplier", value: draft.contact || "—" },
-                                { id: "date", label: issue ? "Issue date" : "Date received", value: draft.movement_date },
+                                { id: "quantity", label: issue ? "Quantity issued" : correction ? "Counted quantity" : "Quantity received", value: `${draft.quantity} ${unit}` },
+                                { id: "balance", label: "New location balance", value: `${correction ? draft.quantity : balance + (issue ? -draft.quantity : draft.quantity)} ${unit}` },
+                                ...(!correction ? [
+                                    { id: "contact", label: issue ? "Recipient" : "Supplier", value: "Unavailable" },
+                                    { id: "date", label: issue ? "Issue date" : "Date received", value: "Unavailable" },
+                                ] : []),
                                 { id: "location", label: "Location / Storage area", value: inventory_location_label(selected) },
-                                ...(issue ? [{ id: "aircraft", label: "Aircraft", value: draft.aircraft || "—" }] : []),
-                                { id: "reference", label: issue ? "Work order / reference" : "Delivery reference", value: draft.reference },
+                                ...(issue ? [{ id: "aircraft", label: "Aircraft", value: aircraft.find((row) => row.id === draft.aircraft)?.registration || "—" }] : []),
+                                { id: "reference", label: correction ? "Supporting reference" : issue ? "Work order / reference" : "Delivery reference", value: "Unavailable" },
                                 { id: "remarks", label: issue ? "Purpose" : "Remarks", value: draft.remarks || "—" },
                             ]} />
                         </div>
                         {issue && item.total_quantity === draft.quantity && <WorkflowNotice>This issue will leave the item out of stock.</WorkflowNotice>}
                     </div>
-                    <WorkflowActions label={issue ? "Preview result" : "Done"} type="button"
-                        cancel_label={issue ? undefined : "Back"}
+                    <WorkflowActions label={issue ? "Issue stock" : correction ? "Save correction" : "Receive stock"} type="button"
+                        is_saving={is_saving} cancel_label="Back"
                         on_cancel={() => set_step("form")}
-                        on_confirm={issue ? () => set_step("issue_result") : on_close} />
+                        on_confirm={() => void save()} />
                 </>
+            ) : location_state.is_loading ? <p className={STOCK_WORKFLOW_DIALOG_CONTENT}>Loading locations...</p> : location_state.error ? (
+                <div className={STOCK_WORKFLOW_DIALOG_CONTENT}><WorkflowError message={location_state.error} /><button type="button" className="underline" onClick={() => void location_state.reload()}>Try again</button></div>
             ) : !locations.length ? (
                 <div className={STOCK_WORKFLOW_DIALOG_CONTENT}>
                     <p className="text-sm text-slate-600">{issue ? "No location has stock available to issue." : "No inventory locations are available."}</p>
                 </div>
             ) : (
                 <form onSubmit={submit}>
-                    <fieldset className={STOCK_WORKFLOW_DIALOG_CONTENT}>
+                    <fieldset disabled={is_saving} className={STOCK_WORKFLOW_DIALOG_CONTENT}>
                         <WorkflowError message={save_error} />
+                        {issue && aircraft_state.loading && <p className="text-sm text-slate-600">Loading aircraft...</p>}
+                        {issue && aircraft_state.error && <div><WorkflowError message={aircraft_state.error} /><button type="button" className="underline" onClick={() => void aircraft_state.reload()}>Retry aircraft</button></div>}
                         <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-md border border-slate-300 bg-slate-100 px-3 py-2.5 text-sm">
                             <p className="min-w-0 wrap-anywhere font-semibold">{item.part_name}</p>
                             <p className="border-l border-slate-300 pl-3 text-slate-600">
@@ -198,40 +193,28 @@ export default function InventoryStockWorkflowDialog({
                                 default_value={draft?.quantity ?? (correction && counted ? Number(counted) : undefined)}
                                 on_value_change={correction ? set_counted : undefined} />
                             {issue && (
-                                <WorkflowSelect label="Aircraft" name="aircraft" default_value={draft?.aircraft ?? ""}>
-                                    <option value="">{registrations.length ? "Select an aircraft" : "No aircraft available"}</option>
-                                    {registrations.map((registration) => <option key={registration} value={registration}>{registration}</option>)}
+                                <WorkflowSelect label="Aircraft" name="aircraft" required default_value={draft?.aircraft ?? ""}>
+                                    <option value="">{aircraft.length ? "Select an aircraft" : "No aircraft available"}</option>
+                                    {aircraft.map((row) => <option key={row.id} value={row.id}>{row.registration}</option>)}
                                 </WorkflowSelect>
                             )}
                             {!correction && (
                                 <WorkflowInput name="movement_date" label={issue ? "Issue date" : "Date received"}
-                                    type="date" required default_value={draft?.movement_date ?? inventory_today()} />
+                                    unavailable />
                             )}
                             {issue && (
                                 <WorkflowInput name="contact" label="Recipient" placeholder="Enter recipient name"
-                                    required default_value={draft?.contact} />
+                                    unavailable />
                             )}
                             {!issue && !correction && (
-                                <div className="space-y-2">
-                                    <WorkflowSelect label="Supplier" value={supplier_choice} on_change={set_supplier_choice}>
-                                        <option value="">Select a supplier</option>
-                                        {suppliers.map((supplier) => <option key={supplier} value={`supplier:${supplier}`}>{supplier}</option>)}
-                                        <option value="other">Other…</option>
-                                    </WorkflowSelect>
-                                    {supplier_choice === "other" ? (
-                                        <WorkflowInput name="contact" label="Other supplier" placeholder="Enter supplier name" default_value={draft?.contact} />
-                                    ) : (
-                                        <input type="hidden" name="contact" value={supplier_choice.slice("supplier:".length)} />
-                                    )}
-                                </div>
+                                <WorkflowInput name="contact" label="Supplier" unavailable />
                             )}
-                            {correction && <WorkflowInput name="remarks" label="Reason" placeholder="Explain why the count differs" required />}
+                            {correction && <WorkflowInput name="remarks" label="Reason" placeholder="Explain why the count differs" required default_value={draft?.remarks} />}
                             <WorkflowInput
                                 name="reference"
                                 label={correction ? "Supporting reference" : issue ? "Work order / reference" : "Delivery reference"}
                                 placeholder={correction ? "Enter supporting reference" : issue ? "Enter work order or reference" : "Enter delivery reference"}
-                                required={!correction}
-                                default_value={draft?.reference}
+                                unavailable
                             />
                             {!correction && (
                                 <div className="sm:col-span-2">
@@ -261,7 +244,7 @@ export default function InventoryStockWorkflowDialog({
                             </p>
                         )}
                     </fieldset>
-                    <WorkflowActions label={correction ? "Add correction preview" : issue ? "Review issue" : "Review receipt"} on_cancel={on_close} />
+                    <WorkflowActions label={correction ? "Review correction" : issue ? "Review issue" : "Review receipt"} on_cancel={on_close} disabled={issue && (aircraft_state.loading || Boolean(aircraft_state.error))} />
                 </form>
             )}
         </FormDialog>

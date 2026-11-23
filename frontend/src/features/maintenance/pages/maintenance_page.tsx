@@ -1,188 +1,152 @@
+import { CircleAlert, ClipboardCheck, List, Pencil, Plane, Plus, Wrench } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 import WorkspaceTabs from "../../../shared/components/navigation/workspace_tabs";
-import { Activity, ClipboardCheck, FileText, History, Plus, Wrench } from "lucide-react";
-import { useContext, useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router";
-import { toast } from "sonner";
-import SearchInput from "../../../shared/components/forms/search_input";
 import WorkspaceBreadcrumbs from "../../../shared/components/navigation/workspace_breadcrumbs";
-import Button from "../../../shared/components/ui/button";
+import SearchInput from "../../../shared/components/forms/search_input";
+import LoadingState from "../../../shared/components/feedback/loading_state";
+import ErrorState from "../../../shared/components/feedback/error_state";
 import Card from "../../../shared/components/ui/card";
+import Button from "../../../shared/components/ui/button";
 import DataTable from "../../../shared/components/ui/data_table";
 import Pagination from "../../../shared/components/ui/pagination";
-import useRecordHighlight from "../../../shared/hooks/use_record_highlight";
+import StatusBadge from "../../../shared/components/ui/status_badge";
 import useTablePagination from "../../../shared/hooks/use_table_pagination";
-import type { PreviewRecord } from "../../../shared/types/record_types";
 import { workspace_tab_style } from "../../../shared/styles/tab_styles";
-import { AuthContext } from "../../auth/hooks/auth_context";
-import { AircraftDocuments } from "../../aircraft/components/aircraft_record_tables";
 import useAircraft from "../../aircraft/hooks/use_aircraft";
-import MaintenanceTable from "../components/maintenance_table";
-import { MaintenanceWorkDetails, MaintenanceWorkDialog } from "../components/maintenance_work_dialog";
+import AircraftStatusBadge from "../../aircraft/components/aircraft_status_badge";
+import useMaintenanceRecords from "../hooks/use_maintenance_records";
+import MaintenanceRecordDialog from "../components/maintenance_record_dialog";
 import { maintenance_service } from "../services/maintenance_service";
-import useMaintenance from "../hooks/use_maintenance";
-import { filter_maintenance_records } from "../utils/filter_maintenance_records";
-import { format_work_date, work_button_style } from "../utils/maintenance_work";
+import { maintenance_id } from "../types/maintenance_types";
+import type { AircraftMaintenance, MaintenanceKind, MaintenanceRecord } from "../types/maintenance_types";
 
-const filter_style = "min-h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm focus-visible:outline-2 focus-visible:outline-[#1d4ed8]";
-const scoped_tabs = [
-    { id: "overview", label: "Overview", icon: Activity },
-    { id: "work-history", label: "Work history", icon: History },
-    { id: "cpcp", label: "CPCP tasks", icon: Wrench },
-    { id: "compliance", label: "AD compliance", icon: ClipboardCheck },
-    { id: "documents", label: "Documents", icon: FileText },
+const tabs = [
+    { id: "overview", label: "Overview", icon: List },
+    { id: "ad-records", label: "AD Records", icon: ClipboardCheck },
+    { id: "cpcp", label: "CPCP Tasks", icon: Wrench },
 ];
+const input_style = "min-h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm focus-visible:outline-2 focus-visible:outline-[#1d4ed8]";
+type Editor = { kind: MaintenanceKind; record?: MaintenanceRecord; view?: boolean };
 
-export default function MaintenancePage({ create_on_load = false }: { create_on_load?: boolean }) {
-    const rows = useMaintenance();
-    const highlight = useRecordHighlight();
-    const aircraft = useAircraft();
-    const navigate = useNavigate();
-    const user = useContext(AuthContext)?.user;
+export default function MaintenancePage({ create_on_load = false, edit_on_load = false }: { create_on_load?: boolean; edit_on_load?: boolean }) {
+    const fleet = useAircraft();
+    const data = useMaintenanceRecords();
     const [params, set_params] = useSearchParams();
+    const { maintenance_id: route_id } = useParams();
+    const navigate = useNavigate();
+    const tab = tabs.some((row) => row.id === params.get("tab")) ? params.get("tab")! : "overview";
+    const registration = params.get("aircraft") ?? "";
     const [search, set_search] = useState("");
-    const [creating, set_creating] = useState(create_on_load);
-    const selected_record = rows.find((row) => row.id === params.get("record"));
-    const selected = params.get("aircraft") ?? "";
-    const part = params.get("part") ?? "";
-    const status = params.get("status") ?? "";
-    const date = params.get("date") ?? "";
-    const scoped = params.get("view") === "work-history" && Boolean(selected);
-    const scoped_aircraft = aircraft.find((row) => row.registration === selected);
-    const tab = scoped_tabs.find((option) => option.id === params.get("tab")) ?? scoped_tabs[1];
-    const task_view = Boolean(part || status) && !scoped;
-    const aircraft_options = [...new Set([...aircraft.map((row) => row.registration), ...rows.map((row) => row.aircraft), selected].filter(Boolean))].sort();
-
-    function set_filter(key: string, value: string) {
+    const [status, set_status] = useState("");
+    const [editor, set_editor] = useState<Editor | null>(create_on_load ? { kind: params.get("kind") === "ad" ? "ad" : "cpcp" } : null);
+    const [summary, set_summary] = useState<AircraftMaintenance | null>(null);
+    const [summary_error, set_summary_error] = useState("");
+    const [summary_loading, set_summary_loading] = useState(false);
+    const [version, set_version] = useState(0);
+    const all_records: MaintenanceRecord[] = [...data.ads, ...data.tasks];
+    const aircraft = [
+        ...fleet.map((row) => ({ aircraft_UUID: row.aircraft_UUID, registration: row.registration, status: row.status, current_hours: Number(row.current_aircraft_hours) })),
+        ...all_records.map((row) => row.aircraft),
+    ].filter((row, index, rows) => rows.findIndex((other) => other.aircraft_UUID === row.aircraft_UUID) === index)
+        .sort((a, b) => a.registration.localeCompare(b.registration));
+    const aircraft_id = aircraft.find((row) => row.registration === registration)?.aircraft_UUID;
+    useEffect(() => {
+        let active = true;
+        set_summary(null);
+        set_summary_error("");
+        if (tab !== "overview" || !aircraft_id) { set_summary_loading(false); return; }
+        set_summary_loading(true);
+        maintenance_service.get_aircraft_maintenance(aircraft_id)
+            .then((result) => { if (active) set_summary(result); })
+            .catch((cause: unknown) => { if (active) set_summary_error(cause instanceof Error ? cause.message : "Could not load aircraft maintenance."); })
+            .finally(() => { if (active) set_summary_loading(false); });
+        return () => { active = false; };
+    }, [tab, aircraft_id, version]);
+    const route_record = route_id ? all_records.find((row) => maintenance_id(row) === route_id) : undefined;
+    const active_editor = editor ?? (route_record ? { kind: "ad_UUID" in route_record ? "ad" as const : "cpcp" as const, record: route_record, view: !edit_on_load } : null);
+    const source: MaintenanceRecord[] = tab === "ad-records" ? data.ads : tab === "cpcp" ? data.tasks : summary ? [...summary.ad_records, ...summary.cpcp_tasks] : all_records;
+    const overview_records = source.filter((row) => !registration || row.aircraft.registration === registration);
+    const term = search.trim().toLowerCase();
+    const rows = overview_records.filter((row) =>
+        (!status || row.due_status === status) &&
+        [row.aircraft.registration, "ad_UUID" in row ? row.faa_ad_number + " " + row.subject : row.task_reference + " " + (row.description ?? "")].some((text) => text.toLowerCase().includes(term)));
+    const { visible_rows, footer } = useTablePagination(rows, JSON.stringify([tab, registration, search, status]));
+    function close_editor() {
+        set_editor(null);
+        if (route_id || create_on_load) void navigate("/maintenance", { replace: true });
+    }
+    function saved() { close_editor(); data.reload(); set_version((value) => value + 1); }
+    function choose_aircraft(value: string) {
         const next = new URLSearchParams(params);
-        if (value) next.set(key, value);
-        else next.delete(key);
+        if (value) next.set("aircraft", value); else next.delete("aircraft");
         set_params(next, { replace: true });
     }
-
-    const term = search.trim().toLowerCase();
-    const records = filter_maintenance_records(
-        rows, { aircraft: selected, part, status, date, term, task_view }, new Date(),
-    );
-    const { visible_rows, footer } = useTablePagination(
-        records, JSON.stringify([term, selected, part, status, date, scoped]), undefined,
-        records.findIndex((row) => row.id === highlight?.id),
-    );
-    const add_button = (
-        <Button className={work_button_style} onClick={() => set_creating(true)}>
-            <Plus size={16} aria-hidden="true" />
-            Add work record
-        </Button>
-    );
-
-    function close_dialog() {
-        set_creating(false);
-        if (selected_record) set_filter("record", "");
-        if (create_on_load) {
-            void navigate({ pathname: "/maintenance", search: params.toString() }, { replace: true });
-        }
-    }
-
-    function save(record: Omit<PreviewRecord, "id">) {
-        maintenance_service.add_work_record(record, user?.full_name);
-        close_dialog();
-        toast.success("Maintenance work record saved", { position: "bottom-right" });
-    }
-
-    return (
-        <section aria-labelledby="page_title" className="space-y-4">
-            <WorkspaceBreadcrumbs
-                current={scoped ? tab.label : "Maintenance"}
-                parents={scoped ? [
-                    { label: "Aircraft", to: "/aircraft" },
-                    { label: selected, to: scoped_aircraft ? `/aircraft/${scoped_aircraft.id}` : undefined },
-                ] : undefined}
-            />
-            <h1 id="page_title" className={scoped ? "text-2xl font-semibold text-[#0b2238]" : "sr-only"}>
-                {scoped ? tab.id === "work-history" ? "Maintenance work history" : tab.label : "Maintenance"}
-            </h1>
-            <Card>
-                {scoped ? (
-                    <WorkspaceTabs label="Aircraft maintenance sections" className="mb-5">
-                        {scoped_tabs.map(({ id, label, icon: Icon }) => (
-                            <Link key={id} to={`/maintenance?${new URLSearchParams({ aircraft: selected, view: "work-history", tab: id })}`}
-                                aria-current={id === tab.id ? "page" : undefined}
-                                className={workspace_tab_style(id === tab.id)}>
-                                <Icon size={16} aria-hidden="true" /> {label}
-                            </Link>
-                        ))}
-                    </WorkspaceTabs>
-                ) : (
-                    <>
-                        <h2 className="mb-4 font-semibold text-[#0b2238]">{task_view ? "Maintenance tasks" : "Work records"}</h2>
-                        <div className="filter-toolbar mb-4 rounded-lg bg-slate-50 p-3">
-                            <div className="filter-toolbar-search grid gap-1.5">
-                                <p aria-hidden="true" className="text-sm text-slate-700">Search maintenance</p>
-                                <SearchInput value={search} on_change={set_search} label="Search maintenance" placeholder="Work order or work performed" />
-                            </div>
-                            <label className="filter-toolbar-field grid gap-1.5 text-sm text-slate-700">
-                                Aircraft
-                                <select value={selected} onChange={(event) => set_filter("aircraft", event.currentTarget.value)} className={filter_style}>
-                                    <option value="">All aircraft</option>
-                                    {aircraft_options.map((registration) => <option key={registration}>{registration}</option>)}
-                                </select>
-                            </label>
-                            {task_view ? (
-                                <label className="filter-toolbar-field grid gap-1.5 text-sm text-slate-700">
-                                    Status
-                                    <select value={status} onChange={(event) => set_filter("status", event.currentTarget.value)} className={filter_style}>
-                                        <option value="">All statuses</option>
-                                        <option value="pending">Pending tasks</option>
-                                        <option value="due">Due soon or overdue</option>
-                                        {["Scheduled", "In Progress", "Completed"].map((value) => <option key={value}>{value}</option>)}
-                                    </select>
-                                </label>
-                            ) : (
-                                <label className="filter-toolbar-field grid gap-1.5 text-sm text-slate-700">
-                                    Date performed
-                                    <input type="date" value={date} onChange={(event) => set_filter("date", event.currentTarget.value)} className={filter_style} />
-                                </label>
-                            )}
-                            <div className="filter-toolbar-actions">
-                                {(selected || part || status || date || term) && (
-                                    <Button variant="ghost" onClick={() => { set_params({}); set_search(""); }}>
-                                        Clear filters
-                                    </Button>
-                                )}
-                                {add_button}
-                            </div>
+    return <section aria-labelledby="page_title" className="space-y-4">
+        <WorkspaceBreadcrumbs current="Maintenance" />
+        <h1 id="page_title" className="sr-only">Maintenance</h1>
+        <Card>
+            <WorkspaceTabs label="Maintenance sections">
+                {tabs.map(({ id, label, icon: Icon }) => <Link key={id} to={`/maintenance?${new URLSearchParams({ tab: id, ...(registration ? { aircraft: registration } : {}) })}`} aria-current={tab === id ? "page" : undefined} className={workspace_tab_style(tab === id)}>
+                    <Icon size={16} aria-hidden="true" />{label}
+                </Link>)}
+            </WorkspaceTabs>
+            <div className="filter-toolbar mb-4 rounded-lg bg-slate-50 p-3">
+                <div className="filter-toolbar-search grid gap-1.5">
+                    <p aria-hidden="true" className="text-sm text-slate-700">Search maintenance</p>
+                    <SearchInput label="Search maintenance" value={search} on_change={set_search} placeholder="Aircraft, reference, or subject" />
+                </div>
+                <label className="filter-toolbar-field grid gap-1.5 text-sm text-slate-700">Aircraft
+                    <select value={registration} onChange={(event) => choose_aircraft(event.currentTarget.value)} className={input_style}>
+                        <option value="">All aircraft</option>{aircraft.map((row) => <option key={row.aircraft_UUID}>{row.registration}</option>)}
+                    </select>
+                </label>
+                <label className="filter-toolbar-field grid gap-1.5 text-sm text-slate-700">Due status
+                    <select value={status} onChange={(event) => set_status(event.currentTarget.value)} className={input_style}>
+                        <option value="">All statuses</option>{["Overdue", "Current", "Not Scheduled"].map((value) => <option key={value}>{value}</option>)}
+                    </select>
+                </label>
+                <div className="filter-toolbar-actions">
+                    {(search || status || registration) && <Button variant="ghost" onClick={() => { set_search(""); set_status(""); choose_aircraft(""); }}>Clear filters</Button>}
+                    {tab === "ad-records" && <Button className="bg-[#152e45]! hover:bg-[#203f59]!" onClick={() => set_editor({ kind: "ad" })} disabled={!aircraft.length || data.loading}><Plus size={16} />Add AD record</Button>}
+                    {tab === "cpcp" && <Button className="bg-[#152e45]! hover:bg-[#203f59]!" onClick={() => set_editor({ kind: "cpcp" })} disabled={!aircraft.length || data.loading}><Plus size={16} />Add CPCP task</Button>}
+                </div>
+            </div>
+                {tab === "overview" && !data.loading && !data.error && <div className="mb-4 space-y-3">
+                    {summary_loading ? <LoadingState message="Loading aircraft summary..." /> : summary_error ? <ErrorState description={summary_error} on_retry={() => set_version((value) => value + 1)} /> : <>
+                        <div className={`grid gap-3 ${summary ? "sm:grid-cols-2 lg:grid-cols-[minmax(0,1.5fr)_repeat(3,minmax(0,1fr))]" : "sm:grid-cols-3"}`}>
+                            {summary && <div className="flex min-h-16 min-w-0 items-center gap-2 rounded-lg border border-[#dbe3ed] px-2.5 py-2 text-xs font-medium text-[#0b2238]">
+                                <span className="grid size-6 shrink-0 place-items-center rounded-md bg-[#e9f0f8]"><Plane size={16} aria-hidden="true" /></span>
+                                <div className="min-w-0 flex-1">
+                                    <h2 className="font-semibold">{summary.aircraft.registration}</h2>
+                                    <p className="mt-1 text-slate-600">{summary.aircraft.current_hours.toLocaleString()} flight hours</p>
+                                </div>
+                                <AircraftStatusBadge status={summary.aircraft.status} />
+                            </div>}
+                            {[{ label: "AD records", icon: ClipboardCheck, value: overview_records.filter((row) => "ad_UUID" in row).length }, { label: "CPCP tasks", icon: Wrench, value: overview_records.filter((row) => "cpcp_UUID" in row).length }, { label: "Overdue", icon: CircleAlert, value: summary?.overdue_count ?? overview_records.filter((row) => row.overdue).length }].map(({ label, value, icon: Icon }) => {
+                                const danger = label === "Overdue" && value > 0;
+                                return <div key={label} className={`flex min-h-16 min-w-0 items-center gap-2 rounded-lg border px-2.5 py-2 text-xs font-medium ${danger ? "border-[#e35860] bg-[#feedef] text-[#a81820]" : "border-[#dbe3ed] text-[#0b2238]"}`}>
+                                    <span className={`grid size-6 shrink-0 place-items-center rounded-md ${danger ? "" : "bg-[#e9f0f8]"}`}><Icon size={16} aria-hidden="true" /></span>
+                                    <span className="min-w-0 flex-1">{label}</span><span className="shrink-0 text-2xl font-bold leading-none tabular-nums">{value}</span>
+                                </div>;
+                            })}
                         </div>
-                        {part && <p className="mb-3 text-sm text-slate-600">Related part: <strong>{part}</strong></p>}
-                    </>
-                )}
-                {scoped && tab.id === "overview" && <MaintenanceTable inventory rows={rows.filter((row) => row.aircraft === selected && row.status !== "Completed")} caption={`Next tasks for ${selected}`} />}
-                {scoped && tab.id === "cpcp" && <p className="text-sm text-slate-600">No CPCP tasks are recorded for this aircraft.</p>}
-                {scoped && tab.id === "compliance" && <p className="text-sm text-slate-600">No airworthiness directive compliance records are available for this aircraft.</p>}
-                {scoped && tab.id === "documents" && <AircraftDocuments key={selected} registration={selected} />}
-                {(!scoped || tab.id === "work-history") && (
-                    <>
-                        {scoped && <div className="mb-4 flex justify-end">{add_button}</div>}
-                        {task_view ? <MaintenanceTable inventory rows={visible_rows} bounded={false} highlight_row={highlight} /> : (
-                            <DataTable inventory bounded={scoped} caption={scoped ? "Maintenance work history" : "Maintenance work records"}
-                                rows={visible_rows} get_row_key={(row) => row.id} highlight_row={highlight} empty_title="No maintenance work records"
-                                columns={[
-                                    { id: "date", header: "Date", render: (row) => format_work_date(row.performed_date) },
-                                    ...(!scoped ? [{ id: "aircraft", header: "Aircraft", render: (row: PreviewRecord) => row.aircraft }] : []),
-                                    { id: "order", header: "Work order", render: (row) => row.work_order || "Not recorded" },
-                                    { id: "work", header: "Work performed", render: (row) => row.description || row.title },
-                                    { id: "recorder", header: "Recorded by", render: (row) => row.recorded_by || row.performed_by || "Not recorded" },
-                                    { id: "action", header: "Action", render: (row) => (
-                                        <Button variant="ghost" className="whitespace-nowrap text-link" onClick={() => set_filter("record", row.id)}>View record</Button>
-                                    ) },
-                                ]}
-                            />
-                        )}
-                        <Pagination {...footer} item_label="maintenance record" />
-                    </>
-                )}
-            </Card>
-            {creating && <MaintenanceWorkDialog aircraft_options={aircraft_options} fixed_aircraft={scoped ? selected : undefined}
-                on_close={close_dialog} on_save={save} />}
-            {selected_record && <MaintenanceWorkDetails record={selected_record} on_close={close_dialog} />}
-        </section>
-    );
+                    </>}
+                </div>}
+            {data.loading ? <LoadingState message="Loading maintenance records..." /> : data.error ? <ErrorState description={data.error} on_retry={data.reload} /> : <>
+                {route_id && !route_record && <p role="status" className="mb-3 text-sm text-slate-600">This maintenance record was not found. Choose a record below.</p>}
+                <DataTable inventory caption={tab === "overview" ? "Maintenance records" : tab === "ad-records" ? "AD records" : "CPCP tasks"} rows={visible_rows} get_row_key={maintenance_id} empty_title="No maintenance records found"
+                    columns={[
+                        { id: "aircraft", header: "Aircraft", render: (row) => row.aircraft.registration },
+                        { id: "reference", header: "Reference / subject", render: (row) => "ad_UUID" in row ? <><p className="font-semibold">{row.faa_ad_number}</p><p className="text-xs text-slate-600">{row.subject}</p></> : <><p className="font-semibold">{row.task_reference}</p><p className="text-xs text-slate-600">{row.description}</p></> },
+                        { id: "date", header: "Next due date", render: (row) => ("ad_UUID" in row ? row.next_due_date : row.due_date) || "Not scheduled" },
+                        { id: "hours", header: "Due hours", render: (row) => ("ad_UUID" in row ? row.next_due_hours : row.due_hours) ?? "Not scheduled" },
+                        { id: "status", header: "Due status", render: (row) => <StatusBadge tone={row.overdue ? "danger" : row.due_status === "Current" ? "success" : "neutral"}>{row.due_status}</StatusBadge> },
+                        { id: "action", header: "Action", render: (row) => <div className="flex gap-4"><button type="button" className="min-h-8 font-semibold text-link" onClick={() => set_editor({ kind: "ad_UUID" in row ? "ad" : "cpcp", record: row, view: true })}>View</button><button type="button" aria-label={`Edit ${"ad_UUID" in row ? row.faa_ad_number : row.task_reference}`} title="Edit" className="inline-flex size-11 items-center justify-center rounded text-[#1d4ed8] hover:bg-blue-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1d4ed8]" onClick={() => set_editor({ kind: "ad_UUID" in row ? "ad" : "cpcp", record: row })}><Pencil size={18} aria-hidden="true" /></button></div> },
+                    ]} />
+                <Pagination {...footer} item_label="record" />
+            </>}
+        </Card>
+        {active_editor && <MaintenanceRecordDialog key={active_editor.record ? maintenance_id(active_editor.record) + String(active_editor.view) : active_editor.kind} {...active_editor} aircraft={aircraft} on_close={close_editor} on_saved={saved} />}
+    </section>;
 }

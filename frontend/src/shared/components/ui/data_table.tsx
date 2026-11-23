@@ -80,10 +80,10 @@ export default function DataTable<T>({
                                 ref={highlight_row?.id === get_row_key(row) ? highlight_row.ref : undefined}
                                 className="hover:bg-slate-50"
                             >
-                                {columns.map((column) => (
+                                {columns.map((column, index) => (
                                     <td
                                         key={column.id}
-                                        className={`px-3 ${inventory ? "py-4 text-[#0b2238]" : "py-2 text-slate-700"} ${column.cell_class_name ?? ""}`}
+                                        className={`px-3 ${inventory ? "py-4 text-[#0b2238]" : "py-2 text-slate-700"} ${index === 0 || column.id === "action" || column.id === "actions" ? "font-semibold" : "font-medium"} [&_a]:font-semibold [&_button]:font-semibold ${column.cell_class_name ?? ""}`}
                                     >
                                         {column.render(row)}
                                     </td>

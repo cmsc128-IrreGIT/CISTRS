@@ -11,7 +11,7 @@ import type {
     InitialStock,
     InventoryFormValues,
     InventoryItem,
-    InventoryLocation,
+    InventoryStorageLocation,
 } from "../types/inventory_types";
 import { format_inventory_expiry } from "../utils/inventory_dates";
 import InventoryQuantityField from "./inventory_quantity_field";
@@ -26,7 +26,7 @@ type FieldErrors = Partial<Record<FieldName, string>>;
 type InventoryFormProps = {
     initial_values?: InventoryFormValues;
     item?: InventoryItem;
-    locations: InventoryLocation[];
+    locations: InventoryStorageLocation[];
     units?: string[];
     on_submit: (
         values: InventoryFormValues,
@@ -103,6 +103,8 @@ export default function InventoryForm({
         }
         if (!values.part_number) {
             next_errors.part_number = "Enter a part number.";
+        } else if (values.part_number.length > 50) {
+            next_errors.part_number = "Part number must be at most 50 characters.";
         }
         if (!values.unit_of_measure) {
             next_errors.unit_of_measure = "Enter a unit of measure.";
@@ -194,7 +196,7 @@ export default function InventoryForm({
                                     {...props}
                                     name="part_number"
                                     placeholder="Enter part number"
-                                    maxLength={150}
+                                    maxLength={50}
                                     defaultValue={initial_values?.part_number ?? ""}
                                     className={INVENTORY_FORM_INPUT}
                                 />
@@ -323,14 +325,14 @@ export default function InventoryForm({
                             </FormField>
                         </div>
                         <UnavailableField label="Serial number" help="Serial numbers are read-only in this form." />
-                        <UnavailableField label="Manufacturer" value={item?.manufacturers.join(", ")} />
-                        <UnavailableField label="Supplier" value={item?.suppliers.join(", ")} />
+                        <UnavailableField label="Manufacturer" value={item?.manufacturers.join(", ")} help="Setting a manufacturer is not available yet." />
+                        <UnavailableField label="Supplier" value={item?.suppliers.join(", ")} help="Setting a supplier is not available yet." />
                     </fieldset>
                 </details>
             </div>
 
             <div className="sticky bottom-0 z-10 flex justify-end gap-2 border-t border-slate-200 bg-white px-4 py-3 sm:px-5">
-                <Button variant="secondary" onClick={on_cancel} disabled={is_saving}>
+                <Button variant="secondary" className="mr-auto" onClick={on_cancel} disabled={is_saving}>
                     Cancel
                 </Button>
                 <Button type="submit" is_loading={is_saving} className={`min-w-24 ${INVENTORY_PRIMARY_ACTION}`}>

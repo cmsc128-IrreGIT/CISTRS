@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { parseOrThrow, parseUuid } from "../lib/validate.js";
 import { exportLogbook, exportSchema } from "../services/logbook/export.service.js";
+import { listLogbookLookups } from "../services/logbook/lookups.service.js";
 import {
     addFuelTransaction,
     fuelInputSchema,
@@ -20,6 +21,12 @@ import {
 
 // Mounted in server.ts behind requireAuth + requireFeature(FEATURE.Logbook).
 export const logbookRouter = Router();
+
+// GET /api/logbook/lookups -> all flight types, statuses, and delay categories.
+// Uses the same authentication and Logbook feature access as the other routes.
+logbookRouter.get("/lookups", async (_req, res) => {
+    res.json(await listLogbookLookups());
+});
 
 // A logbook entry is a flight sector plus the fuel transactions linked to it.
 

@@ -5,6 +5,7 @@ import type { PersonnelEmployeeResponse, PersonnelRecord, PersonnelLicense } fro
 
 function normalize_license(license: unknown): PersonnelLicense {
     const l = license as Record<string, unknown>;
+    const license_type = l.license_type as { license_type_name?: string } | null | undefined;
     return {
         emp_license_UUID: String(l.emp_license_UUID ?? ""),
         license_number: String(l.license_number ?? ""),
@@ -12,7 +13,7 @@ function normalize_license(license: unknown): PersonnelLicense {
         date_issued: l.date_issued ? String(l.date_issued) : undefined,
         renewal_status_UUID: l.renewal_status_UUID ? String(l.renewal_status_UUID) : null,
         renewal_status: l.renewal_status_name ? { status_name: String(l.renewal_status_name) } : null,
-        license_type: l.license_type_name ? { license_type_name: String(l.license_type_name) } : undefined,
+        license_type: l.license_type_name || license_type?.license_type_name ? { license_type_name: String(l.license_type_name || license_type?.license_type_name) } : undefined,
     };
 }
 
@@ -35,6 +36,7 @@ export function normalize_personnel(employee: PersonnelEmployeeResponse): Person
         phone: contacts.find((contact) => /phone|mobile|telephone/i.test(contact.contact_type))?.contact_value ?? "",
         licenses: (employee.licenses ?? []).map(normalize_license),
         preview: false,
+        employee,
     };
 }
 

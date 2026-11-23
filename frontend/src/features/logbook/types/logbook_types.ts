@@ -1,81 +1,139 @@
-export type LogbookFieldKey =
-    | "aircraft"
-    | "entry_date"
-    | "entry_time"
-    | "maintenance_id"
-    | "log_page"
-    | "station_from"
-    | "station_to"
-    | "out_time"
-    | "off_time"
-    | "on_time"
-    | "in_time"
-    | "flight_time"
-    | "block_time"
-    | "commander_name"
-    | "commander_licence"
-    | "commander_utc_date"
-    | "defects"
-    | "action_taken"
-    | "airframe_brought_forward"
-    | "airframe_this_flight"
-    | "airframe_total_to_date"
-    | "airframe_due_100_hrs"
-    | "left_engine_brought_forward"
-    | "left_engine_this_flight"
-    | "left_engine_total_to_date"
-    | "left_engine_due_100_hrs"
-    | "right_engine_brought_forward"
-    | "right_engine_this_flight"
-    | "right_engine_total_to_date"
-    | "right_engine_due_100_hrs"
-    | "left_propeller_brought_forward"
-    | "left_propeller_this_flight"
-    | "left_propeller_total_to_date"
-    | "left_propeller_due_100_hrs"
-    | "right_propeller_brought_forward"
-    | "right_propeller_this_flight"
-    | "right_propeller_total_to_date"
-    | "right_propeller_due_100_hrs"
-    | "oil_left_engine_arrival"
-    | "oil_left_engine_departure"
-    | "oil_right_engine_arrival"
-    | "oil_right_engine_departure"
-    | "fuel_left_aux_arrival"
-    | "fuel_left_aux_departure"
-    | "fuel_left_main_arrival"
-    | "fuel_left_main_departure"
-    | "fuel_right_main_arrival"
-    | "fuel_right_main_departure"
-    | "fuel_right_aux_arrival"
-    | "fuel_right_aux_departure"
-    | "oil_total_before_uplift"
-    | "oil_total_uplift"
-    | "fuel_total_before_refuel"
-    | "fuel_total_uplift"
-    | "inspection_name"
-    | "inspection_licence"
-    | "inspection_utc_date";
+export type LogbookAircraft = {
+    aircraft_UUID: string;
+    registration: string;
+    status: string;
+    current_hours: number;
+};
 
-export type LogbookCondition = "Defect reported" | "No defect reported";
+export type LogbookEmployee = {
+    emp_UUID: string;
+    emp_number: string;
+    f_name: string;
+    l_name: string;
+};
 
-export type LogbookFormValues = Record<LogbookFieldKey, string> & {
-    recorded_condition?: LogbookCondition;
+export type LogbookFlightStatus = { flight_status_UUID: string; status_name: string };
+export type LogbookFlightType = { flight_type_UUID: string; type_name: string };
+export type LogbookDelayCategory = { delay_category_UUID: string; category_name: string };
+export type LogbookReference = { id: string; name: string };
+export type LogbookLookups = {
+    flight_statuses: LogbookFlightStatus[];
+    flight_types: LogbookFlightType[];
+    delay_categories: LogbookDelayCategory[];
 };
-export type LogbookEntry = LogbookFormValues & {
-    id: string;
-    recorded_by?: string;
-    updated_at?: string;
+
+export type LogbookFuelTransaction = {
+    fuel_transaction_UUID: string;
+    sector_UUID: string;
+    aircraft_UUID: string;
+    transaction_date: string;
+    transaction_type: string;
+    quantity_gal: number;
+    issued_to: LogbookEmployee;
+    recorded_by: LogbookEmployee;
+    remarks: string | null;
 };
-export type LogbookField = {
-    key: LogbookFieldKey;
-    label: string;
-    type: "text" | "date" | "time" | "number" | "textarea" | "aircraft" | "maintenance";
-    required?: boolean;
-    hint?: string;
+
+export type LogbookEntry = {
+    sector_UUID: string;
+    aircraft: LogbookAircraft;
+    flight_date: string;
+    route: string;
+    flight_status: LogbookFlightStatus;
+    flight_type: LogbookFlightType;
+    day_night: "Day" | "Night" | null;
+    pic: LogbookEmployee;
+    sic: LogbookEmployee | null;
+    observer: LogbookEmployee | null;
+    std: string | null;
+    sta: string | null;
+    off_block: string | null;
+    airborne: string | null;
+    touchdown: string | null;
+    on_block: string | null;
+    flight_time: number | null;
+    pax_count: number;
+    fuel_departure: number | null;
+    fuel_arrival: number | null;
+    fuel_used: number | null;
+    fuel_unit: string | null;
+    delay_category: LogbookDelayCategory | null;
+    delay_cause: string | null;
+    qa_check_status: string | null;
+    entered_by: LogbookEmployee;
+    fuel_transactions: LogbookFuelTransaction[];
 };
-export type LogbookSection = {
-    id: string;
-    title: string;
-    fields: LogbookField[];
+
+export type LogbookFuelInput = {
+    issued_to: string;
+    transaction_date: string;
+    transaction_type: string;
+    quantity_gal: number;
+    remarks?: string | null;
+};
+
+export type LogbookSectorInput = {
+    aircraft_UUID: string;
+    flight_status_UUID: string;
+    flight_type_UUID: string;
+    pic_emp_UUID: string;
+    flight_date: string;
+    route: string;
+    sic_emp_UUID?: string | null;
+    observer_emp_UUID?: string | null;
+    delay_category_UUID?: string | null;
+    std?: string | null;
+    sta?: string | null;
+    off_block?: string | null;
+    airborne?: string | null;
+    touchdown?: string | null;
+    on_block?: string | null;
+    flight_time?: number | null;
+    day_night?: "Day" | "Night" | null;
+    pax_count?: number;
+    fuel_departure?: number | null;
+    fuel_arrival?: number | null;
+    fuel_used?: number | null;
+    fuel_unit?: string | null;
+    delay_cause?: string | null;
+    qa_check_status?: string | null;
+    fuel_transactions?: LogbookFuelInput[];
+};
+
+export type LogbookFuelUpdate = Partial<LogbookFuelInput>;
+
+export type LogbookFormValues = {
+    aircraft_UUID: string;
+    flight_status_UUID: string;
+    flight_type_UUID: string;
+    pic_emp_UUID: string;
+    flight_date: string;
+    route: string;
+    sic_emp_UUID: string;
+    observer_emp_UUID: string;
+    delay_category_UUID: string;
+    std: string;
+    sta: string;
+    off_block: string;
+    airborne: string;
+    touchdown: string;
+    on_block: string;
+    flight_time: string;
+    day_night: string;
+    pax_count: string;
+    fuel_departure: string;
+    fuel_arrival: string;
+    fuel_used: string;
+    fuel_unit: string;
+    delay_cause: string;
+    qa_check_status: string;
+    fuel_transactions: LogbookFuelDraft[];
+};
+
+export type LogbookFuelDraft = {
+    issued_to: string;
+    transaction_date: string;
+    transaction_type: string;
+    quantity_gal: string;
+    remarks: string;
 };

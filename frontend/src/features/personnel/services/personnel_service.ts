@@ -1,6 +1,22 @@
 import { api, availabilityApi, documentsApi, licensesApi } from "../../../shared/api/client";
-import type { PersonnelEmployeeResponse } from "../types/personnel_types";
+import type { PersonnelEmployeeResponse, PersonnelInput, PersonnelLookups } from "../types/personnel_types";
 import { normalize_personnel } from "../utils/personnel_records";
+
+export function get_personnel_lookups() {
+    return api<PersonnelLookups>("/lookups");
+}
+
+export async function create_personnel(values: PersonnelInput) {
+    return normalize_personnel(await api<PersonnelEmployeeResponse>("/personnel/employees", {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(values),
+    }));
+}
+
+export async function update_personnel(id: string, values: Partial<PersonnelInput>) {
+    return normalize_personnel(await api<PersonnelEmployeeResponse>(`/personnel/employees/${encodeURIComponent(id)}`, {
+        method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(values),
+    }));
+}
 
 // Retrieve the signed-in employee without loading the full personnel directory.
 // The backend still enforces the Personnel feature on this endpoint.

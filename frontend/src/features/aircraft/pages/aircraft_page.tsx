@@ -8,27 +8,18 @@ import useTablePagination from "../../../shared/hooks/use_table_pagination";
 import Pagination from "../../../shared/components/ui/pagination";
 import AircraftBreadcrumbs from "../components/aircraft_breadcrumbs";
 import AircraftStatusBadge from "../components/aircraft_status_badge";
-import { aircraft_config } from "../config/aircraft_config";
-import useAircraft from "../hooks/use_aircraft";
+import ScreenLoading from "../../../shared/components/feedback/screen_loading";
+import ErrorState from "../../../shared/components/feedback/error_state";
+import { useAircraftData } from "../hooks/use_aircraft";
 
 const select_field =
     "min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 focus-visible:outline-2 focus-visible:outline-[#1d4ed8]";
 
 export default function AircraftPage() {
-    const rows = useAircraft();
+    const { aircraft: rows, statuses: allowed_statuses, loading, error, reload } = useAircraftData();
     const [search, set_search] = useState("");
     const [status, set_status] = useState("");
-    const statuses = [
-        ...new Set([
-            ...(
-                aircraft_config.fields.find((field) => field.key === "status")
-                    ?.options || []
-            ).map((option) =>
-                typeof option === "string" ? option : option.value,
-            ),
-            ...rows.map((row) => row.status).filter(Boolean),
-        ]),
-    ];
+    const statuses = [...new Set([...allowed_statuses.map((row) => row.status_name), ...rows.map((row) => row.status)])];
     const term = search.trim().toLowerCase();
     const filtered = rows.filter(
         (row) =>
@@ -81,7 +72,7 @@ export default function AircraftPage() {
                         </select>
                     </label>
                 </div>
-                <DataTable
+                {loading ? <ScreenLoading compact label="Loading aircraft..." /> : error ? <ErrorState description={error} on_retry={reload} /> : <DataTable
                     inventory
                     bounded
                     caption="Aircraft records"
@@ -150,12 +141,12 @@ export default function AircraftPage() {
                             ),
                         },
                     ]}
-                />
-                <Pagination
+                />}
+                {!loading && !error && <Pagination
                     {...footer}
                     item_label="aircraft"
                     plural_label="aircraft"
-                />
+                />}
             </Card>
         </section>
     );

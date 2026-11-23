@@ -47,8 +47,8 @@ export default function PersonnelPage() {
     const columns: TableColumn<PersonnelRecord>[] = [
         { id: "name", header: "Name / employee ID", render: (row) => (
             <>
-                <p className="font-medium">{row.name}</p>
-                <p className="text-xs text-slate-600">{row.employee_number}</p>
+                <p className="font-semibold">{row.name}</p>
+                <p className="text-xs font-medium text-slate-600">{row.employee_number}</p>
             </>
         ) },
         { id: "position", header: "Position", render: (row) => row.position || "Not recorded" },

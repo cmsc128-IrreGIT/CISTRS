@@ -16,6 +16,7 @@ export function WorkflowInput({
     multiline = false,
     min = 1,
     rows = 2,
+    unavailable = false,
 }: {
     name: string;
     label: string;
@@ -26,14 +27,15 @@ export function WorkflowInput({
     multiline?: boolean;
     min?: number;
     rows?: number;
+    unavailable?: boolean;
 }) {
     return (
-        <FormField label={label} required={required}>
+        <FormField label={label} required={required && !unavailable}>
             {(props) => multiline ? (
-                <textarea {...props} name={name} defaultValue={default_value} placeholder={placeholder}
+                <textarea {...props} name={name} defaultValue={unavailable ? "Unavailable" : default_value} placeholder={placeholder} disabled={unavailable}
                     className={`${INVENTORY_FORM_INPUT} resize-y`} maxLength={500} rows={rows} />
             ) : (
-                <input {...props} name={name} type={type} defaultValue={default_value} placeholder={placeholder}
+                <input {...props} name={name} type={unavailable ? "text" : type} defaultValue={unavailable ? "Unavailable" : default_value} placeholder={placeholder} disabled={unavailable}
                     className={INVENTORY_FORM_INPUT}
                     maxLength={type === "text" ? 150 : undefined}
                     min={type === "number" ? min : undefined}
@@ -45,6 +47,7 @@ export function WorkflowInput({
 
 export function WorkflowSelect({
     label,
+    required = false,
     name,
     default_value,
     value,
@@ -52,6 +55,7 @@ export function WorkflowSelect({
     children,
 }: {
     label: string;
+    required?: boolean;
     name?: string;
     default_value?: string;
     value?: string;
@@ -59,7 +63,7 @@ export function WorkflowSelect({
     children: ReactNode;
 }) {
     return (
-        <FormField label={label}>
+        <FormField label={label} required={required}>
             {(props) => (
                 <div className="relative">
                     <select
@@ -87,6 +91,8 @@ export function WorkflowActions({
     type = "submit",
     on_confirm,
     tone = "primary",
+    is_saving = false,
+    disabled = false,
 }: {
     on_cancel: () => void;
     cancel_label?: string;
@@ -94,15 +100,19 @@ export function WorkflowActions({
     type?: "submit" | "button";
     on_confirm?: () => void;
     tone?: "primary" | "danger" | "success";
+    is_saving?: boolean;
+    disabled?: boolean;
 }) {
     return (
         <div className="sticky bottom-0 z-10 flex flex-wrap justify-end gap-2 border-t border-slate-200 bg-white px-4 py-3 sm:px-5">
-            <Button variant="secondary" onClick={on_cancel}>{cancel_label}</Button>
+            <Button variant="secondary" className={`cursor-pointer ${cancel_label === "Cancel" ? "mr-auto" : ""}`} onClick={on_cancel} disabled={is_saving}>{cancel_label}</Button>
             <Button
                 type={type}
                 variant={tone === "danger" ? "danger" : "primary"}
-                className={tone === "primary" ? INVENTORY_PRIMARY_ACTION : tone === "success" ? "bg-emerald-700! hover:bg-emerald-800!" : undefined}
+                className={`cursor-pointer ${tone === "primary" ? INVENTORY_PRIMARY_ACTION : tone === "success" ? "bg-emerald-700! hover:bg-emerald-800!" : ""}`}
                 onClick={on_confirm}
+                is_loading={is_saving}
+                disabled={disabled}
             >
                 {label}
             </Button>

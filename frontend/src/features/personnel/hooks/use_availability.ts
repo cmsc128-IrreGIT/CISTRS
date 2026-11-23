@@ -13,35 +13,28 @@ export interface AvailabilityRecordExtended extends Omit<AvailabilityRecord, "no
     [key: string]: string;
 }
 
-export default function useAvailability() {
-    const [records, setRecords] = useState<AvailabilityRecordExtended[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-
-    async function load() {
-        try {
-            setLoading(true);
-            setError(null);
-            const response = await availability_service.list();
+export default function useAvailability(enabled = true) {
+    const [version, set_version] = useState(0);
+    const [result, set_result] = useState<{ version: number; records: AvailabilityRecordExtended[]; error: string | null }>();
+    useEffect(() => {
+        if (!enabled) return;
+        let active = true;
+        availability_service.list().then((response) => {
             // Convert backend format to frontend format with all fields + aliases
             // Ensure notes is string (not null) for index signature compatibility
-            setRecords(response.items.map((item) => ({
+            const records = response.items.map((item) => ({
                 ...item,
                 id: item.availability_UUID,
                 personnel: item.emp_UUID,
                 personnel_name: "", // Will be populated by the component
                 notes: item.notes ?? "",
-            })));
-        } catch (err) {
-            setError(err instanceof Error ? err.message : "Failed to load availability");
-        } finally {
-            setLoading(false);
-        }
-    }
-
-    useEffect(() => {
-        load();
-    }, []);
-
-    return { records, loading, error, refresh: load };
+            }));
+            if (active) set_result({ version, records, error: null });
+        }).catch((err: unknown) => {
+            if (active) set_result({ version, records: [], error: err instanceof Error ? err.message : "Failed to load availability" });
+        });
+        return () => { active = false; };
+    }, [enabled, version]);
+    const current = enabled && result?.version === version ? result : undefined;
+    return { records: current?.records ?? [], loading: enabled && !current, error: current?.error ?? null, refresh: () => set_version((value) => value + 1) };
 }

@@ -8,12 +8,15 @@ import DetailsList from "../../../shared/components/ui/details_list";
 import EmptyState from "../../../shared/components/feedback/empty_state";
 import { button_styles } from "../../../shared/styles/button_styles";
 import { workspace_tab_style } from "../../../shared/styles/tab_styles";
-import MaintenanceTable from "../../maintenance/components/maintenance_table";
-import useMaintenance from "../../maintenance/hooks/use_maintenance";
+// import MaintenanceTable from "../../maintenance/components/maintenance_table"; 
+import AircraftMaintenanceRecords from "../components/aircraft_maintenance";
+// import useMaintenance from "../../maintenance/hooks/use_maintenance"; 
 import AircraftBreadcrumbs from "../components/aircraft_breadcrumbs";
 import { AircraftCompliance, AircraftDocuments, AircraftStatusHistory } from "../components/aircraft_record_tables";
 import AircraftStatusBadge from "../components/aircraft_status_badge";
-import useAircraft from "../hooks/use_aircraft";
+import { useAircraftData } from "../hooks/use_aircraft";
+import ScreenLoading from "../../../shared/components/feedback/screen_loading";
+import ErrorState from "../../../shared/components/feedback/error_state";
 
 const sections = [
     { id: "information", label: "Aircraft Information", icon: Info },
@@ -26,11 +29,12 @@ const sections = [
 export default function AircraftDetailsPage() {
     const { aircraft_id } = useParams();
     const [params] = useSearchParams();
-    const rows = useAircraft();
-    const maintenance = useMaintenance();
+    const { aircraft: rows, loading, error, reload } = useAircraftData();
     const can_view_maintenance = useContext(AuthContext)?.user?.features.includes("Maintenance") ?? true;
     const record = rows.find((row) => row.id === aircraft_id);
 
+    if (loading) return <Card><ScreenLoading label="Loading aircraft..." /></Card>;
+    if (error) return <Card><ErrorState description={error} on_retry={reload} /></Card>;
     if (!record) {
         return (
             <section className="space-y-4">
@@ -49,8 +53,8 @@ export default function AircraftDetailsPage() {
     const available_sections = sections.filter(({ id }) => id !== "maintenance" || can_view_maintenance);
     const active = available_sections.find((section) => section.id === params.get("tab")) ?? sections[0];
     const path = `/aircraft/${record.id}`;
-    const tasks = maintenance.filter((row) => record.registration && row.aircraft === record.registration);
-    const maintenance_url = `/maintenance?${new URLSearchParams({ aircraft: record.registration, view: "work-history" })}`;
+    // const tasks = maintenance.filter((row) => record.registration && row.aircraft === record.registration);
+    const maintenance_url = `/maintenance?${new URLSearchParams({ aircraft: record.registration, tab: "overview" })}`;
 
     return (
         <section aria-labelledby="page_title" className="space-y-4">
@@ -81,26 +85,26 @@ export default function AircraftDetailsPage() {
                                 Update status
                             </Link>
                         </div>
-                        <div className="grid gap-5 md:grid-cols-[minmax(9rem,1fr)_minmax(0,2.5fr)]">
+                        <div className="grid gap-5 md:grid-cols-[14rem_minmax(0,1fr)] md:items-start">
                             <div className="grid min-h-36 place-content-center justify-items-center gap-2 rounded-lg bg-slate-100 text-sm text-slate-600">
                                 <Plane size={24} aria-hidden="true" />
                                 No photo available
                             </div>
+                           
                             <DetailsList entries={[
                                 { id: "registration", label: "Registration / Tail No.", value: record.registration || "Not recorded" },
                                 { id: "model", label: "Aircraft type", value: record.model || "Not recorded" },
                                 { id: "hours", label: "Current aircraft hours", value: record.current_aircraft_hours ? `${record.current_aircraft_hours} hrs` : "Not recorded" },
-                                { id: "date", label: "Status effective date", value: record.effective_date || "Not recorded" },
+                                // Unsupported: { id: "date", label: "Status effective date", value: record.effective_date || "Not recorded" },
+                                { id: "updated", label: "Hours last updated", value: record.hours_updated_at ? new Date(record.hours_updated_at).toLocaleString() : "Not recorded" },
                                 { id: "status", label: "Recorded status", value: <AircraftStatusBadge status={record.status} /> },
-                                { id: "notes", label: "Status notes", value: record.notes || record.reason || "No status notes recorded" },
+                                // Unsupported: { id: "notes", label: "Status notes", value: record.notes || record.reason || "No status notes recorded" },
+                                { id: "description", label: "Status description", value: record.status_description || "Not recorded" },
                             ]} />
                         </div>
                         {can_view_maintenance && <div className="space-y-2 border-t border-slate-200 pt-4">
                             <h2 className="font-semibold text-[#0b2238]">Next tasks</h2>
-                            <MaintenanceTable inventory
-                                rows={tasks.filter((task) => task.status !== "Completed").slice(0, 3)}
-                                caption={`Next tasks for ${record.registration}`}
-                            />
+                            <AircraftMaintenanceRecords key={`${record.id}-${record.current_aircraft_hours}`} aircraft_id={record.id} upcoming />
                         </div>}
                     </div>
                 )}
@@ -108,9 +112,9 @@ export default function AircraftDetailsPage() {
                     <div className="space-y-3">
                         <div className="flex flex-wrap items-center justify-between gap-2">
                             <h2 className="font-semibold text-[#0b2238]">Related maintenance</h2>
-                            <Link to={maintenance_url} className="text-sm text-link">View work history</Link>
+                            <Link to={maintenance_url} className="text-sm text-link">View maintenance</Link>
                         </div>
-                        <MaintenanceTable inventory rows={tasks} caption={`Maintenance for ${record.registration}`} />
+                        <AircraftMaintenanceRecords key={`${record.id}-${record.current_aircraft_hours}`} aircraft_id={record.id} />
                     </div>
                 )}
                 {active.id === "status-history" && <AircraftStatusHistory aircraft_id={record.id} />}

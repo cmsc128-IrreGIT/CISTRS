@@ -58,9 +58,10 @@ export default function DashboardPage() {
   const uses_inventory = config.panels.includes("stock");
   const uses_availability = config.panels.includes("availability");
   const can_view_availability = features.includes("Availability");
+  const can_read_availability = features.includes("Personnel");
   const summary = useDashboardSummary(
     uses_inventory,
-    uses_availability && can_view_availability ? user?.emp_UUID : undefined,
+    uses_availability && can_read_availability ? user?.emp_UUID : undefined,
   );
   const reminders = usePilotReminders(
     (workspace === "pilot" || workspace === "pilot_mechanic") &&
@@ -147,22 +148,23 @@ export default function DashboardPage() {
     },
     aircraft: {
       label: "Aircraft",
-      value: summary.aircraft_count,
+      value: summary.aircraft_state.loading ? "Loading..." : summary.aircraft_state.error ? "Unavailable" : summary.aircraft_count,
       icon: Plane,
       to: "/aircraft",
     },
     pending: {
       label: "Pending maintenance",
-      value: summary.pending_maintenance.length,
+      value: summary.maintenance_state.loading ? "Loading..." : summary.maintenance_state.error ? "Unavailable" : summary.pending_maintenance.length,
       icon: Wrench,
-      to: "/maintenance?status=pending",
+      to: "/maintenance",
+      hint: "AD records and CPCP tasks with a due date or aircraft-hour limit",
     },
     due: {
       label: "Due soon",
-      value: summary.due_count,
+      value: summary.maintenance_state.loading ? "Loading..." : summary.maintenance_state.error ? "Unavailable" : summary.due_count,
       icon: TriangleAlert,
       tone: summary.due_count ? "danger" : undefined,
-      to: "/maintenance?status=due",
+      to: "/maintenance",
       hint: "Overdue work and tasks due within 30 days",
     },
     requests: {
@@ -172,10 +174,10 @@ export default function DashboardPage() {
       to: INVENTORY_REQUESTS_PATH,
     },
     work: {
-      label: "Work records",
-      value: summary.completed_work.length,
+      label: "Accomplishment records",
+      value: summary.maintenance_state.loading ? "Loading..." : summary.maintenance_state.error ? "Unavailable" : summary.completed_work.length,
       icon: Wrench,
-      to: "/maintenance?status=Completed",
+      to: "/maintenance",
     },
     availability: {
       label: "My availability",
@@ -189,9 +191,7 @@ export default function DashboardPage() {
                 : "neutral"
           }
         >
-          {can_view_availability
-            ? availability || "Not recorded"
-            : "Unavailable"}
+          {summary.availability_state.loading ? "Loading..." : summary.availability_state.error || !summary.availability_state.enabled ? "Unavailable" : availability || "Not recorded"}
         </StatusBadge>
       ),
       icon: CalendarDays,
@@ -210,13 +210,13 @@ export default function DashboardPage() {
     },
     personnel: {
       label: "Personnel",
-      value: summary.personnel_count,
+      value: summary.personnel_state.loading ? "Loading..." : summary.personnel_state.error ? "Unavailable" : summary.personnel_count,
       icon: Users,
       to: "/personnel",
     },
     logbook: {
       label: "Logbook entries",
-      value: summary.recent_logbook.length,
+      value: summary.logbook_state.is_loading ? "Loading..." : summary.logbook_state.error ? "Unavailable" : summary.recent_logbook.length,
       icon: BookOpen,
       to: "/logbook",
     },
@@ -250,18 +250,18 @@ export default function DashboardPage() {
         title="Recent logbook entries"
         footer={{ label: "View logbook", to: "/logbook" }}
       >
-        {summary.recent_logbook.length ? (
+        {summary.logbook_state.is_loading ? <ScreenLoading compact label="Loading logbook..." /> : summary.logbook_state.error ? <div role="alert"><p className="text-sm text-red-700">{summary.logbook_state.error}</p><button type="button" className={retry_style} onClick={() => void summary.logbook_state.reload()}>Retry logbook</button></div> : summary.recent_logbook.length ? (
           <ul className="space-y-2">
             {summary.recent_logbook
               .slice(0, dashboard_list_limit)
               .map((row) => (
                 <li
-                  key={row.id}
+                  key={row.sector_UUID}
                   className="rounded-md bg-[#f4f7fa] p-2.5 text-sm"
                 >
-                  <p className="font-semibold">{row.aircraft}</p>
+                  <p className="font-semibold">{row.aircraft.registration} · {row.route}</p>
                   <p className="mt-1 text-xs text-slate-600">
-                    <DashboardDate value={row.entry_date} />
+                    <DashboardDate value={row.flight_date} />
                   </p>
                 </li>
               ))}
@@ -271,11 +271,13 @@ export default function DashboardPage() {
         )}
       </DashboardPanel>
     ),
-    aircraft: <AircraftStatusCard data={summary.aircraft_status_data} />,
+    aircraft: <AircraftStatusCard data={summary.aircraft_status_data} loading={summary.aircraft_state.loading} error={summary.aircraft_state.error} on_retry={summary.aircraft_state.reload} />,
     maintenance: (
       <PendingMaintenanceCard
         maintenance={summary.pending_maintenance}
-        today={summary.today}
+        loading={summary.maintenance_state.loading}
+        error={summary.maintenance_state.error}
+        on_retry={summary.maintenance_state.reload}
       />
     ),
     requests: (
@@ -294,11 +296,11 @@ export default function DashboardPage() {
       <DashboardPanel
         title="Recent maintenance"
         footer={{
-          label: "View work history",
-          to: "/maintenance?status=Completed",
+          label: "View maintenance",
+          to: "/maintenance",
         }}
       >
-        {summary.completed_work.length ? (
+        {summary.maintenance_state.loading ? <ScreenLoading compact label="Loading maintenance..." /> : summary.maintenance_state.error ? <div role="alert"><p className="text-sm text-red-700">{summary.maintenance_state.error}</p><button type="button" className={retry_style} onClick={summary.maintenance_state.reload}>Retry maintenance</button></div> : summary.completed_work.length ? (
           <ul className="space-y-2">
             {summary.completed_work
               .slice(0, dashboard_list_limit)
@@ -314,14 +316,14 @@ export default function DashboardPage() {
                     >
                       {row.title}
                     </Link>
-                    <StatusBadge tone="success">Completed</StatusBadge>
+                    <StatusBadge tone="success">Accomplishment recorded</StatusBadge>
                   </div>
                   <p className="mt-1 text-xs text-slate-600">{row.aircraft}</p>
                 </li>
               ))}
           </ul>
         ) : (
-          <p className="text-sm text-slate-600">No completed work recorded.</p>
+          <p className="text-sm text-slate-600">No maintenance accomplishments recorded.</p>
         )}
       </DashboardPanel>
     ),
@@ -335,6 +337,7 @@ export default function DashboardPage() {
         }
       >
         <div className="space-y-2 text-sm">
+          {summary.availability_state.error && <div role="alert"><p className="text-red-700">{summary.availability_state.error}</p><button type="button" className={retry_style} onClick={summary.availability_state.reload}>Retry availability</button></div>}
           <div className="rounded-md bg-[#f4f7fa] p-2.5">
             <div className="flex flex-wrap items-start justify-between gap-2">
               <span className="font-semibold">Availability</span>
@@ -401,10 +404,10 @@ export default function DashboardPage() {
         : [],
     },
     maintenance: {
-      to: "/maintenance?status=Completed",
+      to: "/maintenance",
       rows: summary.completed_work.map((row) => ({
         id: row.id,
-        date: row.due_date,
+        date: row.accomplished_date,
         activity: (
           <Link to={`/maintenance/${row.id}`} className="text-link">
             {row.title}
@@ -417,14 +420,23 @@ export default function DashboardPage() {
     logbook: {
       to: "/logbook",
       rows: summary.recent_logbook.map((row) => ({
-        id: row.id,
-        date: row.entry_date,
-        activity: `Logbook entry for ${row.aircraft}`,
-        reference: row.log_page || row.aircraft,
-        processed_by: row.recorded_by,
+        id: row.sector_UUID,
+        date: row.flight_date,
+        activity: `Logbook flight ${row.route}`,
+        reference: row.aircraft.registration,
+        processed_by: employee_name(row.entered_by),
       })),
     },
   }[config.activity];
+  const activity_loading = config.activity === "maintenance" ? summary.maintenance_state.loading
+    : config.activity === "logbook" ? summary.logbook_state.is_loading : uses_inventory && transactions.is_loading;
+  const activity_error = config.activity === "maintenance" ? summary.maintenance_state.error
+    : config.activity === "logbook" ? summary.logbook_state.error : uses_inventory ? transactions.error : "";
+  function retry_activity() {
+    if (config.activity === "maintenance") summary.maintenance_state.reload();
+    else if (config.activity === "logbook") void summary.logbook_state.reload();
+    else void transactions.reload();
+  }
 
   return (
     <section
@@ -449,21 +461,19 @@ export default function DashboardPage() {
           ))}
         </div>
       )}
-      {config.activity === "inventory" &&
-      uses_inventory &&
-      (transactions.is_loading || transactions.error) ? (
+      {activity_loading || activity_error ? (
         <DashboardPanel title="Recent activity">
-          {transactions.is_loading ? (
+          {activity_loading ? (
             <ScreenLoading compact label="Loading activity…" />
           ) : (
             <div role="alert">
               <p className="text-sm text-slate-600">
-                Inventory activity could not be loaded.
+                Activity could not be loaded.
               </p>
               <button
                 type="button"
                 className={retry_style}
-                onClick={() => void transactions.reload()}
+                onClick={retry_activity}
               >
                 Retry activity
               </button>

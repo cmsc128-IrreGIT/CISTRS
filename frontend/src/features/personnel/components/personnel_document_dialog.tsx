@@ -71,7 +71,7 @@ export default function PersonnelDocumentDialog({ person, people, kind, on_close
                     set_training_types(trainingTypes);
                     set_training_providers(trainingProviders);
                 }
-            } catch (err) {
+            } catch {
                 if (!cancelled) {
                     set_load_error("Failed to load lookup data. Please refresh the page.");
                 }
@@ -290,10 +290,10 @@ export default function PersonnelDocumentDialog({ person, people, kind, on_close
                     {errors.server && (
                         <p role="alert" className="text-sm text-red-700 mb-3">{errors.server}</p>
                     )}
-                    <p className="text-xs text-slate-600">Documents and files added here are available until the page is reloaded.</p>
+                    <p className="text-xs text-slate-600">Saved documents and files are stored with the personnel record.</p>
                 </div>
                 <div className="flex flex-wrap justify-end gap-2 border-t border-slate-200 px-4 py-3 sm:px-5">
-                    <Button variant="secondary" onClick={on_close}>Cancel</Button>
+                    <Button variant="secondary" className="mr-auto" onClick={on_close}>Cancel</Button>
                     <Button type="submit" className="bg-[#0b2238]! hover:bg-[#193951]!">Save</Button>
                 </div>
             </form>

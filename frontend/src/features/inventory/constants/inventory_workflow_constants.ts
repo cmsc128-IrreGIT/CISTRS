@@ -1,7 +1,7 @@
 export const STOCK_WORKFLOW_TITLES = {
     receive: "Receive stock",
     issue: "Issue stock",
-    correction: "Request stock correction",
+    correction: "Correct stock",
 } as const;
 
 export const INVENTORY_REQUEST_PAGE_COPY = {

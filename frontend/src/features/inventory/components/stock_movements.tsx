@@ -123,12 +123,22 @@ export function StockMovementTable({
             ),
         },
         {
+            id: "aircraft",
+            header: "Aircraft",
+            render: (row) => row.aircraft || "—",
+        },
+        {
+            id: "employee",
+            header: "Recorded by",
+            render: (row) => employee_name(row.updater) || "Not recorded",
+        },
+        {
             id: "action",
             header: "Action",
             render: (row) => (
                 <button
                     type="button"
-                    className="min-h-8 rounded font-semibold underline underline-offset-4 focus-visible:outline-2"
+                    className="min-h-8 cursor-pointer rounded font-semibold underline underline-offset-4 focus-visible:outline-2"
                     aria-label={`View movement for ${row.status.part.part_name}`}
                     onClick={() => on_view(row)}
                 >

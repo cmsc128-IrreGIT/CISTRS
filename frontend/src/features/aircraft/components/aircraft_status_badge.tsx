@@ -1,14 +1,15 @@
 import StatusBadge from "../../../shared/components/ui/status_badge";
 export default function AircraftStatusBadge({ status }: { status?: string }) {
     const label = status?.trim() || "Status unavailable";
+    const normalized = label.toLowerCase();
     return (
         <StatusBadge
             tone={
-                label === "Operational"
+                normalized === "operational" || normalized === "airworthy"
                     ? "success"
-                    : label === "Maintenance"
+                    : normalized.includes("maintenance")
                       ? "warning"
-                      : label === "Out of Service"
+                      : normalized === "aog" || normalized.includes("out of service") || normalized.includes("unairworthy")
                         ? "danger"
                         : "neutral"
             }
