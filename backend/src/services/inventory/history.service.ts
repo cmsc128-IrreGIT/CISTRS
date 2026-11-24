@@ -67,7 +67,12 @@ const transactionInclude = {
         },
     },
     updater: {
-        select: { emp_UUID: true, emp_number: true, f_name: true, l_name: true },
+        select: {
+            emp_UUID: true,
+            emp_number: true,
+            f_name: true,
+            l_name: true,
+        },
     },
 } satisfies Prisma.InventoryTransactionInclude;
 
@@ -81,7 +86,9 @@ async function toTransactionResponses(rows: TransactionWithRelations[]) {
     const parsed = rows.map((row) => ({ row, ...splitRemarks(row.remarks) }));
 
     const ids = [
-        ...new Set(parsed.flatMap((p) => (p.aircraft_UUID ? [p.aircraft_UUID] : []))),
+        ...new Set(
+            parsed.flatMap((p) => (p.aircraft_UUID ? [p.aircraft_UUID] : [])),
+        ),
     ];
     const aircraft = ids.length
         ? await prisma.aircraft.findMany({
@@ -119,7 +126,9 @@ async function toTransactionResponses(rows: TransactionWithRelations[]) {
 export async function listHistory(filters: HistoryQuery) {
     const statusFilter: Prisma.InventoryStatusWhereInput = {
         ...(filters.part_UUID ? { part_UUID: filters.part_UUID } : {}),
-        ...(filters.location_UUID ? { location_UUID: filters.location_UUID } : {}),
+        ...(filters.location_UUID
+            ? { location_UUID: filters.location_UUID }
+            : {}),
     };
     const where: Prisma.InventoryTransactionWhereInput = {
         ...(filters.status_UUID ? { status_UUID: filters.status_UUID } : {}),
@@ -154,7 +163,10 @@ export async function listHistory(filters: HistoryQuery) {
 }
 
 // History of one part (404 if the part does not exist).
-export async function listPartHistory(part_UUID: string, filters: HistoryQuery) {
+export async function listPartHistory(
+    part_UUID: string,
+    filters: HistoryQuery,
+) {
     await assertPartExists(part_UUID);
     return listHistory({ ...filters, part_UUID });
 }

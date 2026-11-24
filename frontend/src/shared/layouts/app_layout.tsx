@@ -18,7 +18,17 @@ export default function AppLayout() {
     const is_notifications = Boolean(useMatch("/notifications/*"));
     const is_profile = Boolean(useMatch("/profile"));
     const is_help = Boolean(useMatch("/help"));
-    const aligned_workspace = is_dashboard || is_inventory || is_aircraft || is_maintenance || is_logbook || is_personnel || is_user_accounts || is_profile || is_notifications || is_help;
+    const aligned_workspace =
+        is_dashboard ||
+        is_inventory ||
+        is_aircraft ||
+        is_maintenance ||
+        is_logbook ||
+        is_personnel ||
+        is_user_accounts ||
+        is_profile ||
+        is_notifications ||
+        is_help;
     const workspace_background = aligned_workspace;
     const content_width = aligned_workspace
         ? WORKSPACE_CONTENT_WIDTH

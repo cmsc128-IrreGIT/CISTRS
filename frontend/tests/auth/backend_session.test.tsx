@@ -45,13 +45,21 @@ afterEach(() => {
     vi.unstubAllGlobals();
 });
 it("logs in with the assigned position and resolves the signed-in employee’s name", async () => {
-    const fetcher = vi.fn<(url: string, options: RequestInit) => Promise<Response>>(async (url) => (
+    const fetcher = vi.fn<
+        (url: string, options: RequestInit) => Promise<Response>
+    >(async (url) =>
         url.endsWith("/personnel/employees/employee")
             ? Response.json({
-                emp_UUID: user.emp_UUID, f_name: "Adrian", m_name: "Miguel", l_name: "Reyes",
-            })
-            : Response.json({ token: "session-token", user: { ...user, full_name: undefined } })
-    ));
+                  emp_UUID: user.emp_UUID,
+                  f_name: "Adrian",
+                  m_name: "Miguel",
+                  l_name: "Reyes",
+              })
+            : Response.json({
+                  token: "session-token",
+                  user: { ...user, full_name: undefined },
+              }),
+    );
     vi.stubGlobal("fetch", fetcher);
     render(
         <MemoryRouter initialEntries={["/login"]}>
@@ -64,16 +72,20 @@ it("logs in with the assigned position and resolves the signed-in employee’s n
         </MemoryRouter>,
     );
     const person = userEvent.setup();
-    expect(screen.getByPlaceholderText("Enter your username")).toBeInTheDocument();
-    expect(screen.getByPlaceholderText("Enter your password")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Contact your Administrator" })).toHaveAttribute("href", "/signup");
+    expect(
+        screen.getByPlaceholderText("Enter your username"),
+    ).toBeInTheDocument();
+    expect(
+        screen.getByPlaceholderText("Enter your password"),
+    ).toBeInTheDocument();
+    expect(
+        screen.getByRole("link", { name: "Contact your Administrator" }),
+    ).toHaveAttribute("href", "/signup");
     await person.type(screen.getByLabelText("Username"), "  adrian.reyes  ");
     await person.type(screen.getByLabelText("Password"), "test-password1");
     await person.click(screen.getByRole("button", { name: "Log in" }));
     expect(await screen.findByText("adrian.reyes")).toBeInTheDocument();
-    expect(
-        screen.getByText("Inventory Officer"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Inventory Officer")).toBeInTheDocument();
     expect(await screen.findByText("Adrian Miguel Reyes")).toBeInTheDocument();
     expect(get_token()).toBe("session-token");
     expect(JSON.parse(String(fetcher.mock.calls[0][1].body))).toEqual({
@@ -86,7 +98,10 @@ it("uses the full name returned at login even without Personnel access", async (
     const inventory_user = { ...user, features: ["Inventory"] };
     const fetcher = vi.fn(async (url: string) => {
         if (url.endsWith("/auth/login")) {
-            return Response.json({ token: "inventory-token", user: inventory_user });
+            return Response.json({
+                token: "inventory-token",
+                user: inventory_user,
+            });
         }
         throw new Error(`Unexpected request: ${url}`);
     });
@@ -112,14 +127,14 @@ it("uses the full name returned at login even without Personnel access", async (
 it("shows invalid credentials without creating a session", async () => {
     vi.stubGlobal(
         "fetch",
-        vi
-            .fn()
-            .mockResolvedValue(
-                new Response(
-                    JSON.stringify({ message: "Invalid username or password" }),
-                    { status: 401 },
-                ),
+        vi.fn().mockResolvedValue(
+            new Response(
+                JSON.stringify({ message: "Invalid username or password" }),
+                {
+                    status: 401,
+                },
             ),
+        ),
     );
     render(
         <MemoryRouter>
@@ -138,28 +153,48 @@ it("shows invalid credentials without creating a session", async () => {
     expect(get_token()).toBeNull();
 });
 it.each([
-    [403, "Your assigned position is inactive. Contact an administrator.", "Your assigned position is inactive."],
+    [
+        403,
+        "Your assigned position is inactive. Contact an administrator.",
+        "Your assigned position is inactive.",
+    ],
     [500, "Internal database detail", "Sign-in is temporarily unavailable."],
-])("shows actionable sign-in feedback for HTTP %s", async (status, message, expected) => {
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(Response.json({ message }, { status })));
-    render(<MemoryRouter><AuthProvider><LoginPage /></AuthProvider></MemoryRouter>);
+])(
+    "shows actionable sign-in feedback for HTTP %s",
+    async (status, message, expected) => {
+        vi.stubGlobal(
+            "fetch",
+            vi.fn().mockResolvedValue(Response.json({ message }, { status })),
+        );
+        render(
+            <MemoryRouter>
+                <AuthProvider>
+                    <LoginPage />
+                </AuthProvider>
+            </MemoryRouter>,
+        );
 
-    const person = userEvent.setup();
-    await person.type(screen.getByLabelText("Username"), "adrian.reyes");
-    await person.type(screen.getByLabelText("Password"), "test-password1");
-    await person.click(screen.getByRole("button", { name: "Log in" }));
+        const person = userEvent.setup();
+        await person.type(screen.getByLabelText("Username"), "adrian.reyes");
+        await person.type(screen.getByLabelText("Password"), "test-password1");
+        await person.click(screen.getByRole("button", { name: "Log in" }));
 
-    expect(await screen.findByRole("alert")).toHaveTextContent(expected);
-    if (status === 500) expect(screen.getByRole("alert")).not.toHaveTextContent(message);
-    expect(screen.getByRole("button", { name: "Log in" })).toBeEnabled();
-    expect(get_token()).toBeNull();
-});
+        expect(await screen.findByRole("alert")).toHaveTextContent(expected);
+        if (status === 500)
+            expect(screen.getByRole("alert")).not.toHaveTextContent(message);
+        expect(screen.getByRole("button", { name: "Log in" })).toBeEnabled();
+        expect(get_token()).toBeNull();
+    },
+);
 
 it("retries opening a saved workspace and continues automatically", async () => {
     set_token("saved-token");
     let complete_restore!: (response: Response) => void;
-    const retry_response = new Promise<Response>((resolve) => { complete_restore = resolve; });
-    const fetcher = vi.fn()
+    const retry_response = new Promise<Response>((resolve) => {
+        complete_restore = resolve;
+    });
+    const fetcher = vi
+        .fn()
         .mockRejectedValueOnce(new TypeError("Failed to fetch"))
         .mockReturnValueOnce(retry_response);
     vi.stubGlobal("fetch", fetcher);
@@ -175,15 +210,22 @@ it("retries opening a saved workspace and continues automatically", async () => 
         </MemoryRouter>,
     );
 
-    expect(await screen.findByRole("alert")).toHaveTextContent("We couldn’t open your workspace.");
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+        "We couldn’t open your workspace.",
+    );
     expect(get_token()).toBe("saved-token");
-    await userEvent.click(screen.getByRole("button", { name: "Retry connection" }));
-    expect(screen.getByRole("status")).toHaveTextContent("Opening your workspace…");
+    await userEvent.click(
+        screen.getByRole("button", { name: "Retry connection" }),
+    );
+    expect(screen.getByRole("status")).toHaveTextContent(
+        "Opening your workspace…",
+    );
 
     complete_restore(Response.json(user));
     expect(await screen.findByText("adrian.reyes")).toBeInTheDocument();
     expect(fetcher.mock.calls.map(([url]) => url)).toEqual([
-        expect.stringMatching(/\/auth\/me$/), expect.stringMatching(/\/auth\/me$/),
+        expect.stringMatching(/\/auth\/me$/),
+        expect.stringMatching(/\/auth\/me$/),
     ]);
 });
 
@@ -280,21 +322,22 @@ it.each([
     async (from, destination) => {
         const mechanic = {
             ...user,
-            position: { position_UUID: "mechanic-position", position_name: "Mechanic" },
+            position: {
+                position_UUID: "mechanic-position",
+                position_name: "Mechanic",
+            },
             features: ["Inventory", "Maintenance"],
         };
         vi.stubGlobal(
             "fetch",
-            vi
-                .fn()
-                .mockResolvedValue(
-                    new Response(
-                        JSON.stringify({
-                            token: "mechanic-token",
-                            user: mechanic,
-                        }),
-                    ),
+            vi.fn().mockResolvedValue(
+                new Response(
+                    JSON.stringify({
+                        token: "mechanic-token",
+                        user: mechanic,
+                    }),
                 ),
+            ),
         );
         render(
             <MemoryRouter
@@ -304,7 +347,10 @@ it.each([
                     <Routes>
                         <Route path="/login" element={<LoginPage />} />
                         <Route path="/dashboard" element={<h1>Dashboard</h1>} />
-                        <Route path="/personnel" element={<h1>Personnel directory</h1>} />
+                        <Route
+                            path="/personnel"
+                            element={<h1>Personnel directory</h1>}
+                        />
                         <Route
                             path="/inventory"
                             element={<h1>Stock availability</h1>}
@@ -328,7 +374,9 @@ it("shows inline errors and focuses the first missing sign-in field", async () =
     vi.stubGlobal("fetch", fetcher);
     render(
         <MemoryRouter>
-            <AuthProvider><LoginPage /></AuthProvider>
+            <AuthProvider>
+                <LoginPage />
+            </AuthProvider>
         </MemoryRouter>,
     );
 

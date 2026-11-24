@@ -41,7 +41,10 @@ async function sendTemplate(
                         type: "body",
                         // Template variables cannot contain line breaks.
                         parameters: [
-                            { type: "text", text: text.replace(/\s+/g, " ").trim() },
+                            {
+                                type: "text",
+                                text: text.replace(/\s+/g, " ").trim(),
+                            },
                         ],
                     },
                 ],
@@ -93,7 +96,9 @@ export async function processWhatsappQueue(): Promise<number> {
                     select: {
                         contacts: {
                             where: { contact: { contact_type: "WhatsApp" } },
-                            select: { contact: { select: { contact_value: true } } },
+                            select: {
+                                contact: { select: { contact_value: true } },
+                            },
                         },
                     },
                 },
@@ -103,10 +108,11 @@ export async function processWhatsappQueue(): Promise<number> {
         for (const row of rows) {
             const template = row.notification.type.whatsapp_template;
             // WhatsApp wants digits only, without "+".
-            const number = row.employee.contacts[0]?.contact.contact_value.replace(
-                /\D/g,
-                "",
-            );
+            const number =
+                row.employee.contacts[0]?.contact.contact_value.replace(
+                    /\D/g,
+                    "",
+                );
 
             // Nothing to send to. Stop retrying this row.
             if (!template || !number) {
@@ -144,8 +150,9 @@ export async function processWhatsappQueue(): Promise<number> {
                     data: {
                         whatsapp_status: "Failed",
                         whatsapp_attempts: { increment: 1 },
-                        whatsapp_error: (
-                            error instanceof Error ? error.message : String(error)
+                        whatsapp_error: (error instanceof Error
+                            ? error.message
+                            : String(error)
                         ).slice(0, 500),
                     },
                 });

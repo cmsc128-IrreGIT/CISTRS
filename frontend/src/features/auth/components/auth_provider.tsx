@@ -24,7 +24,9 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     const generation = useRef(0);
     const restore = useCallback(() => {
         const current = ++generation.current;
-        return api<SessionUser>("/auth/me", { signal: AbortSignal.timeout(AUTH_REQUEST_TIMEOUT_MS) })
+        return api<SessionUser>("/auth/me", {
+            signal: AbortSignal.timeout(AUTH_REQUEST_TIMEOUT_MS),
+        })
             .then(
                 (data) => {
                     if (current === generation.current) {
@@ -42,7 +44,9 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
                         set_token(null);
                         set_error("");
                     } else {
-                        set_error("We couldn’t open your workspace. Check your connection and try again.");
+                        set_error(
+                            "We couldn’t open your workspace. Check your connection and try again.",
+                        );
                     }
                 },
             )
@@ -80,7 +84,10 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
             let full_name = "";
             if (may_read_personnel) {
                 try {
-                    const employee = await get_personnel(employee_id, controller.signal);
+                    const employee = await get_personnel(
+                        employee_id,
+                        controller.signal,
+                    );
                     full_name = employee.name;
                 } catch {
                     // A failed Personnel request can still fall back to User Accounts,
@@ -90,11 +97,15 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
             if (!full_name && may_read_accounts && !controller.signal.aborted) {
                 try {
                     const accounts = await list_accounts(controller.signal);
-                    const match = accounts.find((account) =>
-                        account.account_UUID === account_id &&
-                        account.employee.emp_UUID === employee_id,
+                    const match = accounts.find(
+                        (account) =>
+                            account.account_UUID === account_id &&
+                            account.employee.emp_UUID === employee_id,
                     );
-                    if (match) full_name = match.full_name?.trim() || employee_name(match.employee);
+                    if (match)
+                        full_name =
+                            match.full_name?.trim() ||
+                            employee_name(match.employee);
                 } catch {
                     // Profile names are optional; failed lookups must not end a session.
                 }
@@ -110,7 +121,13 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
         };
         void load_name();
         return () => controller.abort();
-    }, [account_id, employee_id, has_name, may_read_accounts, may_read_personnel]);
+    }, [
+        account_id,
+        employee_id,
+        has_name,
+        may_read_accounts,
+        may_read_personnel,
+    ]);
 
     async function login(username: string, password: string) {
         const current = ++generation.current;

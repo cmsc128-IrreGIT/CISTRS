@@ -89,7 +89,11 @@ async function main() {
     const one = await call("GET", url, token);
     check("single status returns 200", one.status, 200);
     check("registration matches", one.json?.registration, "RP-C208");
-    check("status is the stored one", one.json?.status?.status_name, "Airworthy");
+    check(
+        "status is the stored one",
+        one.json?.status?.status_name,
+        "Airworthy",
+    );
     check("hours are a number", typeof one.json?.current_hours, "number");
     check(
         "hours match the stored value",
@@ -135,16 +139,28 @@ async function main() {
     check("valid record returns 201", r.status, 201);
     check("status saved", r.json?.status?.status_name, "In Maintenance");
     check("hours saved", r.json?.current_hours, 3460.25);
-    check("associated with the right aircraft", r.json?.aircraft_UUID, AIRCRAFT);
+    check(
+        "associated with the right aircraft",
+        r.json?.aircraft_UUID,
+        AIRCRAFT,
+    );
 
     r = await call("GET", url, token);
-    check("recorded status is retrievable", r.json?.status?.aircraft_status_UUID, IN_MAINTENANCE);
+    check(
+        "recorded status is retrievable",
+        r.json?.status?.aircraft_status_UUID,
+        IN_MAINTENANCE,
+    );
     check("recorded hours are retrievable", r.json?.current_hours, 3460.25);
 
     const hoursStamp = r.json?.hours_updated_at as string;
     r = await call("POST", url, token, { aircraft_status_UUID: AOG });
     check("status-only record returns 201", r.status, 201);
-    check("status-only record changes status", r.json?.status?.status_name, "AOG");
+    check(
+        "status-only record changes status",
+        r.json?.status?.status_name,
+        "AOG",
+    );
     check("status-only record keeps hours", r.json?.current_hours, 3460.25);
     check(
         "status-only record keeps hours_updated_at",
@@ -158,13 +174,41 @@ async function main() {
         );
     await bad("missing status -> 400", { current_hours: 10 }, 400);
     await bad("empty body -> 400", {}, 400);
-    await bad("malformed status id -> 400", { aircraft_status_UUID: "abc" }, 400);
-    await bad("unknown status -> 404", { aircraft_status_UUID: MISSING_STATUS }, 404);
-    await bad("negative hours -> 400", { aircraft_status_UUID: AIRWORTHY, current_hours: -1 }, 400);
-    await bad("3 decimal places -> 400", { aircraft_status_UUID: AIRWORTHY, current_hours: 1.234 }, 400);
-    await bad("hours as text -> 400", { aircraft_status_UUID: AIRWORTHY, current_hours: "100" }, 400);
-    await bad("hours too large -> 400", { aircraft_status_UUID: AIRWORTHY, current_hours: 1e9 }, 400);
-    await bad("unknown field -> 400", { aircraft_status_UUID: AIRWORTHY, registration: "X" }, 400);
+    await bad(
+        "malformed status id -> 400",
+        { aircraft_status_UUID: "abc" },
+        400,
+    );
+    await bad(
+        "unknown status -> 404",
+        { aircraft_status_UUID: MISSING_STATUS },
+        404,
+    );
+    await bad(
+        "negative hours -> 400",
+        { aircraft_status_UUID: AIRWORTHY, current_hours: -1 },
+        400,
+    );
+    await bad(
+        "3 decimal places -> 400",
+        { aircraft_status_UUID: AIRWORTHY, current_hours: 1.234 },
+        400,
+    );
+    await bad(
+        "hours as text -> 400",
+        { aircraft_status_UUID: AIRWORTHY, current_hours: "100" },
+        400,
+    );
+    await bad(
+        "hours too large -> 400",
+        { aircraft_status_UUID: AIRWORTHY, current_hours: 1e9 },
+        400,
+    );
+    await bad(
+        "unknown field -> 400",
+        { aircraft_status_UUID: AIRWORTHY, registration: "X" },
+        400,
+    );
     check(
         "nonexistent aircraft -> 404",
         (
@@ -176,23 +220,40 @@ async function main() {
     );
     check(
         "malformed aircraft id -> 400",
-        (await call("POST", `${A}/abc/status`, token, { aircraft_status_UUID: AIRWORTHY })).status,
+        (
+            await call("POST", `${A}/abc/status`, token, {
+                aircraft_status_UUID: AIRWORTHY,
+            })
+        ).status,
         400,
     );
     check(
         "record without token -> 401",
-        (await call("POST", url, undefined, { aircraft_status_UUID: AIRWORTHY })).status,
+        (
+            await call("POST", url, undefined, {
+                aircraft_status_UUID: AIRWORTHY,
+            })
+        ).status,
         401,
     );
     check(
         "record without the Aircraft feature -> 403",
-        (await call("POST", url, noAccess, { aircraft_status_UUID: AIRWORTHY })).status,
+        (await call("POST", url, noAccess, { aircraft_status_UUID: AIRWORTHY }))
+            .status,
         403,
     );
 
     r = await call("GET", url, token);
-    check("rejected records changed nothing (status)", r.json?.status?.status_name, "AOG");
-    check("rejected records changed nothing (hours)", r.json?.current_hours, 3460.25);
+    check(
+        "rejected records changed nothing (status)",
+        r.json?.status?.status_name,
+        "AOG",
+    );
+    check(
+        "rejected records changed nothing (hours)",
+        r.json?.current_hours,
+        3460.25,
+    );
 
     // --- BE-14: update ---------------------------------------------------------
     console.log("BE-14: update");
@@ -219,7 +280,11 @@ async function main() {
     });
     check("both fields update returns 200", r.status, 200);
     r = await call("GET", url, token);
-    check("update visible on retrieval (status)", r.json?.status?.status_name, "In Maintenance");
+    check(
+        "update visible on retrieval (status)",
+        r.json?.status?.status_name,
+        "In Maintenance",
+    );
     check("update visible on retrieval (hours)", r.json?.current_hours, 3476.5);
 
     const badPatch = (label: string, body: unknown, expected: number) =>
@@ -227,19 +292,32 @@ async function main() {
             check(label, res.status, expected),
         );
     await badPatch("empty body -> 400", {}, 400);
-    await badPatch("malformed status id -> 400", { aircraft_status_UUID: "abc" }, 400);
-    await badPatch("unknown status -> 404", { aircraft_status_UUID: MISSING_STATUS }, 404);
+    await badPatch(
+        "malformed status id -> 400",
+        { aircraft_status_UUID: "abc" },
+        400,
+    );
+    await badPatch(
+        "unknown status -> 404",
+        { aircraft_status_UUID: MISSING_STATUS },
+        404,
+    );
     await badPatch("null status -> 400", { aircraft_status_UUID: null }, 400);
     await badPatch("negative hours -> 400", { current_hours: -5 }, 400);
     await badPatch("unknown field -> 400", { registration: "X" }, 400);
     check(
         "nonexistent aircraft -> 404",
-        (await call("PATCH", `${A}/${MISSING_AIRCRAFT}/status`, token, { current_hours: 1 })).status,
+        (
+            await call("PATCH", `${A}/${MISSING_AIRCRAFT}/status`, token, {
+                current_hours: 1,
+            })
+        ).status,
         404,
     );
     check(
         "malformed aircraft id -> 400",
-        (await call("PATCH", `${A}/abc/status`, token, { current_hours: 1 })).status,
+        (await call("PATCH", `${A}/abc/status`, token, { current_hours: 1 }))
+            .status,
         400,
     );
     check(
@@ -254,8 +332,16 @@ async function main() {
     );
 
     r = await call("GET", url, token);
-    check("rejected updates changed nothing (status)", r.json?.status?.status_name, "In Maintenance");
-    check("rejected updates changed nothing (hours)", r.json?.current_hours, 3476.5);
+    check(
+        "rejected updates changed nothing (status)",
+        r.json?.status?.status_name,
+        "In Maintenance",
+    );
+    check(
+        "rejected updates changed nothing (hours)",
+        r.json?.current_hours,
+        3476.5,
+    );
 }
 
 let originalState: {

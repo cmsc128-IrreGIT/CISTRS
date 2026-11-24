@@ -44,17 +44,26 @@ const core_workspace_features = [
     "User Accounts",
 ];
 
-const full_workspace_features = [...core_workspace_features, "Dashboard", "Notifications", "Availability"];
+const full_workspace_features = [
+    ...core_workspace_features,
+    "Dashboard",
+    "Notifications",
+    "Availability",
+];
 
 export function workspace_access_label(user: SessionUser | null) {
     const features = user?.features ?? [];
-    if (full_workspace_features.every((feature) => features.includes(feature))) {
+    if (
+        full_workspace_features.every((feature) => features.includes(feature))
+    ) {
         return "Administrator · Full access";
     }
 
-    return core_workspace_features
-        .filter((feature) => features.includes(feature))
-        .join(" · ") || "No core modules assigned";
+    return (
+        core_workspace_features
+            .filter((feature) => features.includes(feature))
+            .join(" · ") || "No core modules assigned"
+    );
 }
 
 export function position_label(user: SessionUser | null) {

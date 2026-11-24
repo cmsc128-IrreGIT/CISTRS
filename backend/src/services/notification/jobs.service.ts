@@ -83,14 +83,62 @@ async function cpcpHits(date: Date, phrase: string): Promise<Hit[]> {
 }
 
 const SCANS: Scan[] = [
-    { code: EVENT.PER_LIC_EXPIRING, kind: "before", title: "License expiring", verbs: EXPIRY_VERBS, find: licenseHits },
-    { code: EVENT.PER_LIC_EXPIRED, kind: "after", title: "License expired", verbs: EXPIRY_VERBS, find: licenseHits },
-    { code: EVENT.PER_MED_EXPIRING, kind: "before", title: "Medical certificate expiring", verbs: EXPIRY_VERBS, find: medicalHits },
-    { code: EVENT.PER_MED_EXPIRED, kind: "after", title: "Medical certificate expired", verbs: EXPIRY_VERBS, find: medicalHits },
-    { code: EVENT.PER_TRN_EXPIRING, kind: "before", title: "Recurrent training due", verbs: EXPIRY_VERBS, find: trainingHits },
-    { code: EVENT.MAINT_AD_DUE_DATE, kind: "before", title: "Airworthiness Directive due", verbs: DUE_VERBS, find: adHits },
-    { code: EVENT.MAINT_AD_OVERDUE, kind: "after", title: "Airworthiness Directive overdue", verbs: DUE_VERBS, find: adHits },
-    { code: EVENT.MAINT_CPCP_DUE, kind: "before", title: "CPCP task due", verbs: DUE_VERBS, find: cpcpHits },
+    {
+        code: EVENT.PER_LIC_EXPIRING,
+        kind: "before",
+        title: "License expiring",
+        verbs: EXPIRY_VERBS,
+        find: licenseHits,
+    },
+    {
+        code: EVENT.PER_LIC_EXPIRED,
+        kind: "after",
+        title: "License expired",
+        verbs: EXPIRY_VERBS,
+        find: licenseHits,
+    },
+    {
+        code: EVENT.PER_MED_EXPIRING,
+        kind: "before",
+        title: "Medical certificate expiring",
+        verbs: EXPIRY_VERBS,
+        find: medicalHits,
+    },
+    {
+        code: EVENT.PER_MED_EXPIRED,
+        kind: "after",
+        title: "Medical certificate expired",
+        verbs: EXPIRY_VERBS,
+        find: medicalHits,
+    },
+    {
+        code: EVENT.PER_TRN_EXPIRING,
+        kind: "before",
+        title: "Recurrent training due",
+        verbs: EXPIRY_VERBS,
+        find: trainingHits,
+    },
+    {
+        code: EVENT.MAINT_AD_DUE_DATE,
+        kind: "before",
+        title: "Airworthiness Directive due",
+        verbs: DUE_VERBS,
+        find: adHits,
+    },
+    {
+        code: EVENT.MAINT_AD_OVERDUE,
+        kind: "after",
+        title: "Airworthiness Directive overdue",
+        verbs: DUE_VERBS,
+        find: adHits,
+    },
+    {
+        code: EVENT.MAINT_CPCP_DUE,
+        kind: "before",
+        title: "CPCP task due",
+        verbs: DUE_VERBS,
+        find: cpcpHits,
+    },
 ];
 
 // Runs once a day. Fires ONLY on exact threshold days (60, 30, 15 ...),
@@ -122,7 +170,9 @@ export async function runDailyScan(): Promise<number> {
                     eventCode: scan.code,
                     title: scan.title,
                     message: hit.message,
-                    ...(hit.ownerEmpUUID ? { ownerEmpUUID: hit.ownerEmpUUID } : {}),
+                    ...(hit.ownerEmpUUID
+                        ? { ownerEmpUUID: hit.ownerEmpUUID }
+                        : {}),
                 });
                 if (id) created++;
             }

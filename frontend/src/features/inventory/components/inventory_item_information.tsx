@@ -51,7 +51,8 @@ export default function InventoryItemInformation({
                         {
                             id: "manufacturer",
                             label: "Manufacturer",
-                            value: item.manufacturers.join(", ") || "Not recorded",
+                            value:
+                                item.manufacturers.join(", ") || "Not recorded",
                         },
                         {
                             id: "locations",
@@ -59,7 +60,11 @@ export default function InventoryItemInformation({
                             value: item.locations.length ? (
                                 <ul role="list" className="space-y-1.5">
                                     {item.locations.map(
-                                        ({ status_UUID, location_name, storage_area }) => (
+                                        ({
+                                            status_UUID,
+                                            location_name,
+                                            storage_area,
+                                        }) => (
                                             <li key={status_UUID}>
                                                 {location_name}
                                                 {storage_area && (

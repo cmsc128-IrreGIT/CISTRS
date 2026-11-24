@@ -84,9 +84,7 @@ export function collectAccess(
     }[],
 ) {
     return {
-        features: [
-            ...new Set(features.map((f) => f.feature.feature_name)),
-        ],
+        features: [...new Set(features.map((f) => f.feature.feature_name))],
     };
 }
 

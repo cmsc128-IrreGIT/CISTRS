@@ -25,7 +25,8 @@ export function filter_maintenance_records(
             if (part && row.part_number !== part) return false;
             if (status === "due") {
                 const due_date = new Date(`${row.due_date}T00:00:00`);
-                if (row.status === "Completed" || !(due_date <= due_limit)) return false;
+                if (row.status === "Completed" || !(due_date <= due_limit))
+                    return false;
             } else if (status === "pending") {
                 if (row.status === "Completed") return false;
             } else if (status && row.status !== status) {
@@ -38,10 +39,21 @@ export function filter_maintenance_records(
             return false;
         }
 
-        return [row.title, row.aircraft, row.work_order, row.description, row.part_number, row.notes]
-            .some((value) => (value || "").toLowerCase().includes(term));
+        return [
+            row.title,
+            row.aircraft,
+            row.work_order,
+            row.description,
+            row.part_number,
+            row.notes,
+        ].some((value) => (value || "").toLowerCase().includes(term));
     });
 
-    return task_view ? filtered : filtered.sort((first, second) =>
-        (second.performed_date || "").localeCompare(first.performed_date || ""));
+    return task_view
+        ? filtered
+        : filtered.sort((first, second) =>
+              (second.performed_date || "").localeCompare(
+                  first.performed_date || "",
+              ),
+          );
 }

@@ -3,7 +3,10 @@ import { toast } from "sonner";
 import EmptyState from "../../../shared/components/feedback/empty_state";
 import RecordForm from "../../../shared/components/records/record_form";
 import FormDialog from "../../../shared/components/ui/form_dialog";
-import type { PreviewRecord, RecordField } from "../../../shared/types/record_types";
+import type {
+    PreviewRecord,
+    RecordField,
+} from "../../../shared/types/record_types";
 import { aircraft_config } from "../config/aircraft_config";
 import { aircraft_service } from "../services/aircraft_service";
 import useAircraft from "../hooks/use_aircraft";
@@ -27,7 +30,11 @@ export default function AircraftStatusPage() {
         try {
             aircraft_service.update_status(aircraft_id, values);
         } catch (error) {
-            toast.error(error instanceof Error ? error.message : "Could not save status.");
+            toast.error(
+                error instanceof Error
+                    ? error.message
+                    : "Could not save status.",
+            );
             return;
         }
         toast.success("Aircraft status updated", { position: "bottom-right" });
@@ -37,17 +44,26 @@ export default function AircraftStatusPage() {
     return (
         <>
             <AircraftDetailsPage />
-            <FormDialog title="Update aircraft status" compact on_close={() => void navigate(destination)}>
+            <FormDialog
+                title="Update aircraft status"
+                compact
+                on_close={() => void navigate(destination)}
+            >
                 <div className="space-y-4 p-4 sm:p-5">
                     {record ? (
                         <>
                             <p className="rounded-md bg-slate-50 p-3 text-sm text-slate-600">
-                                Updates apply to this preview session. Flight approval is separate.
+                                Updates apply to this preview session. Flight
+                                approval is separate.
                             </p>
                             <RecordForm
                                 key={record.id}
                                 fields={status_fields}
-                                initial_values={{ ...record, effective_date: "", reason: "" }}
+                                initial_values={{
+                                    ...record,
+                                    effective_date: "",
+                                    reason: "",
+                                }}
                                 on_submit={save}
                                 cancel_to={destination}
                                 submit_text="Save status"

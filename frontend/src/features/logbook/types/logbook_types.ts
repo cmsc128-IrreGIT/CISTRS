@@ -70,7 +70,14 @@ export type LogbookEntry = LogbookFormValues & {
 export type LogbookField = {
     key: LogbookFieldKey;
     label: string;
-    type: "text" | "date" | "time" | "number" | "textarea" | "aircraft" | "maintenance";
+    type:
+        | "text"
+        | "date"
+        | "time"
+        | "number"
+        | "textarea"
+        | "aircraft"
+        | "maintenance";
     required?: boolean;
     hint?: string;
 };

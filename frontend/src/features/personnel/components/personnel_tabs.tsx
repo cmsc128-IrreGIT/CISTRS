@@ -15,14 +15,22 @@ export default function PersonnelTabs({
     return (
         <WorkspaceTabs label="Personnel sections">
             {directory_available && (
-                <Link to="/personnel" aria-current={active === "directory" ? "page" : undefined}
-                    className={workspace_tab_style(active === "directory")}>
+                <Link
+                    to="/personnel"
+                    aria-current={active === "directory" ? "page" : undefined}
+                    className={workspace_tab_style(active === "directory")}
+                >
                     <UsersRound size={16} aria-hidden="true" /> Directory
                 </Link>
             )}
             {availability_visible && (
-                <Link to="/personnel/availability" aria-current={active === "availability" ? "page" : undefined}
-                    className={workspace_tab_style(active === "availability")}>
+                <Link
+                    to="/personnel/availability"
+                    aria-current={
+                        active === "availability" ? "page" : undefined
+                    }
+                    className={workspace_tab_style(active === "availability")}
+                >
                     <CalendarDays size={16} aria-hidden="true" /> Availability
                 </Link>
             )}

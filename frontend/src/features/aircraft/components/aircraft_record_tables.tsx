@@ -11,7 +11,11 @@ const document_types = [
     { id: "airworthiness", name: "Certificate of Airworthiness" },
 ];
 
-export function AircraftStatusHistory({ aircraft_id }: { aircraft_id: string }) {
+export function AircraftStatusHistory({
+    aircraft_id,
+}: {
+    aircraft_id: string;
+}) {
     const history = useAircraftStatusHistory();
     return (
         <DataTable
@@ -22,11 +26,35 @@ export function AircraftStatusHistory({ aircraft_id }: { aircraft_id: string }) 
             get_row_key={(entry) => entry.id}
             empty_title="No status updates recorded"
             columns={[
-                { id: "date", header: "Effective date", render: (entry) => entry.effective_date || "Not recorded" },
-                { id: "previous", header: "Previous status", render: (entry) => <AircraftStatusBadge status={entry.previous_status} /> },
-                { id: "status", header: "New status", render: (entry) => <AircraftStatusBadge status={entry.status} /> },
-                { id: "reason", header: "Reason", render: (entry) => entry.reason || "—" },
-                { id: "notes", header: "Notes", render: (entry) => entry.notes || "—" },
+                {
+                    id: "date",
+                    header: "Effective date",
+                    render: (entry) => entry.effective_date || "Not recorded",
+                },
+                {
+                    id: "previous",
+                    header: "Previous status",
+                    render: (entry) => (
+                        <AircraftStatusBadge status={entry.previous_status} />
+                    ),
+                },
+                {
+                    id: "status",
+                    header: "New status",
+                    render: (entry) => (
+                        <AircraftStatusBadge status={entry.status} />
+                    ),
+                },
+                {
+                    id: "reason",
+                    header: "Reason",
+                    render: (entry) => entry.reason || "—",
+                },
+                {
+                    id: "notes",
+                    header: "Notes",
+                    render: (entry) => entry.notes || "—",
+                },
             ]}
         />
     );
@@ -41,16 +69,29 @@ export function AircraftCompliance() {
             rows={document_types}
             get_row_key={(row) => row.id}
             columns={[
-                { id: "requirement", header: "Requirement", render: (row) => row.name },
-                { id: "expiry", header: "Expiry date", render: () => "Not recorded" },
-                { id: "status", header: "Recorded status", render: () => "Not available" },
+                {
+                    id: "requirement",
+                    header: "Requirement",
+                    render: (row) => row.name,
+                },
+                {
+                    id: "expiry",
+                    header: "Expiry date",
+                    render: () => "Not recorded",
+                },
+                {
+                    id: "status",
+                    header: "Recorded status",
+                    render: () => "Not available",
+                },
             ]}
         />
     );
 }
 
 export function AircraftDocuments({ registration }: { registration: string }) {
-    const [selected, set_selected] = useState<(typeof document_types)[number]>();
+    const [selected, set_selected] =
+        useState<(typeof document_types)[number]>();
     return (
         <>
             <DataTable
@@ -60,15 +101,31 @@ export function AircraftDocuments({ registration }: { registration: string }) {
                 rows={document_types}
                 get_row_key={(row) => row.id}
                 columns={[
-                    { id: "document", header: "Document", render: (row) => row.name },
-                    { id: "reference", header: "Reference number", render: () => "Not recorded" },
-                    { id: "issued", header: "Date issued", render: () => "Not recorded" },
+                    {
+                        id: "document",
+                        header: "Document",
+                        render: (row) => row.name,
+                    },
+                    {
+                        id: "reference",
+                        header: "Reference number",
+                        render: () => "Not recorded",
+                    },
+                    {
+                        id: "issued",
+                        header: "Date issued",
+                        render: () => "Not recorded",
+                    },
                     {
                         id: "action",
                         header: "Action",
                         render: (row) => (
-                            <Button variant="ghost" className="underline underline-offset-4"
-                                aria-label={`View ${row.name}`} onClick={() => set_selected(row)}>
+                            <Button
+                                variant="ghost"
+                                className="underline underline-offset-4"
+                                aria-label={`View ${row.name}`}
+                                onClick={() => set_selected(row)}
+                            >
                                 View
                             </Button>
                         ),
@@ -76,16 +133,40 @@ export function AircraftDocuments({ registration }: { registration: string }) {
                 ]}
             />
             {selected && (
-                <FormDialog title="Aircraft document details" compact on_close={() => set_selected(undefined)}>
+                <FormDialog
+                    title="Aircraft document details"
+                    compact
+                    on_close={() => set_selected(undefined)}
+                >
                     <div className="space-y-4 p-5">
-                        <DetailsList entries={[
-                            { id: "name", label: "Document", value: selected.name },
-                            { id: "aircraft", label: "Aircraft", value: registration },
-                            { id: "reference", label: "Reference number", value: "Not recorded" },
-                            { id: "file", label: "File", value: "No document available" },
-                        ]} />
+                        <DetailsList
+                            entries={[
+                                {
+                                    id: "name",
+                                    label: "Document",
+                                    value: selected.name,
+                                },
+                                {
+                                    id: "aircraft",
+                                    label: "Aircraft",
+                                    value: registration,
+                                },
+                                {
+                                    id: "reference",
+                                    label: "Reference number",
+                                    value: "Not recorded",
+                                },
+                                {
+                                    id: "file",
+                                    label: "File",
+                                    value: "No document available",
+                                },
+                            ]}
+                        />
                         <div className="flex justify-end border-t border-slate-200 pt-4">
-                            <Button onClick={() => set_selected(undefined)}>Close</Button>
+                            <Button onClick={() => set_selected(undefined)}>
+                                Close
+                            </Button>
                         </div>
                     </div>
                 </FormDialog>

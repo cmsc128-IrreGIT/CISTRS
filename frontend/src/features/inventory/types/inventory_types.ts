@@ -84,14 +84,16 @@ export type InventoryTransaction = {
 };
 
 export type InventoryRequestDecision =
-    | { status: "APPROVED" }
-    | { status: "RETURNED"; review_note: string };
+    { status: "APPROVED" } | { status: "RETURNED"; review_note: string };
 
 export type InventoryRequestPreview = {
     request_UUID: string;
     kind: "RESTOCK" | "CORRECTION";
     status: "PENDING" | InventoryRequestDecision["status"];
-    part: Pick<InventoryItem, "part_UUID" | "part_name" | "part_number" | "unit_of_measure">;
+    part: Pick<
+        InventoryItem,
+        "part_UUID" | "part_name" | "part_number" | "unit_of_measure"
+    >;
     location: Pick<InventoryLocation, "location_name" | "storage_area"> | null;
     quantity: number;
     recorded_quantity: number | null;

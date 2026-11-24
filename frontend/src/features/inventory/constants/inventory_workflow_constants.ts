@@ -31,5 +31,7 @@ export const REQUEST_STATUS_LABELS = {
 
 export const MAX_LOCATION_QUANTITY = 2_147_483_647;
 
-export const STOCK_PREVIEW_NOTICE = "Preview only. Stock quantities and movement history will not change.";
-export const REQUEST_PREVIEW_NOTICE = "Preview requests stay in this page session. They are not submitted or saved.";
+export const STOCK_PREVIEW_NOTICE =
+    "Preview only. Stock quantities and movement history will not change.";
+export const REQUEST_PREVIEW_NOTICE =
+    "Preview requests stay in this page session. They are not submitted or saved.";

@@ -26,7 +26,9 @@ export default function usePilotReminders(employee_id?: string) {
             try {
                 const employees = await api<Employee[]>(
                     "/personnel/employees",
-                    { signal: controller.signal },
+                    {
+                        signal: controller.signal,
+                    },
                 );
                 const licences =
                     employees.find((employee) => employee.emp_UUID === id)

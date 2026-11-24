@@ -27,7 +27,9 @@ export const listStaffDirectoryQuerySchema = z.object({
     // must each match something ("adrian reyes"), same as the Personnel list.
     q: optionalText("q", 100),
 });
-export type ListStaffDirectoryQuery = z.infer<typeof listStaffDirectoryQuerySchema>;
+export type ListStaffDirectoryQuery = z.infer<
+    typeof listStaffDirectoryQuerySchema
+>;
 
 // Fields returned for each employee. Shared with the eligible-employees list in
 // user.service.ts so both endpoints return the same shape.
@@ -63,13 +65,21 @@ export async function listStaffDirectory(query: ListStaffDirectoryQuery = {}) {
         ...(query.category
             ? {
                   personnel_category: {
-                      category_name: { equals: query.category, mode: "insensitive" as const },
+                      category_name: {
+                          equals: query.category,
+                          mode: "insensitive" as const,
+                      },
                   },
               }
             : {}),
         AND: tokens.map((token) => ({
             OR: [
-                { emp_number: { contains: token, mode: "insensitive" as const } },
+                {
+                    emp_number: {
+                        contains: token,
+                        mode: "insensitive" as const,
+                    },
+                },
                 { f_name: { contains: token, mode: "insensitive" as const } },
                 { m_name: { contains: token, mode: "insensitive" as const } },
                 { l_name: { contains: token, mode: "insensitive" as const } },

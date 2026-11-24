@@ -33,7 +33,6 @@ export type CreateUserInput = z.infer<typeof createUserSchema>;
 
 // Create an account for an existing employee.
 export async function createUserAccount(input: CreateUserInput) {
-
     // 1. The employee must exist, be active, and not have an account yet.
     const employee = await prisma.employee.findUnique({
         where: { emp_UUID: input.emp_UUID },
@@ -64,7 +63,6 @@ export async function createUserAccount(input: CreateUserInput) {
             "Cannot create an account for an employee with an inactive position",
         );
     }
-
 
     if (employee.user_account) {
         throw new HttpError(409, "This employee already has a user account");
@@ -164,7 +162,6 @@ const accountSummary = {
         },
     },
 } as const;
-
 
 // List all accounts with their employee and position information.
 // password_hash is never selected.

@@ -29,7 +29,9 @@ const hoursField = z
         "Current hours can have at most 2 decimal places",
     );
 
-const statusField = z.string().uuid("aircraft_status_UUID must be a valid UUID");
+const statusField = z
+    .string()
+    .uuid("aircraft_status_UUID must be a valid UUID");
 
 const aircraftInclude = {
     status: true,
@@ -134,7 +136,10 @@ export async function recordAircraftStatus(
         data: {
             aircraft_status_UUID: input.aircraft_status_UUID,
             ...(input.current_hours !== undefined
-                ? { current_hours: input.current_hours, hours_updated_at: new Date() }
+                ? {
+                      current_hours: input.current_hours,
+                      hours_updated_at: new Date(),
+                  }
                 : {}),
         },
         include: aircraftInclude,
@@ -178,7 +183,10 @@ export async function updateAircraftStatus(
                 ? { aircraft_status_UUID: input.aircraft_status_UUID }
                 : {}),
             ...(input.current_hours !== undefined
-                ? { current_hours: input.current_hours, hours_updated_at: new Date() }
+                ? {
+                      current_hours: input.current_hours,
+                      hours_updated_at: new Date(),
+                  }
                 : {}),
         },
         include: aircraftInclude,
@@ -215,11 +223,16 @@ export type CreateAircraftInput = z.infer<typeof createAircraftSchema>;
 
 export async function createAircraft(input: CreateAircraftInput) {
     const taken = await prisma.aircraft.findFirst({
-        where: { registration: { equals: input.registration, mode: "insensitive" } },
+        where: {
+            registration: { equals: input.registration, mode: "insensitive" },
+        },
         select: { aircraft_UUID: true },
     });
     if (taken) {
-        throw new HttpError(409, "An aircraft with this registration already exists");
+        throw new HttpError(
+            409,
+            "An aircraft with this registration already exists",
+        );
     }
 
     const type = await prisma.aircraftType.findUnique({

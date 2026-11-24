@@ -37,9 +37,10 @@ export const logbook_store = {
         };
     },
     save: (values: LogbookFormValues, id?: string, recorded_by?: string) => {
-        const previous = id ? records.find((record) => record.id === id) : undefined;
-        if (id && !previous)
-            throw new Error("Logbook entry not found.");
+        const previous = id
+            ? records.find((record) => record.id === id)
+            : undefined;
+        if (id && !previous) throw new Error("Logbook entry not found.");
         const record: LogbookEntry = {
             ...values,
             aircraft: previous?.aircraft ?? values.aircraft,

@@ -1,6 +1,9 @@
 import { Router } from "express";
 import { parseOrThrow, parseUuid } from "../lib/validate.js";
-import { exportLogbook, exportSchema } from "../services/logbook/export.service.js";
+import {
+    exportLogbook,
+    exportSchema,
+} from "../services/logbook/export.service.js";
 import {
     addFuelTransaction,
     fuelInputSchema,
@@ -67,13 +70,19 @@ logbookRouter.patch("/sectors/:sector_UUID", async (req, res) => {
 // Fuel transactions linked to an entry
 
 // BE-16  POST /api/logbook/sectors/:sector_UUID/fuel-transactions
-logbookRouter.post("/sectors/:sector_UUID/fuel-transactions", async (req, res) => {
-    const sector_UUID = parseUuid(req.params.sector_UUID, "logbook entry ID");
-    const input = parseOrThrow(fuelInputSchema, req.body);
-    res.status(201).json(
-        await addFuelTransaction(sector_UUID, input, req.user!.emp_UUID),
-    );
-});
+logbookRouter.post(
+    "/sectors/:sector_UUID/fuel-transactions",
+    async (req, res) => {
+        const sector_UUID = parseUuid(
+            req.params.sector_UUID,
+            "logbook entry ID",
+        );
+        const input = parseOrThrow(fuelInputSchema, req.body);
+        res.status(201).json(
+            await addFuelTransaction(sector_UUID, input, req.user!.emp_UUID),
+        );
+    },
+);
 
 // BE-17  GET /api/logbook/fuel-transactions/:fuel_UUID
 logbookRouter.get("/fuel-transactions/:fuel_UUID", async (req, res) => {
@@ -99,8 +108,7 @@ logbookRouter.patch("/fuel-transactions/:fuel_UUID", async (req, res) => {
 logbookRouter.post("/export", async (req, res) => {
     const input = parseOrThrow(exportSchema, req.body);
     const { csv, total, filename } = await exportLogbook(input);
-    res
-        .status(200)
+    res.status(200)
         .set({
             "Content-Type": "text/csv; charset=utf-8",
             "Content-Disposition": `attachment; filename="${filename}"`,

@@ -6,5 +6,8 @@ type NameFields = {
 };
 
 export function employee_name({ f_name, m_name, l_name, suffix }: NameFields) {
-    return [f_name, m_name, l_name, suffix].map((value) => value?.trim()).filter(Boolean).join(" ");
+    return [f_name, m_name, l_name, suffix]
+        .map((value) => value?.trim())
+        .filter(Boolean)
+        .join(" ");
 }
