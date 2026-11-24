@@ -4,9 +4,11 @@ on:
     push:
         branches:
             - main
+            - dev
     pull_request:
         branches:
             - main
+            - dev
 
 jobs:
     quality:
@@ -32,6 +34,12 @@ jobs:
             - name: Install backend dependencies
               run: npm ci
               working-directory: backend
+
+            - name: Generate Prisma client
+              run: npx prisma generate
+              working-directory: backend
+              env:
+                  DATABASE_URL: "postgresql://dummy:dummy@localhost:5432/dummy"
 
             - name: Run quality checks
               run: npm run check
