@@ -1,4 +1,8 @@
-export const availability_statuses = ["Available", "Unavailable", "Not recorded"] as const;
+export const availability_statuses = [
+    "Available",
+    "Unavailable",
+    "Not recorded",
+] as const;
 export type AvailabilityStatus = (typeof availability_statuses)[number];
 
 export type AvailabilityValues = {

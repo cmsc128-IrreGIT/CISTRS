@@ -59,7 +59,10 @@ export async function createFlightStatus(input: CreateFlightStatusInput) {
         select: { flight_status_UUID: true },
     });
     if (taken) {
-        throw new HttpError(409, "A flight status with this name already exists");
+        throw new HttpError(
+            409,
+            "A flight status with this name already exists",
+        );
     }
     return prisma.flightStatus.create({
         data: input,
@@ -109,7 +112,9 @@ export const createDelayCategorySchema = z
         description: descriptionField,
     })
     .strict();
-export type CreateDelayCategoryInput = z.infer<typeof createDelayCategorySchema>;
+export type CreateDelayCategoryInput = z.infer<
+    typeof createDelayCategorySchema
+>;
 
 export async function createDelayCategory(input: CreateDelayCategoryInput) {
     const taken = await prisma.delayCategory.findFirst({
@@ -117,7 +122,10 @@ export async function createDelayCategory(input: CreateDelayCategoryInput) {
         select: { delay_category_UUID: true },
     });
     if (taken) {
-        throw new HttpError(409, "A delay category with this name already exists");
+        throw new HttpError(
+            409,
+            "A delay category with this name already exists",
+        );
     }
     return prisma.delayCategory.create({
         data: input,

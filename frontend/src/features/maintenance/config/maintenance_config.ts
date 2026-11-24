@@ -71,8 +71,18 @@ type MaintenanceWorkField = {
 };
 
 export const maintenance_work_fields: MaintenanceWorkField[] = [
-    { name: "performed_date", label: "Date performed", required: true, type: "date" },
-    { name: "performed_by", label: "Performed by", required: true, placeholder: "Enter technician name" },
+    {
+        name: "performed_date",
+        label: "Date performed",
+        required: true,
+        type: "date",
+    },
+    {
+        name: "performed_by",
+        label: "Performed by",
+        required: true,
+        placeholder: "Enter technician name",
+    },
     {
         name: "aircraft_hours",
         label: "Aircraft hours",

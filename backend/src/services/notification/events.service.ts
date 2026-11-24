@@ -2,7 +2,6 @@ import { prisma } from "../../lib/prisma.js";
 import { createNotification } from "./notify.service.js";
 import { EVENT, isoDate } from "./shared.js";
 
-
 // Fuel is "different" when it is off by more than this (same unit as the logbook).
 const FUEL_TOLERANCE = 0.5;
 
@@ -96,7 +95,10 @@ export async function notifyAircraftStatusChange(
 ): Promise<void> {
     const aircraft = await prisma.aircraft.findUnique({
         where: { aircraft_UUID: aircraftUUID },
-        select: { registration: true, status: { select: { status_name: true } } },
+        select: {
+            registration: true,
+            status: { select: { status_name: true } },
+        },
     });
     if (!aircraft) return;
 
@@ -164,7 +166,11 @@ export async function checkFuelDiscrepancy(sectorUUID: string): Promise<void> {
     await createNotification({
         eventCode: EVENT.FUEL_DISCREPANCY,
         title: "Fuel discrepancy",
-        message: `Fuel mismatch on ${sector.aircraft.registration}, sector ${sector.route} (${isoDate(sector.flight_date)}): off by ${difference.toFixed(2)} ${sector.fuel_unit ?? ""}.`.replace(/\s+\./, "."),
+        message:
+            `Fuel mismatch on ${sector.aircraft.registration}, sector ${sector.route} (${isoDate(sector.flight_date)}): off by ${difference.toFixed(2)} ${sector.fuel_unit ?? ""}.`.replace(
+                /\s+\./,
+                ".",
+            ),
         dedupe: false,
     });
 }

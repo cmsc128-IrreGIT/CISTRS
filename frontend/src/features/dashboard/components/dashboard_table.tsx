@@ -25,7 +25,9 @@ export default function DashboardTable({
         >
             <table className="w-full text-left text-sm">
                 <caption className="sr-only">{caption}</caption>
-                <thead className={`bg-[#0b2238] text-white ${scroll ? "sticky top-0 z-10" : ""}`}>
+                <thead
+                    className={`bg-[#0b2238] text-white ${scroll ? "sticky top-0 z-10" : ""}`}
+                >
                     <tr>
                         {headers.map((header, index) => (
                             <th

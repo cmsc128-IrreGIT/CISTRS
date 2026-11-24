@@ -46,7 +46,8 @@ import { latestEntryDate } from "./shared.js";
 // -----------------------------------------------------------------------------
 // SHARED
 
-type TimeKey = "std" | "sta" | "off_block" | "airborne" | "touchdown" | "on_block";
+type TimeKey =
+    "std" | "sta" | "off_block" | "airborne" | "touchdown" | "on_block";
 
 const optional = {
     delay_category_UUID: uuidField("delay_category_UUID"),
@@ -106,7 +107,12 @@ function sectorRuleIssues(v: SectorValues): RuleIssue[] {
     }
 
     // Events of one flight happen in this order; only the ones given are checked.
-    const sequence = ["off_block", "airborne", "touchdown", "on_block"] as const;
+    const sequence = [
+        "off_block",
+        "airborne",
+        "touchdown",
+        "on_block",
+    ] as const;
     let previous: (typeof sequence)[number] | null = null;
     for (const key of sequence) {
         const value = v.times[key];
@@ -131,10 +137,16 @@ function sectorRuleIssues(v: SectorValues): RuleIssue[] {
             message: "Fuel at arrival cannot exceed fuel at departure",
         });
     }
-    if (dep !== null && arr !== null && used !== null && Math.abs(dep - arr - used) > 0.01) {
+    if (
+        dep !== null &&
+        arr !== null &&
+        used !== null &&
+        Math.abs(dep - arr - used) > 0.01
+    ) {
         issues.push({
             field: "fuel_used",
-            message: "Fuel used must equal fuel at departure minus fuel at arrival",
+            message:
+                "Fuel used must equal fuel at departure minus fuel at arrival",
         });
     }
     if ((dep !== null || arr !== null || used !== null) && !v.fuel_unit) {
@@ -180,7 +192,9 @@ const sectorInclude = {
     },
 } satisfies Prisma.FlightSectorInclude;
 
-type SectorRow = Prisma.FlightSectorGetPayload<{ include: typeof sectorInclude }>;
+type SectorRow = Prisma.FlightSectorGetPayload<{
+    include: typeof sectorInclude;
+}>;
 export type { SectorRow };
 export { sectorInclude };
 
@@ -222,16 +236,18 @@ export function toSectorResponse(row: SectorRow) {
     };
 }
 
-function valuesOf(row: {
-    flight_date: Date;
-    fuel_departure: { toNumber(): number } | null;
-    fuel_arrival: { toNumber(): number } | null;
-    fuel_used: { toNumber(): number } | null;
-    fuel_unit: string | null;
-    pic_emp_UUID: string;
-    sic_emp_UUID: string | null;
-    observer_emp_UUID: string | null;
-} & Record<TimeKey, Date | null>): SectorValues {
+function valuesOf(
+    row: {
+        flight_date: Date;
+        fuel_departure: { toNumber(): number } | null;
+        fuel_arrival: { toNumber(): number } | null;
+        fuel_used: { toNumber(): number } | null;
+        fuel_unit: string | null;
+        pic_emp_UUID: string;
+        sic_emp_UUID: string | null;
+        observer_emp_UUID: string | null;
+    } & Record<TimeKey, Date | null>,
+): SectorValues {
     return {
         flight_date: fromDbDate(row.flight_date)!,
         times: {
@@ -421,10 +437,16 @@ export interface SectorFilter {
     sector_UUIDs?: string[];
 }
 
-export function sectorWhere(filter: SectorFilter): Prisma.FlightSectorWhereInput {
+export function sectorWhere(
+    filter: SectorFilter,
+): Prisma.FlightSectorWhereInput {
     return {
-        ...(filter.aircraft_UUID ? { aircraft_UUID: filter.aircraft_UUID } : {}),
-        ...(filter.sector_UUIDs ? { sector_UUID: { in: filter.sector_UUIDs } } : {}),
+        ...(filter.aircraft_UUID
+            ? { aircraft_UUID: filter.aircraft_UUID }
+            : {}),
+        ...(filter.sector_UUIDs
+            ? { sector_UUID: { in: filter.sector_UUIDs } }
+            : {}),
         ...(filter.from || filter.to
             ? {
                   flight_date: {
@@ -522,7 +544,10 @@ export const updateSectorSchema = z
     );
 export type UpdateSectorInput = z.infer<typeof updateSectorSchema>;
 
-export async function updateSector(sector_UUID: string, input: UpdateSectorInput) {
+export async function updateSector(
+    sector_UUID: string,
+    input: UpdateSectorInput,
+) {
     const existing = await prisma.flightSector.findUnique({
         where: { sector_UUID },
     });
@@ -530,7 +555,7 @@ export async function updateSector(sector_UUID: string, input: UpdateSectorInput
 
     // The record as it would look after the change.
     const before = valuesOf(existing);
-    const pick = <T,>(sent: T | undefined, stored: T): T =>
+    const pick = <T>(sent: T | undefined, stored: T): T =>
         sent !== undefined ? sent : stored;
     const sentTime = (key: TimeKey) => {
         const sent = input[key];
@@ -563,7 +588,9 @@ export async function updateSector(sector_UUID: string, input: UpdateSectorInput
         sectorRuleIssues(after).filter(
             (issue) =>
                 !existingIssues.some(
-                    (old) => old.field === issue.field && old.message === issue.message,
+                    (old) =>
+                        old.field === issue.field &&
+                        old.message === issue.message,
                 ),
         ),
     );
@@ -577,9 +604,13 @@ export async function updateSector(sector_UUID: string, input: UpdateSectorInput
         flight_type_UUID: input.flight_type_UUID,
         delay_category_UUID: input.delay_category_UUID,
         pic_emp_UUID:
-            input.pic_emp_UUID !== existing.pic_emp_UUID ? input.pic_emp_UUID : undefined,
+            input.pic_emp_UUID !== existing.pic_emp_UUID
+                ? input.pic_emp_UUID
+                : undefined,
         sic_emp_UUID:
-            input.sic_emp_UUID !== existing.sic_emp_UUID ? input.sic_emp_UUID : undefined,
+            input.sic_emp_UUID !== existing.sic_emp_UUID
+                ? input.sic_emp_UUID
+                : undefined,
         observer_emp_UUID:
             input.observer_emp_UUID !== existing.observer_emp_UUID
                 ? input.observer_emp_UUID

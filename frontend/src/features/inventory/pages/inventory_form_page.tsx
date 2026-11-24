@@ -51,7 +51,11 @@ export default function InventoryFormPage() {
     const locations = get_inventory_locations(items);
     const existing_item = items.find((item) => item.part_UUID === item_id);
     const is_editing = Boolean(item_id);
-    const units = [...new Set(items.map((item) => item.unit_of_measure.trim()).filter(Boolean))].sort();
+    const units = [
+        ...new Set(
+            items.map((item) => item.unit_of_measure.trim()).filter(Boolean),
+        ),
+    ].sort();
 
     async function handle_save(
         values: InventoryFormValues,
@@ -64,23 +68,29 @@ export default function InventoryFormPage() {
             if (item_id) {
                 await update_inventory_item(item_id, values);
 
-                toast.success("Inventory item updated.", { position: "bottom-right" });
+                toast.success("Inventory item updated.", {
+                    position: "bottom-right",
+                });
             } else {
                 await create_inventory_item({
                     ...values,
                     initial_stock,
                 });
 
-                toast.success("Inventory item added.", { position: "bottom-right" });
+                toast.success("Inventory item added.", {
+                    position: "bottom-right",
+                });
             }
 
             if (mounted.current) close_form();
             void refresh();
         } catch (error) {
             if (mounted.current) {
-                set_save_error(error instanceof Error && error.message
-                    ? error.message
-                    : "The inventory request failed.");
+                set_save_error(
+                    error instanceof Error && error.message
+                        ? error.message
+                        : "The inventory request failed.",
+                );
             }
         } finally {
             if (mounted.current) set_is_saving(false);
@@ -103,7 +113,9 @@ export default function InventoryFormPage() {
                     {error}
                 </p>
             ) : is_editing && !existing_item ? (
-                <div className="p-4"><InventoryNotFound /></div>
+                <div className="p-4">
+                    <InventoryNotFound />
+                </div>
             ) : (
                 <InventoryForm
                     key={item_id ?? "new"}

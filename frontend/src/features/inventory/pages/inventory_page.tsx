@@ -28,7 +28,13 @@ import {
 export default function InventoryPage() {
     const inventory = useActiveInventory();
     const highlight = useRecordHighlight();
-    const { items: active_items, all_items, is_loading, error, reload } = inventory;
+    const {
+        items: active_items,
+        all_items,
+        is_loading,
+        error,
+        reload,
+    } = inventory;
     const { search: location_search } = useLocation();
 
     const read_only =
@@ -65,11 +71,13 @@ export default function InventoryPage() {
             : [...filtered_items]
     ).sort((first, second) => first.part_name.localeCompare(second.part_name));
     const part_matches = (item: (typeof active_items)[number]) =>
-        item.part_UUID === highlight?.id || item.part_number.trim().toUpperCase() === highlight?.id;
+        item.part_UUID === highlight?.id ||
+        item.part_number.trim().toUpperCase() === highlight?.id;
     const target_row_index = highlight ? results.findIndex(part_matches) : -1;
-    const highlight_row = highlight && target_row_index >= 0
-        ? { id: results[target_row_index].part_UUID, ref: highlight.ref }
-        : undefined;
+    const highlight_row =
+        highlight && target_row_index >= 0
+            ? { id: results[target_row_index].part_UUID, ref: highlight.ref }
+            : undefined;
     const { visible_rows, footer } = useTablePagination(
         results,
         JSON.stringify([search, stock_filter, category, location]),
@@ -104,7 +112,10 @@ export default function InventoryPage() {
                                         </Button>
                                     )}
                                     <Link
-                                        to={{ pathname: "new", search: location_search }}
+                                        to={{
+                                            pathname: "new",
+                                            search: location_search,
+                                        }}
                                         state={{ from_inventory: true }}
                                         className={button_styles(
                                             "primary",
@@ -119,9 +130,22 @@ export default function InventoryPage() {
                         />
                     </>
                 )}
-                {!is_loading && !error && highlight && !active_items.some((item) =>
-                    part_matches(item) && (!read_only || item.total_quantity > 0)
-                ) && <p role="status" className="mb-3 text-sm text-slate-600">The item linked from this notification is unavailable.</p>}
+                {!is_loading &&
+                    !error &&
+                    highlight &&
+                    !active_items.some(
+                        (item) =>
+                            part_matches(item) &&
+                            (!read_only || item.total_quantity > 0),
+                    ) && (
+                        <p
+                            role="status"
+                            className="mb-3 text-sm text-slate-600"
+                        >
+                            The item linked from this notification is
+                            unavailable.
+                        </p>
+                    )}
                 {is_loading ? (
                     <ScreenLoading compact label="Loading inventory…" />
                 ) : error ? (

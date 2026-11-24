@@ -28,7 +28,10 @@ export const AVAILABILITY = {
     Available: "Available",
 } as const;
 
-export function partAvailability(total_quantity: number, min_stock_level: number) {
+export function partAvailability(
+    total_quantity: number,
+    min_stock_level: number,
+) {
     if (total_quantity <= 0) return AVAILABILITY.OutOfStock;
     if (total_quantity < min_stock_level) return AVAILABILITY.LowStock;
     return AVAILABILITY.InStock;

@@ -33,7 +33,10 @@ export const assignToAircraftSchema = z
     .object({
         aircraft_UUID: z.string().uuid("aircraft_UUID must be a valid UUID"),
         location_UUID: z.string().uuid("location_UUID must be a valid UUID"),
-        quantity: quantityField("Quantity").min(1, "Quantity must be at least 1"),
+        quantity: quantityField("Quantity").min(
+            1,
+            "Quantity must be at least 1",
+        ),
         remarks: remarksField.optional(),
     })
     .strict();
@@ -188,10 +191,9 @@ async function getPartAircraftLink(part_UUID: string, aircraft_UUID: string) {
 }
 
 // Sums tagged ledger entries into "quantity on aircraft" per key.
-function sumByAircraft<T extends { remarks: string | null; quantity_change: number }>(
-    entries: T[],
-    keyOf: (entry: T) => string,
-) {
+function sumByAircraft<
+    T extends { remarks: string | null; quantity_change: number },
+>(entries: T[], keyOf: (entry: T) => string) {
     const totals = new Map<string, number>();
     for (const entry of entries) {
         const { aircraft_UUID } = splitRemarks(entry.remarks);

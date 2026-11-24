@@ -108,7 +108,9 @@ personnelRouter.get("/licenses/expiring", async (req, res) => {
 personnelRouter.post("/employees/:emp_UUID/licenses", async (req, res) => {
     const emp_UUID = parseUuid(req.params.emp_UUID, "employee ID");
     const input = parseOrThrow(createLicenseSchema, req.body);
-    res.status(201).json(await createLicense(emp_UUID, input, req.user!.emp_UUID));
+    res.status(201).json(
+        await createLicense(emp_UUID, input, req.user!.emp_UUID),
+    );
 });
 
 // GET /api/personnel/employees/:emp_UUID/licenses
@@ -119,20 +121,35 @@ personnelRouter.get("/employees/:emp_UUID/licenses", async (req, res) => {
 
 // GET /api/personnel/licenses/:emp_license_UUID
 personnelRouter.get("/licenses/:emp_license_UUID", async (req, res) => {
-    const emp_license_UUID = parseUuid(req.params.emp_license_UUID, "license ID");
+    const emp_license_UUID = parseUuid(
+        req.params.emp_license_UUID,
+        "license ID",
+    );
     res.json(await getLicense(emp_license_UUID));
 });
 
 // PATCH /api/personnel/licenses/:emp_license_UUID
 personnelRouter.patch("/licenses/:emp_license_UUID", async (req, res) => {
-    const emp_license_UUID = parseUuid(req.params.emp_license_UUID, "license ID");
+    const emp_license_UUID = parseUuid(
+        req.params.emp_license_UUID,
+        "license ID",
+    );
     const input = parseOrThrow(updateLicenseSchema, req.body);
-    res.json(await updateLicense(emp_license_UUID, input as UpdateLicenseInput, req.user!.emp_UUID));
+    res.json(
+        await updateLicense(
+            emp_license_UUID,
+            input as UpdateLicenseInput,
+            req.user!.emp_UUID,
+        ),
+    );
 });
 
 // DELETE /api/personnel/licenses/:emp_license_UUID
 personnelRouter.delete("/licenses/:emp_license_UUID", async (req, res) => {
-    const emp_license_UUID = parseUuid(req.params.emp_license_UUID, "license ID");
+    const emp_license_UUID = parseUuid(
+        req.params.emp_license_UUID,
+        "license ID",
+    );
     res.json(await deleteLicense(emp_license_UUID, req.user!.emp_UUID));
 });
 
@@ -155,21 +172,32 @@ personnelRouter.get("/availability", async (req, res) => {
 
 // GET /api/personnel/availability/:availability_UUID
 personnelRouter.get("/availability/:availability_UUID", async (req, res) => {
-    const availability_UUID = parseUuid(req.params.availability_UUID, "availability ID");
+    const availability_UUID = parseUuid(
+        req.params.availability_UUID,
+        "availability ID",
+    );
     res.json(await getAvailability(availability_UUID));
 });
 
 // PATCH /api/personnel/availability/:availability_UUID
 // body: { status?, notes? }
 personnelRouter.patch("/availability/:availability_UUID", async (req, res) => {
-    const availability_UUID = parseUuid(req.params.availability_UUID, "availability ID");
+    const availability_UUID = parseUuid(
+        req.params.availability_UUID,
+        "availability ID",
+    );
     const input = parseOrThrow(updateAvailabilitySchema, req.body);
-    res.json(await updateAvailability(availability_UUID, input, req.user!.emp_UUID));
+    res.json(
+        await updateAvailability(availability_UUID, input, req.user!.emp_UUID),
+    );
 });
 
 // DELETE /api/personnel/availability/:availability_UUID
 personnelRouter.delete("/availability/:availability_UUID", async (req, res) => {
-    const availability_UUID = parseUuid(req.params.availability_UUID, "availability ID");
+    const availability_UUID = parseUuid(
+        req.params.availability_UUID,
+        "availability ID",
+    );
     res.json(await deleteAvailability(availability_UUID, req.user!.emp_UUID));
 });
 
@@ -186,10 +214,14 @@ personnelRouter.post("/documents", async (req, res) => {
 // POST /api/personnel/documents/upload (multipart/form-data with file)
 // fields: emp_UUID, kind, name, reference?, date_issued, expiry_date?, renewal_date?, remarks?
 // file: "file"
-personnelRouter.post("/documents/upload", upload.single("file"), async (req, res) => {
-    const input = parseOrThrow(createDocumentSchema, req.body);
-    res.status(201).json(await createDocumentWithFile(input, req.file));
-});
+personnelRouter.post(
+    "/documents/upload",
+    upload.single("file"),
+    async (req, res) => {
+        const input = parseOrThrow(createDocumentSchema, req.body);
+        res.status(201).json(await createDocumentWithFile(input, req.file));
+    },
+);
 
 // GET /api/personnel/documents/file/:filename - serve uploaded file
 personnelRouter.get("/documents/file/:filename", async (req, res) => {

@@ -159,12 +159,15 @@ export default function DecommissionedPartsPage() {
             </Card>
 
             {selected_item && (
-                <InventoryLifecycleDialog item={selected_item} restore
+                <InventoryLifecycleDialog
+                    item={selected_item}
+                    restore
                     on_close={() => set_selected_item(null)}
                     on_saved={() => {
                         restore_item(selected_item.part_UUID);
                         set_selected_item(null);
-                    }} />
+                    }}
+                />
             )}
         </section>
     );

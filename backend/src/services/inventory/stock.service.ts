@@ -21,7 +21,10 @@ import {
 
 export const setStockSchema = z
     .object({
-        quantity: quantityField("Quantity").min(0, "Quantity cannot be negative"),
+        quantity: quantityField("Quantity").min(
+            0,
+            "Quantity cannot be negative",
+        ),
         remarks: remarksField.optional(),
     })
     .strict();
@@ -64,7 +67,11 @@ export async function setStock(
         let status_UUID: string;
         if (!row) {
             const created = await tx.inventoryStatus.create({
-                data: { part_UUID, location_UUID, current_quantity: input.quantity },
+                data: {
+                    part_UUID,
+                    location_UUID,
+                    current_quantity: input.quantity,
+                },
             });
             status_UUID = created.status_UUID;
         } else {

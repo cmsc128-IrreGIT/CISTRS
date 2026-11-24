@@ -8,7 +8,10 @@ export type TableColumn<T> = {
     cell_class_name?: string;
 };
 
-export type TableRowHighlight = { id: string; ref: RefCallback<HTMLTableRowElement> };
+export type TableRowHighlight = {
+    id: string;
+    ref: RefCallback<HTMLTableRowElement>;
+};
 
 type DataTableProps<T> = {
     columns: TableColumn<T>[];
@@ -47,7 +50,9 @@ export default function DataTable<T>({
             <table className="w-full text-left text-sm">
                 <caption className="sr-only">{caption}</caption>
 
-                <thead className={`sticky top-0 z-10 ${inventory ? "bg-[#152e45] text-white" : "bg-[#f4f6f9] text-[#526273]"}`}>
+                <thead
+                    className={`sticky top-0 z-10 ${inventory ? "bg-[#152e45] text-white" : "bg-[#f4f6f9] text-[#526273]"}`}
+                >
                     <tr>
                         {columns.map((column) => (
                             <th
@@ -61,7 +66,9 @@ export default function DataTable<T>({
                     </tr>
                 </thead>
 
-                <tbody className={`divide-y divide-slate-200 ${inventory && rows.length ? "bg-[#f4f6f9]" : "bg-white"}`}>
+                <tbody
+                    className={`divide-y divide-slate-200 ${inventory && rows.length ? "bg-[#f4f6f9]" : "bg-white"}`}
+                >
                     {rows.length === 0 ? (
                         <tr>
                             <td colSpan={columns.length}>
@@ -77,7 +84,11 @@ export default function DataTable<T>({
                         rows.map((row) => (
                             <tr
                                 key={get_row_key(row)}
-                                ref={highlight_row?.id === get_row_key(row) ? highlight_row.ref : undefined}
+                                ref={
+                                    highlight_row?.id === get_row_key(row)
+                                        ? highlight_row.ref
+                                        : undefined
+                                }
                                 className="hover:bg-slate-50"
                             >
                                 {columns.map((column) => (

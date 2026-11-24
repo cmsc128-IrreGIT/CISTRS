@@ -42,7 +42,10 @@ export function create_notifications_store(
     };
 }
 
-const preview_inboxes = new Map<string, ReturnType<typeof create_notifications_store>>();
+const preview_inboxes = new Map<
+    string,
+    ReturnType<typeof create_notifications_store>
+>();
 
 export function notification_inbox(account_id: string) {
     const existing = preview_inboxes.get(account_id);

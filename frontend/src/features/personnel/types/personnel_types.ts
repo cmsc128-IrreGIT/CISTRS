@@ -22,7 +22,9 @@ export type PersonnelEmployeeResponse = {
     record_status?: string | null;
     base?: { base_name: string } | null;
     employment_status?: { status_name: string } | null;
-    contacts?: { contact?: { contact_type: string; contact_value: string } | null }[];
+    contacts?: {
+        contact?: { contact_type: string; contact_value: string } | null;
+    }[];
     licenses?: PersonnelLicense[];
 };
 
@@ -47,7 +49,8 @@ export type PersonnelRecord = PersonnelFormValues & {
 
 export type LookupItem = { id: string; name: string };
 
-export type PersonnelDocumentKind = "License" | "Training" | "Medical" | "Company ID" | "Other";
+export type PersonnelDocumentKind =
+    "License" | "Training" | "Medical" | "Company ID" | "Other";
 
 export type PersonnelDocument = {
     id: string;

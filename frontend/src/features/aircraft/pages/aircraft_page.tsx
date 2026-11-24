@@ -45,11 +45,16 @@ export default function AircraftPage() {
     return (
         <section aria-labelledby="page_title" className="space-y-4">
             <AircraftBreadcrumbs />
-            <h1 id="page_title" className="sr-only">Aircraft</h1>
+            <h1 id="page_title" className="sr-only">
+                Aircraft
+            </h1>
             <Card>
                 <div className="filter-toolbar mb-4 rounded-lg bg-slate-50 p-3">
                     <div className="filter-toolbar-search grid gap-1.5">
-                        <p aria-hidden="true" className="text-sm text-slate-700">
+                        <p
+                            aria-hidden="true"
+                            className="text-sm text-slate-700"
+                        >
                             Search aircraft
                         </p>
                         <SearchInput

@@ -14,7 +14,8 @@ export default function MaintenanceDetailsPage() {
     const { maintenance_id } = useParams();
     const [params] = useSearchParams();
     const rows = useMaintenance();
-    const can_open_aircraft = useContext(AuthContext)?.user?.features.includes("Aircraft") ?? true;
+    const can_open_aircraft =
+        useContext(AuthContext)?.user?.features.includes("Aircraft") ?? true;
     const aircraft = useAircraft();
     const record = rows.find((row) => row.id === maintenance_id);
     if (!record)
@@ -37,7 +38,12 @@ export default function MaintenanceDetailsPage() {
     if (record.performed_date) {
         const next = new URLSearchParams(params);
         next.set("record", record.id);
-        return <Navigate replace to={{ pathname: "/maintenance", search: next.toString() }} />;
+        return (
+            <Navigate
+                replace
+                to={{ pathname: "/maintenance", search: next.toString() }}
+            />
+        );
     }
 
     const associated = aircraft.find(
@@ -76,16 +82,17 @@ export default function MaintenanceDetailsPage() {
                         {
                             id: "aircraft",
                             label: "Aircraft",
-                            value: associated && can_open_aircraft ? (
-                                <Link
-                                    className="text-link"
-                                    to={`/aircraft/${associated.id}`}
-                                >
-                                    {record.aircraft}
-                                </Link>
-                            ) : (
-                                record.aircraft || "Not recorded"
-                            ),
+                            value:
+                                associated && can_open_aircraft ? (
+                                    <Link
+                                        className="text-link"
+                                        to={`/aircraft/${associated.id}`}
+                                    >
+                                        {record.aircraft}
+                                    </Link>
+                                ) : (
+                                    record.aircraft || "Not recorded"
+                                ),
                         },
                         {
                             id: "part",

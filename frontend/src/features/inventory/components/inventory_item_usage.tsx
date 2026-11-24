@@ -11,8 +11,10 @@ export default function InventoryItemUsage({
     part_number: string;
 }) {
     const records = useMaintenance();
-    const can_view_maintenance = useContext(AuthContext)?.user?.features.includes("Maintenance") ?? true;
-    if (!can_view_maintenance) return <EmptyState title="Maintenance access required" />;
+    const can_view_maintenance =
+        useContext(AuthContext)?.user?.features.includes("Maintenance") ?? true;
+    if (!can_view_maintenance)
+        return <EmptyState title="Maintenance access required" />;
     const related = records.filter((row) => row.part_number === part_number);
     if (!related.length) {
         return (

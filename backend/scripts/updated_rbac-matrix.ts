@@ -1,4 +1,3 @@
-
 // Position-based RBAC check.
 // Run the API first (npm run dev), then: npm run test:rbac
 //
@@ -14,8 +13,7 @@ import "dotenv/config";
 
 const API = process.env.API_URL ?? "http://localhost:5000";
 const PASSWORD = process.env.SEED_DEFAULT_PASSWORD;
-const ADMIN_USERNAME =
-    process.env.RBAC_ADMIN_USERNAME ?? "adrian.reyes";
+const ADMIN_USERNAME = process.env.RBAC_ADMIN_USERNAME ?? "adrian.reyes";
 
 if (!PASSWORD) {
     throw new Error("SEED_DEFAULT_PASSWORD is not set in .env");
@@ -172,11 +170,7 @@ const ROUTES: RouteCase[] = [
 let checks = 0;
 let failures = 0;
 
-function check(
-    label: string,
-    actual: unknown,
-    expected: unknown,
-) {
+function check(label: string, actual: unknown, expected: unknown) {
     checks++;
 
     if (actual !== expected) {
@@ -196,16 +190,12 @@ async function call(
     const res = await fetch(`${API}${path}`, {
         method,
         headers: {
-            ...(token
-                ? { Authorization: `Bearer ${token}` }
-                : {}),
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
             ...(body !== undefined
                 ? { "Content-Type": "application/json" }
                 : {}),
         },
-        body: body !== undefined
-            ? JSON.stringify(body)
-            : undefined,
+        body: body !== undefined ? JSON.stringify(body) : undefined,
     });
 
     const json = await res.json().catch(() => null);
@@ -217,20 +207,13 @@ async function call(
 }
 
 async function login(username: string): Promise<string> {
-    const { status, json } = await call(
-        "POST",
-        "/api/auth/login",
-        undefined,
-        {
-            username,
-            password: PASSWORD,
-        },
-    );
+    const { status, json } = await call("POST", "/api/auth/login", undefined, {
+        username,
+        password: PASSWORD,
+    });
 
     if (status !== 200) {
-        throw new Error(
-            `Login failed for ${username} (HTTP ${status})`,
-        );
+        throw new Error(`Login failed for ${username} (HTTP ${status})`);
     }
 
     return json.token as string;
@@ -251,11 +234,7 @@ async function main() {
             route.body,
         );
 
-        check(
-            `${route.method} ${route.path} without token`,
-            status,
-            401,
-        );
+        check(`${route.method} ${route.path} without token`, status, 401);
     }
 
     check(
@@ -278,11 +257,7 @@ async function main() {
 
     const adminToken = await login(ADMIN_USERNAME);
 
-    const accountResponse = await call(
-        "GET",
-        "/api/users",
-        adminToken,
-    );
+    const accountResponse = await call("GET", "/api/users", adminToken);
 
     check(
         "administrator can retrieve user accounts",
@@ -298,11 +273,7 @@ async function main() {
 
     const users = accountResponse.json as UserAccount[];
 
-    check(
-        "user account list is not empty",
-        users.length > 0,
-        true,
-    );
+    check("user account list is not empty", users.length > 0, true);
 
     for (const user of users) {
         check(
@@ -351,17 +322,9 @@ async function main() {
         }
 
         // Check the current user's access information.
-        const meResponse = await call(
-            "GET",
-            "/api/auth/me",
-            token,
-        );
+        const meResponse = await call("GET", "/api/auth/me", token);
 
-        check(
-            `${user.username}: /me returns 200`,
-            meResponse.status,
-            200,
-        );
+        check(`${user.username}: /me returns 200`, meResponse.status, 200);
 
         if (meResponse.status !== 200) {
             continue;
@@ -410,9 +373,7 @@ async function main() {
         for (const route of ROUTES) {
             const hasFeature = me.features.includes(route.feature);
 
-            const expectedStatus = hasFeature
-                ? route.permittedStatus
-                : 403;
+            const expectedStatus = hasFeature ? route.permittedStatus : 403;
 
             const { status } = await call(
                 route.method,
@@ -445,13 +406,7 @@ async function main() {
 
     check(
         "GET /api/users/roles is removed",
-        (
-            await call(
-                "GET",
-                "/api/users/roles",
-                adminToken,
-            )
-        ).status,
+        (await call("GET", "/api/users/roles", adminToken)).status,
         404,
     );
 

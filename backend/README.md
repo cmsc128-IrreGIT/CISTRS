@@ -23,6 +23,7 @@ All team members use their **own local PostgreSQL server**. Prisma migrations ke
 ---
 
 # Schema / ERD
+
 ![CISTRS Schema/ERD](schema.svg)
 
 ---
@@ -370,20 +371,20 @@ To reload edited values or start clean, reset the database (see "Reset Your Loca
 
 ### Seeded data
 
-| Table                     | Rows | Table                     | Rows |
-| ------------------------- | ---: | ------------------------- | ---: |
-| `base`                    |    3 | `part`                    |    8 |
-| `employment_status`       |    5 | `inventory_location`      |    4 |
-| `personnel_category`      |    5 | `part_supplier`           |    9 |
-| `employee`                |    8 | `part_manufacturer`       |    8 |
-| `contact`                 |   24 | `inventory_status`        |   16 |
-| `employee_contact`        |   16 | `inventory_transaction`   |   21 |
-| `license_type`            |    6 | `organization_contact`    |    6 |
-| `renewal_status`          |    5 | `user_account`            |    8 |
-| `employee_license`        |   10 | `position`                |    8 |
-| `organization`            |    6 | `system_feature`          |    9 |
-| `supplier`                |    4 | `position_feature_access` |   33 |
-| `manufacturer`            |    4 |                           |      |
+| Table                | Rows | Table                     | Rows |
+| -------------------- | ---: | ------------------------- | ---: |
+| `base`               |    3 | `part`                    |    8 |
+| `employment_status`  |    5 | `inventory_location`      |    4 |
+| `personnel_category` |    5 | `part_supplier`           |    9 |
+| `employee`           |    8 | `part_manufacturer`       |    8 |
+| `contact`            |   24 | `inventory_status`        |   16 |
+| `employee_contact`   |   16 | `inventory_transaction`   |   21 |
+| `license_type`       |    6 | `organization_contact`    |    6 |
+| `renewal_status`     |    5 | `user_account`            |    8 |
+| `employee_license`   |   10 | `position`                |    8 |
+| `organization`       |    6 | `system_feature`          |    9 |
+| `supplier`           |    4 | `position_feature_access` |   33 |
+| `manufacturer`       |    4 |                           |      |
 
 Tables added by the updated schema (`emergency_contact`, `medical_certificate`, `training_*`, `aircraft*`, `ad_record`, `cpcp_task`, `flight_*`, `delay_category`, `fuel_transaction`) are present in `seed.json` as empty arrays. The seeder skips empty tables, so add rows there when demo data is needed.
 
@@ -411,6 +412,7 @@ Use `daniel.mendoza` to test that your login rejects inactive accounts.
 # 11. Verify the Database with Prisma Studio
 
 Run:
+
 ```bash
 npx prisma migrate status
 ```
@@ -518,22 +520,22 @@ Follow this workflow whenever someone modifies `prisma/schema.prisma`.
 2. Update `src/seeder/seed.json` and `src/seeder/seed.ts` if the changes affect seed data.
 3. Create a migration:
 
-   ```bash
-   npx prisma migrate dev --name describe_your_changes
-   ```
+    ```bash
+    npx prisma migrate dev --name describe_your_changes
+    ```
 
 4. Generate Prisma Client:
 
-   ```bash
-   npx prisma generate
-   ```
+    ```bash
+    npx prisma generate
+    ```
 
 5. Test the migration and seeder.
 6. Commit the following files:
 
-   - `prisma/schema.prisma`
-   - The new migration folder
-   - Updated seeder files, if applicable
+    - `prisma/schema.prisma`
+    - The new migration folder
+    - Updated seeder files, if applicable
 
 ### Every teammate after pulling schema changes
 

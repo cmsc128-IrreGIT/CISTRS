@@ -25,9 +25,7 @@ it("shows maintenance only for the selected aircraft and supports an empty selec
     expect(
         screen.queryByRole("cell", { name: "100-hour inspection" }),
     ).not.toBeInTheDocument();
-    expect(
-        screen.getByText("No maintenance work records"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("No maintenance work records")).toBeInTheDocument();
 });
 it("identifies the aircraft, condition, date, and notes in a maintenance details view", () => {
     render(

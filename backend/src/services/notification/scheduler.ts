@@ -26,7 +26,9 @@ function msUntilNextScan(): number {
 async function safeScan(): Promise<void> {
     try {
         const created = await runDailyScan();
-        console.log(`[notifications] Daily scan created ${created} notification(s).`);
+        console.log(
+            `[notifications] Daily scan created ${created} notification(s).`,
+        );
     } catch (error) {
         console.error("[notifications] Daily scan failed:", error);
     }
@@ -44,7 +46,9 @@ function scheduleNextScan(): void {
 // Run ONE backend instance only, or every instance will run these jobs.
 export function startNotificationScheduler(): void {
     if (!env.notificationJobsEnabled) {
-        console.log("[notifications] Background jobs are OFF (NOTIFICATION_JOBS=off).");
+        console.log(
+            "[notifications] Background jobs are OFF (NOTIFICATION_JOBS=off).",
+        );
         return;
     }
 

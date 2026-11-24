@@ -81,15 +81,24 @@ export function dueInfo(
     const days =
         dueDate === null
             ? null
-            : Math.round((Date.parse(dueDate) - Date.parse(todayUtc())) / 86_400_000);
+            : Math.round(
+                  (Date.parse(dueDate) - Date.parse(todayUtc())) / 86_400_000,
+              );
     const hours =
-        dueHours === null ? null : Math.round((dueHours - currentHours) * 100) / 100;
+        dueHours === null
+            ? null
+            : Math.round((dueHours - currentHours) * 100) / 100;
 
-    const overdue = (days !== null && days < 0) || (hours !== null && hours < 0);
+    const overdue =
+        (days !== null && days < 0) || (hours !== null && hours < 0);
     const scheduled = dueDate !== null || dueHours !== null;
 
     return {
-        due_status: overdue ? "Overdue" : scheduled ? "Current" : "Not Scheduled",
+        due_status: overdue
+            ? "Overdue"
+            : scheduled
+              ? "Current"
+              : "Not Scheduled",
         overdue,
         days_until_due: days,
         hours_until_due: hours,

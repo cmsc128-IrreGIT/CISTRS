@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { useOutletContext } from "react-router";
-import { account_previews, save_account_preview } from "../data/user_management_store";
+import {
+    account_previews,
+    save_account_preview,
+} from "../data/user_management_store";
 import { list_accounts } from "../services/user_account_service";
 import type { AccountAccessPreview, UserAccount } from "../types/user_account";
 
@@ -18,7 +21,12 @@ export function useUserAccounts(owner: string) {
                 if (!controller.signal.aborted) set_accounts(rows);
             })
             .catch((cause: unknown) => {
-                if (!controller.signal.aborted) set_error(cause instanceof Error ? cause : new Error("Unable to load accounts."));
+                if (!controller.signal.aborted)
+                    set_error(
+                        cause instanceof Error
+                            ? cause
+                            : new Error("Unable to load accounts."),
+                    );
             })
             .finally(() => {
                 if (!controller.signal.aborted) set_loading(false);
@@ -33,7 +41,8 @@ export function useUserAccounts(owner: string) {
     }
 
     function save_preview(account_id: string, preview: AccountAccessPreview) {
-        if (account_id !== owner) set_previews(save_account_preview(owner, account_id, preview));
+        if (account_id !== owner)
+            set_previews(save_account_preview(owner, account_id, preview));
     }
 
     return { accounts, previews, loading, error, reload, save_preview, owner };
