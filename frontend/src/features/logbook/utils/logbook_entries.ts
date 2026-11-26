@@ -1,9 +1,6 @@
 // import type { LogbookCondition, LogbookEntry } from "../types/logbook_types";
 import type { LogbookEmployee, LogbookEntry } from "../types/logbook_types";
 
-export const logbook_primary = "bg-[#0b2238]! hover:bg-[#193951]!";
-export const logbook_breadcrumb_title = "Aircraft logbook";
-
 const entry_date_format = new Intl.DateTimeFormat("en-GB", {
     day: "numeric", month: "short", year: "numeric", timeZone: "UTC",
 });

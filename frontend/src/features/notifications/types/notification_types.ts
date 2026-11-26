@@ -10,6 +10,9 @@ export type NotificationRecord = {
     record_id?: string;
     created_at: string;
     read_at: string | null;
+    severity?: "Info" | "Warning" | "Critical";
+    event_code?: string;
+    notification_UUID?: string;
 };
 
 // A delivery attempt is separate from the recipient's in-app notification.
@@ -27,5 +30,5 @@ export type NotificationDelivery = {
 export type NotificationService = {
     list: () => Promise<NotificationRecord[]>;
     set_read: (id: string, is_read: boolean) => Promise<void>;
-    mark_all_read: () => Promise<void>;
+    mark_all_read: (category?: NotificationCategory) => Promise<void>;
 };

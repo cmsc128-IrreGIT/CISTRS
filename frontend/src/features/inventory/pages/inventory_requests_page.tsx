@@ -14,7 +14,7 @@ import { AuthContext } from "../../auth/hooks/auth_context";
 import { InventoryBreadcrumbs, InventoryTabs } from "../components/inventory_workspace";
 import { RequestDetailsDialog, RequestResultDialog, RequestStockDialog } from "../components/inventory_request_dialog";
 import { WorkflowError } from "../components/inventory_workflow_fields";
-import { INVENTORY_CORRECTIONS_PATH, INVENTORY_PRIMARY_ACTION } from "../constants/inventory_constants";
+import { INVENTORY_CORRECTIONS_PATH} from "../constants/inventory_constants";
 import {
     INVENTORY_REQUEST_PAGE_COPY,
     REQUEST_PREVIEW_NOTICE,
@@ -25,6 +25,7 @@ import { useInventoryRequestPreviews } from "../hooks/use_inventory_request_prev
 import type { InventoryRequestPreview } from "../types/inventory_types";
 import { can_review_inventory_requests, inventory_location_label, inventory_request_date } from "../utils/inventory_workflows";
 import InventoryCorrectionsPage from "./inventory_corrections_page";
+import { button_styles } from "../../../shared/styles/button_styles";
 
 export default function InventoryRequestsPage({
     correction = false,
@@ -76,7 +77,7 @@ function InventoryRequestPreviewsPage({
             <StatusBadge tone={row.status === "APPROVED" ? "success" : "warning"}>{REQUEST_STATUS_LABELS[row.status]}</StatusBadge>
         ) },
         { id: "action", header: "Action", render: (row) => (
-            <Button variant="ghost" className="underline underline-offset-4" onClick={() => set_selected(row)}>
+            <Button variant="ghost" className="text-link" onClick={() => set_selected(row)}>
                 {row.status === "PENDING" && can_review ? "Review" : "View details"}
             </Button>
         ) },
@@ -91,7 +92,7 @@ function InventoryRequestPreviewsPage({
                 <p className="mb-4 rounded-md bg-blue-50 p-3 text-sm text-slate-700">{REQUEST_PREVIEW_NOTICE}</p>
                 {!correction && (
                     <div className="mb-4 flex justify-end">
-                        <Button className={INVENTORY_PRIMARY_ACTION} disabled={!items.length}
+                        <Button className={button_styles("primary")} disabled={!items.length}
                             onClick={() => set_creating(true)}><Plus size={16} aria-hidden="true" /> Request stock</Button>
                     </div>
                 )}

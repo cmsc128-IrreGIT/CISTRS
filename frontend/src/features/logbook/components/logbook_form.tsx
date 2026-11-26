@@ -9,7 +9,7 @@ import DetailsList from "../../../shared/components/ui/details_list";
 import { INVENTORY_FORM_INPUT } from "../../inventory/constants/inventory_form_constants";
 import type { PersonnelEmployeeResponse } from "../../personnel/types/personnel_types";
 import type { LogbookEntry, LogbookEmployee, LogbookFormValues, LogbookFuelDraft, LogbookFuelInput, LogbookAircraft, LogbookReference, LogbookSectorInput } from "../types/logbook_types";
-import { employee_name, logbook_primary } from "../utils/logbook_entries";
+import { employee_name } from "../utils/logbook_entries";
 
 type Props = {
     initial_values?: LogbookEntry;
@@ -52,7 +52,7 @@ export default function LogbookForm({
     flight_status_options,
     flight_type_options,
     delay_category_options,
-    lookup_error,
+    //lookup_error,
     on_submit,
     cancel_to = "/logbook",
 }: Props) {
@@ -305,9 +305,9 @@ export default function LogbookForm({
                 <h3 ref={step_heading} tabIndex={-1} className="text-sm font-semibold text-[#0b2238] focus:outline-none">Step {step + 1} of 4: {steps[step]}</h3>
                 {step < 3 && <p className="text-xs text-slate-600"><span className="text-red-700">*</span> indicates a required field.</p>}
                 {error && <p role="alert" className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-800">{error}</p>}
-                {lookup_error && <p role="alert" className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-800">Could not load flight lookup options: {lookup_error}</p>}
+                {/* {lookup_error && <p role="alert" className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-800">Could not load flight lookup options: {lookup_error}</p>}
                 {!lookup_error && !has_lookup_options && <p role="status" className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-900">No flight status or type options were returned by the lookup service.</p>}
-                {!aircraft_options.length && <p role="status" className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-900">No aircraft are available. Your account may not have access to the aircraft list.</p>}
+                {!aircraft_options.length && <p role="status" className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-900">No aircraft are available. Your account may not have access to the aircraft list.</p>} */}
                 <fieldset data-logbook-step="0" disabled={saving} hidden={step !== 0} className={`${step === 0 ? "grid" : "hidden"} min-w-0 gap-3 sm:grid-cols-2`}>
                     <legend className="sr-only">General Flight Details</legend>
                     <FormField label="Aircraft" required>
@@ -437,7 +437,7 @@ export default function LogbookForm({
             <div className="sticky bottom-0 z-10 flex flex-wrap justify-end gap-2 border-t border-slate-200 bg-white px-4 py-3 sm:px-5">
                 <Link to={cancel_to} className="mr-auto min-h-11 rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700">Cancel</Link>
                 {step > 0 && <Button type="button" variant="secondary" disabled={saving} onClick={() => { set_step((current) => current - 1); set_error(""); }}>Back</Button>}
-                <Button type="submit" is_loading={saving} disabled={loading_employees || !has_lookup_options || !aircraft_options.length} className={`min-w-28 ${logbook_primary}`}>{step < 2 ? "Next" : step === 2 ? "Review entry" : initial_values ? "Update entry" : "Save entry"}</Button>
+                <Button type="submit" is_loading={saving} disabled={loading_employees || !has_lookup_options || !aircraft_options.length} className="min-w-28">{step < 2 ? "Next" : step === 2 ? "Review entry" : initial_values ? "Update entry" : "Save entry"}</Button>
             </div>
         </form>
     );

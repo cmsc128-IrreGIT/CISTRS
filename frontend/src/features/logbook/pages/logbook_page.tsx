@@ -1,7 +1,6 @@
-import WorkspaceTabs from "../../../shared/components/navigation/workspace_tabs";
 import { useMemo, useState } from "react";
 import { Link, Outlet } from "react-router";
-import { BookOpen, Download, Plus } from "lucide-react";
+import { Download, Plus } from "lucide-react";
 import SearchInput from "../../../shared/components/forms/search_input";
 import WorkspaceBreadcrumbs from "../../../shared/components/navigation/workspace_breadcrumbs";
 import ErrorState from "../../../shared/components/feedback/error_state";
@@ -11,13 +10,11 @@ import Card from "../../../shared/components/ui/card";
 import Pagination from "../../../shared/components/ui/pagination";
 import useTablePagination from "../../../shared/hooks/use_table_pagination";
 import { button_styles } from "../../../shared/styles/button_styles";
-import { workspace_tab_style } from "../../../shared/styles/tab_styles";
 import useAircraft from "../../aircraft/hooks/use_aircraft";
 import LogbookExportDialog from "../components/logbook_export_dialog";
 import LogbookTable from "../components/logbook_table";
 import { useLogbookData } from "../hooks/use_logbook";
 import type { LogbookAircraft } from "../types/logbook_types";
-import { logbook_breadcrumb_title, logbook_primary } from "../utils/logbook_entries";
 
 const filter_style = "min-h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm focus-visible:outline-2 focus-visible:outline-[#1d4ed8]";
 
@@ -50,14 +47,9 @@ export default function LogbookPage() {
 
     return (
         <section aria-labelledby="page_title" className="space-y-4">
-            <WorkspaceBreadcrumbs current={logbook_breadcrumb_title} />
-            <h1 id="page_title" className="sr-only">{logbook_breadcrumb_title}</h1>
+            <WorkspaceBreadcrumbs current="Logbook" />
+            <h1 id="page_title" className="sr-only">Logbook</h1>
             <Card>
-                <WorkspaceTabs label="Logbook sections">
-                    <Link to="/logbook" aria-current="page" className={workspace_tab_style(true)}>
-                        <BookOpen size={16} aria-hidden="true" /> Logbook Entries
-                    </Link>
-                </WorkspaceTabs>
                 <div className="filter-toolbar mb-4 rounded-lg bg-slate-50 p-3">
                     <div className="filter-toolbar-search grid gap-1.5">
                         <p aria-hidden="true" className="text-sm text-slate-700">Search entries</p>
@@ -83,7 +75,7 @@ export default function LogbookPage() {
                         <Button variant="secondary" onClick={() => set_export_open(true)} disabled={!records.length}>
                             <Download size={16} aria-hidden="true" /> Export records
                         </Button>
-                        <Link to="/logbook/new" className={button_styles("primary", logbook_primary)}>
+                        <Link to="/logbook/new" className={button_styles("primary")}>
                             <Plus size={16} aria-hidden="true" /> Add flight
                         </Link>
                     </div>

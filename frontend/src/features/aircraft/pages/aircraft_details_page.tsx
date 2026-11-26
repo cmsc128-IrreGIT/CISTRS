@@ -1,5 +1,5 @@
 import WorkspaceTabs from "../../../shared/components/navigation/workspace_tabs";
-import { ClipboardCheck, FileText, History, Info, Pencil, Plane, Wrench } from "lucide-react";
+import { ClipboardCheck, FileText, History, Info, Package, Pencil, Plane, Wrench } from "lucide-react";
 import { useContext } from "react";
 import { AuthContext } from "../../auth/hooks/auth_context";
 import { Link, useParams, useSearchParams } from "react-router";
@@ -10,6 +10,7 @@ import { button_styles } from "../../../shared/styles/button_styles";
 import { workspace_tab_style } from "../../../shared/styles/tab_styles";
 // import MaintenanceTable from "../../maintenance/components/maintenance_table"; 
 import AircraftMaintenanceRecords from "../components/aircraft_maintenance";
+import AircraftInventory from "../components/aircraft_inventory";
 // import useMaintenance from "../../maintenance/hooks/use_maintenance"; 
 import AircraftBreadcrumbs from "../components/aircraft_breadcrumbs";
 import { AircraftCompliance, AircraftDocuments, AircraftStatusHistory } from "../components/aircraft_record_tables";
@@ -21,6 +22,7 @@ import ErrorState from "../../../shared/components/feedback/error_state";
 const sections = [
     { id: "information", label: "Aircraft Information", icon: Info },
     { id: "maintenance", label: "Maintenance", icon: Wrench },
+    { id: "parts", label: "Assigned parts", icon: Package },
     { id: "status-history", label: "Status History", icon: History },
     { id: "compliance", label: "Compliance", icon: ClipboardCheck },
     { id: "documents", label: "Documents", icon: FileText },
@@ -30,7 +32,9 @@ export default function AircraftDetailsPage() {
     const { aircraft_id } = useParams();
     const [params] = useSearchParams();
     const { aircraft: rows, loading, error, reload } = useAircraftData();
-    const can_view_maintenance = useContext(AuthContext)?.user?.features.includes("Maintenance") ?? true;
+    const features = useContext(AuthContext)?.user?.features;
+    const can_view_maintenance = features?.includes("Maintenance") ?? true;
+    const can_view_parts = features?.includes("Inventory") ?? false;
     const record = rows.find((row) => row.id === aircraft_id);
 
     if (loading) return <Card><ScreenLoading label="Loading aircraft..." /></Card>;
@@ -50,7 +54,8 @@ export default function AircraftDetailsPage() {
         );
     }
 
-    const available_sections = sections.filter(({ id }) => id !== "maintenance" || can_view_maintenance);
+    const available_sections = sections.filter(({ id }) =>
+        (id !== "maintenance" || can_view_maintenance) && (id !== "parts" || can_view_parts));
     const active = available_sections.find((section) => section.id === params.get("tab")) ?? sections[0];
     const path = `/aircraft/${record.id}`;
     // const tasks = maintenance.filter((row) => record.registration && row.aircraft === record.registration);
@@ -118,6 +123,7 @@ export default function AircraftDetailsPage() {
                     </div>
                 )}
                 {active.id === "status-history" && <AircraftStatusHistory aircraft_id={record.id} />}
+                {active.id === "parts" && <AircraftInventory key={record.id} aircraft_id={record.id} />}
                 {active.id === "compliance" && <AircraftCompliance />}
                 {active.id === "documents" && <AircraftDocuments key={record.id} registration={record.registration} />}
             </Card>

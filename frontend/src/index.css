@@ -69,6 +69,7 @@
 }
 
 .text-link {
+    cursor: pointer;
     color: #0b2238;
     text-decoration: underline;
     text-underline-offset: 0.25em;

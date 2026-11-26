@@ -7,7 +7,7 @@ import DetailsList from "../../../shared/components/ui/details_list";
 import FormDialog from "../../../shared/components/ui/form_dialog";
 import { logbook_service } from "../services/logbook_service";
 import type { LogbookAircraft, LogbookEntry } from "../types/logbook_types";
-import { entry_date, logbook_primary } from "../utils/logbook_entries";
+import { entry_date } from "../utils/logbook_entries";
 
 type PreparedExport = Awaited<ReturnType<typeof logbook_service.prepare_export>>;
 
@@ -128,7 +128,7 @@ export default function LogbookExportDialog({
                     </div>
                     <div className="flex flex-wrap justify-end gap-2 border-t border-slate-200 p-4 sm:px-5">
                         <Button variant="secondary" className="mr-auto" onClick={on_close}>Cancel</Button>
-                        <Button type="submit" className={logbook_primary}>Prepare report</Button>
+                        <Button type="submit">Prepare report</Button>
                     </div>
                 </form>
             ) : (
@@ -150,12 +150,12 @@ export default function LogbookExportDialog({
                     <div className="flex flex-wrap justify-end gap-2 border-t border-slate-200 p-4 sm:px-5">
                         <Button variant="secondary" className={stage === "ready" ? undefined : "mr-auto"} onClick={on_close}>{stage === "ready" ? "Close" : "Cancel"}</Button>
                         {stage === "preparing" && <Button is_loading>Preparing...</Button>}
-                        {stage === "ready" && <Button className={logbook_primary} onClick={() => open_report(state.report)}>
+                        {stage === "ready" && <Button onClick={() => open_report(state.report)}>
                             Download CSV
                         </Button>}
                         {(stage === "empty" || stage === "failed") && <Button variant="secondary" onClick={() => set_state({ stage: "criteria" })}>Change criteria</Button>}
-                        {stage === "failed" && <Button className={logbook_primary} onClick={prepare}>Try again</Button>}
-                        {stage === "download_failed" && <Button className={logbook_primary} onClick={() => open_report(state.report)}>Try again</Button>}
+                        {stage === "failed" && <Button onClick={prepare}>Try again</Button>}
+                        {stage === "download_failed" && <Button onClick={() => open_report(state.report)}>Try again</Button>}
                     </div>
                 </>
             )}

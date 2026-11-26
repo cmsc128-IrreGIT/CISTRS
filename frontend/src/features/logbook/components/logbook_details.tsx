@@ -76,7 +76,7 @@ export default function LogbookDetails({ entry }: { entry: LogbookEntry }) {
                     { id: "recipient", header: "Issued to", render: (row) => employee_name(row.issued_to) },
                     { id: "recorder", header: "Recorded by", render: (row) => employee_name(row.recorded_by) },
                     { id: "remarks", header: "Remarks", render: (row) => row.remarks || "Not recorded" },
-                    { id: "action", header: "Action", render: (row) => <Button variant="ghost" onClick={() => set_fuel_editor({ transaction: row })}>Edit</Button> },
+                    { id: "action", header: "Action", render: (row) => <Button variant="ghost" className="text-link" onClick={() => set_fuel_editor({ transaction: row })}>Edit</Button> },
                 ]} />
             <Pagination {...fuel_footer} item_label="transaction" />
         </div>

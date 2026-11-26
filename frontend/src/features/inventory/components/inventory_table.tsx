@@ -91,7 +91,7 @@ const columns: TableColumn<InventoryItem>[] = [
                 aria-label={`View ${row.part_name}`}
                 className="inline-flex min-h-8 items-center rounded font-semibold text-link"
             >
-                View
+                View details
             </Link>
         ),
     },

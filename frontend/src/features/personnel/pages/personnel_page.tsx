@@ -56,7 +56,7 @@ export default function PersonnelPage() {
         { id: "availability", header: "Availability", render: (row) => <PersonnelStatus availability status={availability.get(row.id)?.status} /> },
         ...(directory.full_access ? [{ id: "action", header: "Action", render: (row: PersonnelRecord) => (
             <Link to={`/personnel/${encodeURIComponent(row.id)}`} aria-label={`View ${row.name}`}
-                className="font-medium text-link">View</Link>
+                className="font-medium text-link">View details</Link>
         ) }] : []),
     ];
 
@@ -92,7 +92,7 @@ export default function PersonnelPage() {
                             <Button variant="ghost" onClick={() => { set_search(""); set_department(""); set_position(""); }}>Clear filters</Button>
                         )}
                         {can_manage && (
-                            <Link to="/personnel/new" className={button_styles("primary", "bg-[#0b2238]! hover:bg-[#193951]!")}>
+                            <Link to="/personnel/new" className={button_styles("primary")}>
                                 <Plus size={16} aria-hidden="true" /> Add personnel
                             </Link>
                         )}

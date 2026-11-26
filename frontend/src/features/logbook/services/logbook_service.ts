@@ -84,7 +84,7 @@ export const logbook_service = {
         return api<LogbookEntry>(`/logbook/sectors/${encodeURIComponent(sector_UUID)}`);
     },
     async get_lookups() {
-        return api<LogbookLookups>("/logbook/lookups");
+        return api<LogbookLookups>("/lookups");
     },
     async create_entry(values: LogbookSectorInput) {
         return replace_record(await api<LogbookEntry>("/logbook/sectors", json_body("POST", values)));

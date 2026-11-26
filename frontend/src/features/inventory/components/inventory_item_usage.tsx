@@ -41,7 +41,7 @@ export default function InventoryItemUsage({
                     { id: "quantity", header: "Quantity on aircraft", render: (row) => `${row.quantity_on_aircraft} ${item.unit_of_measure}` },
                     { id: "employee", header: "Recorded by", render: (row) => row.recorded_by || "Not recorded" },
                     { id: "action", header: "Action", render: (row) => <div className="flex items-center gap-5">
-                        {!read_only && <button type="button" className="min-h-8 cursor-pointer font-semibold underline underline-offset-4" onClick={() => set_selected(row)}>Return</button>}
+                        {!read_only && <button type="button" className="min-h-8 font-semibold text-link" onClick={() => set_selected(row)}>Return</button>}
                     </div> },
                 ]} />}
         </section>

@@ -1,24 +1,30 @@
-import { Pencil } from "lucide-react";
-import { useState } from "react";
+import { Plus } from "lucide-react";
+import { useContext, useState } from "react";
 import { Link } from "react-router";
 import SearchInput from "../../../shared/components/forms/search_input";
 import Card from "../../../shared/components/ui/card";
+import Button from "../../../shared/components/ui/button";
+import { button_styles } from "../../../shared/styles/button_styles";
 import DataTable from "../../../shared/components/ui/data_table";
 import useTablePagination from "../../../shared/hooks/use_table_pagination";
 import Pagination from "../../../shared/components/ui/pagination";
 import AircraftBreadcrumbs from "../components/aircraft_breadcrumbs";
+import AircraftCreateDialog from "../components/aircraft_create_dialog";
 import AircraftStatusBadge from "../components/aircraft_status_badge";
 import ScreenLoading from "../../../shared/components/feedback/screen_loading";
 import ErrorState from "../../../shared/components/feedback/error_state";
 import { useAircraftData } from "../hooks/use_aircraft";
+import { AuthContext } from "../../auth/hooks/auth_context";
 
 const select_field =
     "min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 focus-visible:outline-2 focus-visible:outline-[#1d4ed8]";
 
 export default function AircraftPage() {
-    const { aircraft: rows, statuses: allowed_statuses, loading, error, reload } = useAircraftData();
+    const { aircraft: rows, statuses: allowed_statuses, types, loading, error, reload } = useAircraftData();
+    const can_create = useContext(AuthContext)?.user?.features.includes("User Accounts");
     const [search, set_search] = useState("");
     const [status, set_status] = useState("");
+    const [creating, set_creating] = useState(false);
     const statuses = [...new Set([...allowed_statuses.map((row) => row.status_name), ...rows.map((row) => row.status)])];
     const term = search.trim().toLowerCase();
     const filtered = rows.filter(
@@ -71,6 +77,14 @@ export default function AircraftPage() {
                             ))}
                         </select>
                     </label>
+                    {can_create && (
+                        <div className="filter-toolbar-actions">
+                            <Button onClick={() => set_creating(true)} disabled={loading || Boolean(error)} className={button_styles("primary")}>
+                                <Plus size={18} aria-hidden="true" />
+                                Add aircraft
+                            </Button>
+                        </div>
+                    )}
                 </div>
                 {loading ? <ScreenLoading compact label="Loading aircraft..." /> : error ? <ErrorState description={error} on_retry={reload} /> : <DataTable
                     inventory
@@ -127,15 +141,7 @@ export default function AircraftPage() {
                                         aria-label={`View ${row.registration}`}
                                         className="inline-flex min-h-11 items-center font-medium text-link"
                                     >
-                                        View
-                                    </Link>
-                                    <Link
-                                        to={`/aircraft/${row.id}/status`}
-                                        title="Update status"
-                                        aria-label={`Update status for ${row.registration}`}
-                                        className="inline-flex size-11 items-center justify-center rounded text-[#1d4ed8] hover:bg-blue-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1d4ed8]"
-                                    >
-                                        <Pencil size={18} aria-hidden="true" />
+                                        View details
                                     </Link>
                                 </div>
                             ),
@@ -148,6 +154,9 @@ export default function AircraftPage() {
                     plural_label="aircraft"
                 />}
             </Card>
+            {can_create && creating && (
+                <AircraftCreateDialog types={types} statuses={allowed_statuses} on_close={() => set_creating(false)} />
+            )}
         </section>
     );
 }

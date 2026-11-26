@@ -114,3 +114,11 @@ export type InventoryRequestPreview = {
     created_at: string;
     reviewed_at: string | null;
 };
+
+export type InventoryLookUps = {
+    organizations: { organization_UUID: string; organization_name: string; organization_location: string }[];
+    suppliers: {organization_UUID: string; organization_name: string}[];
+    manufacturers: {organization_UUID: string; organization_name: string}[];
+};
+
+export type LookupItem = { id: string; name: string };

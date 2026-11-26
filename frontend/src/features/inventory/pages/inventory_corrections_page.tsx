@@ -19,7 +19,6 @@ export default function InventoryCorrectionsPage() {
         <h1 id="page_title" className="sr-only">Stock corrections</h1>
         <Card>
             <InventoryTabs />
-            <p className="mb-4 text-sm text-slate-600">Saved stock adjustments appear here. To correct a quantity, open an item and choose Correct stock in Stock history.</p>
             {is_loading ? <ScreenLoading compact label="Loading stock corrections..." /> : error ? <div role="alert"><p className="text-sm text-red-700">{error}</p><Button variant="ghost" onClick={() => void reload()}>Try again</Button></div> : <>
                 <StockMovementTable rows={visible_rows} has_history={rows.length > 0} show_reference={false} on_view={set_selected} />
                 <Pagination {...footer} item_label="adjustment" />

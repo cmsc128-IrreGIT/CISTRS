@@ -1,9 +1,10 @@
 import { api } from "../../../shared/api/client";
-import type { AircraftRecord, AircraftResponse, AircraftStatus, AircraftStatusInput } from "../types/aircraft_types";
+import type { AircraftCreateInput, AircraftRecord, AircraftResponse, AircraftStatus, AircraftStatusInput, AircraftType } from "../types/aircraft_types";
 
-type AircraftState = { aircraft: AircraftRecord[]; statuses: AircraftStatus[]; loading: boolean; error: string };
+type AircraftLookups = { aircraft_statuses: AircraftStatus[]; aircraft_types: AircraftType[] };
+type AircraftState = { aircraft: AircraftRecord[]; statuses: AircraftStatus[]; types: AircraftType[]; loading: boolean; error: string };
 const listeners = new Set<() => void>();
-let state: AircraftState = { aircraft: [], statuses: [], loading: true, error: "" };
+let state: AircraftState = { aircraft: [], statuses: [], types: [], loading: true, error: "" };
 let pending: Promise<void> | null = null;
 let loaded = false;
 const empty_history: import("../../../shared/types/record_types").PreviewRecord[] = [];
@@ -26,8 +27,8 @@ async function load(force = false) {
     if (pending) return pending;
     if (loaded && !force) return;
     publish({ ...state, loading: true, error: "" });
-    pending = Promise.all([api<AircraftResponse[]>("/lookups/aircraft"), api<{ aircraft_statuses: AircraftStatus[] }>("/lookups")])
-        .then(([rows, lookups]) => { loaded = true; publish({ aircraft: rows.map(normalize_aircraft), statuses: lookups.aircraft_statuses, loading: false, error: "" }); })
+    pending = Promise.all([api<AircraftResponse[]>("/lookups/aircraft"), api<AircraftLookups>("/lookups")])
+        .then(([rows, lookups]) => { loaded = true; publish({ aircraft: rows.map(normalize_aircraft), statuses: lookups.aircraft_statuses, types: lookups.aircraft_types ?? [], loading: false, error: "" }); })
         .catch((cause: unknown) => publish({ ...state, loading: false, error: cause instanceof Error ? cause.message : "Could not load aircraft." }))
         .finally(() => { pending = null; });
     return pending;
@@ -38,6 +39,15 @@ export const aircraft_service = {
     subscribe(listener: () => void) { listeners.add(listener); return () => { listeners.delete(listener); }; },
     load: () => load(),
     reload: () => load(true),
+    async create(values: AircraftCreateInput) {
+        const row = await api<AircraftResponse>("/admin/aircraft", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(values),
+        });
+        if (pending) await pending;
+        return replace_aircraft(row);
+    },
     async get_aircraft(id: string, signal?: AbortSignal) {
         const row = await api<AircraftResponse>(`/aircraft/${encodeURIComponent(id)}/status`, { signal });
         if (!signal?.aborted) return replace_aircraft(row);

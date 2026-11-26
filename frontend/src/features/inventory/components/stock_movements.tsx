@@ -138,11 +138,11 @@ export function StockMovementTable({
             render: (row) => (
                 <button
                     type="button"
-                    className="min-h-8 cursor-pointer rounded font-semibold underline underline-offset-4 focus-visible:outline-2"
+                    className="min-h-8 rounded font-semibold text-link focus-visible:outline-2"
                     aria-label={`View movement for ${row.status.part.part_name}`}
                     onClick={() => on_view(row)}
                 >
-                    View
+                    View details
                 </button>
             ),
         },

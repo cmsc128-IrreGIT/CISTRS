@@ -67,9 +67,9 @@ export function AircraftDocuments({ registration }: { registration: string }) {
                         id: "action",
                         header: "Action",
                         render: (row) => (
-                            <Button variant="ghost" className="underline underline-offset-4"
+                            <Button variant="ghost" className="text-link"
                                 aria-label={`View ${row.name}`} onClick={() => set_selected(row)}>
-                                View
+                                View details
                             </Button>
                         ),
                     },

@@ -20,7 +20,6 @@ import useActiveInventory from "../hooks/use_active_inventory";
 import useInventoryFilters from "../hooks/use_inventory_filters";
 
 import {
-    INVENTORY_PRIMARY_ACTION,
     STOCK_FILTER_LABELS,
     STOCK_FILTER_PARAM,
 } from "../constants/inventory_constants";
@@ -107,8 +106,7 @@ export default function InventoryPage() {
                                         to={{ pathname: "new", search: location_search }}
                                         state={{ from_inventory: true }}
                                         className={button_styles(
-                                            "primary",
-                                            INVENTORY_PRIMARY_ACTION,
+                                            "primary"
                                         )}
                                     >
                                         <Plus size={17} aria-hidden="true" />{" "}

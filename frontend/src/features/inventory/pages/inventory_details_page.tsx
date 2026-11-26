@@ -161,7 +161,7 @@ function InventoryDetails({
                                     variant="secondary"
                                     onClick={() => set_decommission_id(item.part_UUID)}
                                 >
-                                    <Archive size={17} aria-hidden="true" /> Decommission part
+                                    <Archive size={17} aria-hidden="true" /> Decommission
                                 </Button>
                             )}
                             <Link

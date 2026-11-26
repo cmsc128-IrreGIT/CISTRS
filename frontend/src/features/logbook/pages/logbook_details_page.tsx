@@ -7,7 +7,7 @@ import ErrorState from "../../../shared/components/feedback/error_state";
 import { button_styles } from "../../../shared/styles/button_styles";
 import LogbookDetails from "../components/logbook_details";
 import { useLogbookData } from "../hooks/use_logbook";
-import { entry_reference, logbook_breadcrumb_title } from "../utils/logbook_entries";
+import { entry_reference } from "../utils/logbook_entries";
 
 export default function LogbookDetailsPage() {
     const { entry_id } = useParams();
@@ -15,12 +15,11 @@ export default function LogbookDetailsPage() {
     const entry = records.find((row) => row.sector_UUID === entry_id);
 
     return (
-        <section aria-labelledby="page_title" className="max-w-5xl space-y-4">
+        <section aria-labelledby="page_title" className="space-y-4">
             <WorkspaceBreadcrumbs
-                parents={[{ label: logbook_breadcrumb_title, to: "/logbook" }]}
+                parents={[{ label: "Logbook", to: "/logbook" }]}
                 current={entry ? entry_reference(entry) : "Entry not found"}
             />
-            <h1 id="page_title" className="text-2xl font-semibold text-[#0b2238]">Logbook Entry Details</h1>
             {is_loading ? <Card><LoadingState message="Loading logbook entry…" /></Card> : error ? (
                 <Card><ErrorState description={error} on_retry={reload} /></Card>
             ) : entry ? <LogbookDetails entry={entry} /> : (

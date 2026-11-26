@@ -11,7 +11,7 @@ import {
     maintenance_work_order_field,
     maintenance_work_types,
 } from "../config/maintenance_config";
-import { format_work_date, linked_stock_note, work_button_style } from "../utils/maintenance_work";
+import { format_work_date, linked_stock_note } from "../utils/maintenance_work";
 
 const input_style = "min-h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-[#1d4ed8]";
 
@@ -52,7 +52,7 @@ export function MaintenanceWorkDetails({ record, on_close }: { record: PreviewRe
                 <WorkSummary record={record} />
             </div>
             <div className="flex justify-end border-t border-slate-200 p-4 sm:px-5">
-                <Button className={work_button_style} onClick={on_close}>Close</Button>
+                <Button onClick={on_close}>Close</Button>
             </div>
         </FormDialog>
     );
@@ -128,7 +128,7 @@ export function MaintenanceWorkDialog({
                     {error && <p role="alert" className="text-sm text-red-700">{error}</p>}
                     <div className="flex flex-wrap justify-end gap-2 border-t border-slate-200 pt-4">
                         <Button variant="secondary" onClick={() => { set_error(""); set_review(false); }}>Back to edit</Button>
-                        <Button className={work_button_style} onClick={() => save_work(draft)}>Save record</Button>
+                        <Button onClick={() => save_work(draft)}>Save record</Button>
                     </div>
                 </div>
             ) : (
@@ -196,7 +196,7 @@ export function MaintenanceWorkDialog({
                     </section>
                     <div className="flex flex-wrap justify-end gap-2 border-t border-slate-200 pt-4">
                         <Button variant="secondary" className="mr-auto" onClick={on_close}>Cancel</Button>
-                        <Button type="submit" className={work_button_style}>Review</Button>
+                        <Button type="submit">Review</Button>
                     </div>
                 </form>
             )}
