@@ -1,4 +1,3 @@
-import MaintenanceDetailsPage from "../features/maintenance/pages/maintenance_details_page";
 import HelpPage from "../shared/pages/help_page";
 import { lazy, Suspense, type ReactNode } from "react";
 import ScreenLoading from "../shared/components/feedback/screen_loading";
@@ -15,7 +14,10 @@ import SignupPage from "../features/auth/pages/signup_page";
 import ForgotPasswordPage from "../features/auth/pages/forgot_password_page";
 import NotFoundPage from "../shared/pages/not_found_page";
 
-import { INVENTORY_CORRECTIONS_PATH, INVENTORY_REQUESTS_PATH } from "../features/inventory/constants/inventory_constants";
+import {
+    INVENTORY_CORRECTIONS_PATH,
+    INVENTORY_REQUESTS_PATH,
+} from "../features/inventory/constants/inventory_constants";
 
 const InventoryPage = lazy(
     () => import("../features/inventory/pages/inventory_page"),
@@ -30,7 +32,8 @@ const InventoryUnavailablePage = lazy(
     () => import("../features/inventory/pages/inventory_unavailable_page"),
 );
 const DecommissionedPartsPage = lazy(
-    () => import("../features/inventory/pages/inventory_decommissioned_parts_page"),
+    () =>
+        import("../features/inventory/pages/inventory_decommissioned_parts_page"),
 );
 const InventoryHistoryPage = lazy(
     () => import("../features/inventory/pages/inventory_history_page"),
@@ -118,7 +121,11 @@ function InventoryAccess({
 
 function FeatureAccess({ feature }: { feature: string }) {
     const { user } = useAuth();
-    return user?.features.includes(feature) ? <Outlet /> : <Navigate to="/403" replace />;
+    return user?.features.includes(feature) ? (
+        <Outlet />
+    ) : (
+        <Navigate to="/403" replace />
+    );
 }
 
 export default function AppRoutes() {
@@ -187,7 +194,10 @@ export default function AppRoutes() {
                     path={INVENTORY_CORRECTIONS_PATH}
                     element={
                         <InventoryAccess manage>
-                            <InventoryRequestsPage key="corrections" correction />
+                            <InventoryRequestsPage
+                                key="corrections"
+                                correction
+                            />
                         </InventoryAccess>
                     }
                 />
@@ -255,7 +265,11 @@ export default function AppRoutes() {
                     />
                     <Route
                         path="/maintenance/:maintenance_id"
-                        element={<MaintenanceDetailsPage />}
+                        element={
+                            <Suspense fallback={<ScreenLoading />}>
+                                <MaintenancePage />
+                            </Suspense>
+                        }
                     />
                     <Route
                         path="/maintenance/new"
@@ -278,19 +292,45 @@ export default function AppRoutes() {
                 <Route element={<FeatureAccess feature="Logbook" />}>
                     <Route
                         path="/logbook"
-                        element={<Suspense fallback={<ScreenLoading />}><LogbookPage /></Suspense>}
+                        element={
+                            <Suspense fallback={<ScreenLoading />}>
+                                <LogbookPage />
+                            </Suspense>
+                        }
                     >
-                        <Route path="new" element={<Suspense fallback={<ScreenLoading />}><LogbookFormPage /></Suspense>} />
+                        <Route
+                            path="new"
+                            element={
+                                <Suspense fallback={<ScreenLoading />}>
+                                    <LogbookFormPage />
+                                </Suspense>
+                            }
+                        />
                     </Route>
                     <Route
                         path="/logbook/report"
-                        element={<Suspense fallback={<ScreenLoading />}><LogbookReportPage /></Suspense>}
+                        element={
+                            <Suspense fallback={<ScreenLoading />}>
+                                <LogbookReportPage />
+                            </Suspense>
+                        }
                     />
                     <Route
                         path="/logbook/:entry_id"
-                        element={<Suspense fallback={<ScreenLoading />}><LogbookDetailsPage /></Suspense>}
+                        element={
+                            <Suspense fallback={<ScreenLoading />}>
+                                <LogbookDetailsPage />
+                            </Suspense>
+                        }
                     >
-                        <Route path="edit" element={<Suspense fallback={<ScreenLoading />}><LogbookFormPage /></Suspense>} />
+                        <Route
+                            path="edit"
+                            element={
+                                <Suspense fallback={<ScreenLoading />}>
+                                    <LogbookFormPage />
+                                </Suspense>
+                            }
+                        />
                     </Route>
                 </Route>
 
@@ -298,15 +338,27 @@ export default function AppRoutes() {
                     <Route path="/personnel" element={<PersonnelPage />}>
                         <Route path="new" element={<PersonnelFormPage />} />
                     </Route>
-                    <Route path="/personnel/:personnel_id" element={<PersonnelDetailsPage />}>
+                    <Route
+                        path="/personnel/:personnel_id"
+                        element={<PersonnelDetailsPage />}
+                    >
                         <Route path="edit" element={<PersonnelFormPage />} />
                     </Route>
-                    <Route path="/personnel/:personnel_id/documents" element={<PersonnelDocumentsPage />} />
+                    <Route
+                        path="/personnel/:personnel_id/documents"
+                        element={<PersonnelDocumentsPage />}
+                    />
                 </Route>
-                <Route path="/personnel/availability" element={<AvailabilityPage />} />
+                <Route
+                    path="/personnel/availability"
+                    element={<AvailabilityPage />}
+                />
 
                 <Route path="/notifications" element={<NotificationsPage />} />
-                <Route path="/notifications/preferences" element={<NotificationPreferencesPage />} />
+                <Route
+                    path="/notifications/preferences"
+                    element={<NotificationPreferencesPage />}
+                />
 
                 <Route element={<UserAccountsWorkspace />}>
                     <Route path="/users" element={<UsersPage />}>
