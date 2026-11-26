@@ -1,23 +1,28 @@
 import { Link } from "react-router";
 import StatusBadge from "../../../shared/components/ui/status_badge";
-import type { PreviewRecord } from "../../../shared/types/record_types";
+import type { MaintenanceSummaryRecord } from "../../maintenance/utils/maintenance_summary";
+import Button from "../../../shared/components/ui/button";
 import DashboardDate from "./dashboard_date";
 import DashboardOverflowText from "./dashboard_overflow_text";
 import DashboardPanel from "./dashboard_panel";
 
-const pending_tasks_path = "/maintenance?status=pending";
+const pending_tasks_path = "/maintenance";
 
 export default function PendingMaintenanceCard({
     maintenance,
-    today = new Date(),
+    loading = false,
+    error = "",
+    on_retry,
 }: {
-    maintenance: PreviewRecord[];
-    today?: Date;
+    maintenance: MaintenanceSummaryRecord[];
+    loading?: boolean;
+    error?: string;
+    on_retry?: () => void;
 }) {
-    const start_of_day = new Date(today);
-    start_of_day.setHours(0, 0, 0, 0);
-    const sorted = [...maintenance].sort((first, second) =>
-        (first.due_date || "9999").localeCompare(second.due_date || "9999"),
+    const sorted = [...maintenance].sort(
+        (first, second) =>
+            Number(second.overdue) - Number(first.overdue) ||
+            (first.due_date || "9999").localeCompare(second.due_date || "9999"),
     );
     return (
         <DashboardPanel
@@ -27,7 +32,16 @@ export default function PendingMaintenanceCard({
                 to: pending_tasks_path,
             }}
         >
-            {sorted.length ? (
+            {loading ? (
+                <p className="text-sm text-slate-600">Loading maintenance...</p>
+            ) : error ? (
+                <div role="alert">
+                    <p className="text-sm text-red-700">{error}</p>
+                    <Button variant="ghost" onClick={on_retry}>
+                        Retry maintenance
+                    </Button>
+                </div>
+            ) : sorted.length ? (
                 <div
                     role="region"
                     aria-label="Pending maintenance list"
@@ -36,9 +50,7 @@ export default function PendingMaintenanceCard({
                 >
                     <ul className="space-y-2">
                         {sorted.map((record) => {
-                            const overdue =
-                                new Date(`${record.due_date}T00:00:00`) <
-                                start_of_day;
+                            const overdue = record.overdue;
                             return (
                                 <li
                                     key={record.id}
@@ -46,7 +58,7 @@ export default function PendingMaintenanceCard({
                                 >
                                     <div className="flex items-start gap-2">
                                         <Link
-                                            to={`${pending_tasks_path}#record=${encodeURIComponent(record.id)}`}
+                                            to={`/maintenance/${record.id}`}
                                             className="min-w-0 flex-1 text-sm font-semibold text-link"
                                             title={record.title}
                                         >
@@ -58,8 +70,9 @@ export default function PendingMaintenanceCard({
                                             tone={
                                                 overdue
                                                     ? "danger"
-                                                    : record.status
-                                                      ? "info"
+                                                    : record.status ===
+                                                        "Current"
+                                                      ? "success"
                                                       : "neutral"
                                             }
                                         >
@@ -83,6 +96,8 @@ export default function PendingMaintenanceCard({
                                                     value={record.due_date}
                                                 />
                                             </>
+                                        ) : record.due_hours !== null ? (
+                                            `Due at ${record.due_hours} aircraft hours`
                                         ) : (
                                             "Due date not recorded"
                                         )}

@@ -16,75 +16,50 @@ export interface AvailabilityRecordExtended extends Omit<
     [key: string]: string;
 }
 
-export default function useAvailability() {
-    const [records, setRecords] = useState<AvailabilityRecordExtended[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-
-    async function load() {
-        try {
-            setLoading(true);
-            setError(null);
-            const response = await availability_service.list();
-            // Convert backend format to frontend format with all fields + aliases
-            // Ensure notes is string (not null) for index signature compatibility
-            setRecords(
-                response.items.map((item) => ({
+export default function useAvailability(enabled = true) {
+    const [version, set_version] = useState(0);
+    const [result, set_result] = useState<{
+        version: number;
+        records: AvailabilityRecordExtended[];
+        error: string | null;
+    }>();
+    useEffect(() => {
+        if (!enabled) return;
+        let active = true;
+        availability_service
+            .list()
+            .then((response) => {
+                // Convert backend format to frontend format with all fields + aliases
+                // Ensure notes is string (not null) for index signature compatibility
+                const records = response.items.map((item) => ({
                     ...item,
                     id: item.availability_UUID,
                     personnel: item.emp_UUID,
                     personnel_name: "", // Will be populated by the component
                     notes: item.notes ?? "",
-                })),
-            );
-        } catch (err) {
-            setError(
-                err instanceof Error
-                    ? err.message
-                    : "Failed to load availability",
-            );
-        } finally {
-            setLoading(false);
-        }
-    }
-
-    useEffect(() => {
-        let cancelled = false;
-        async function runLoad() {
-            try {
-                setLoading(true);
-                setError(null);
-                const response = await availability_service.list();
-                if (!cancelled) {
-                    setRecords(
-                        response.items.map((item) => ({
-                            ...item,
-                            id: item.availability_UUID,
-                            personnel: item.emp_UUID,
-                            personnel_name: "",
-                            notes: item.notes ?? "",
-                        })),
-                    );
-                }
-            } catch (err) {
-                if (!cancelled) {
-                    setError(
-                        err instanceof Error
-                            ? err.message
-                            : "Failed to load availability",
-                    );
-                }
-            } finally {
-                if (!cancelled) {
-                    setLoading(false);
-                }
-            }
-        }
-        runLoad();
+                }));
+                if (active) set_result({ version, records, error: null });
+            })
+            .catch((err: unknown) => {
+                if (active)
+                    set_result({
+                        version,
+                        records: [],
+                        error:
+                            err instanceof Error
+                                ? err.message
+                                : "Failed to load availability",
+                    });
+            });
         return () => {
-            cancelled = true;
+            active = false;
         };
-    }, []);
-
-    return { records, loading, error, refresh: load };
+    }, [enabled, version]);
+    const current = enabled && result?.version === version ? result : undefined;
+    return {
+        records: current?.records ?? [],
+        loading: enabled && !current,
+        error: current?.error ?? null,
+        refresh: () => set_version((value) => value + 1),
+    };
 }

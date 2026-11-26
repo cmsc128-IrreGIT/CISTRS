@@ -21,7 +21,7 @@ import {
     StockMovementTable,
 } from "../components/stock_movements";
 import {
-    INVENTORY_PRIMARY_ACTION,
+    //INVENTORY_PRIMARY_ACTION,
     INVENTORY_FILTER_SELECT,
 } from "../constants/inventory_constants";
 import {
@@ -153,7 +153,7 @@ export default function InventoryHistoryPage() {
                             </label>
                             <div className="filter-toolbar-actions">
                                 <Button
-                                    className={INVENTORY_PRIMARY_ACTION}
+                                    // className={INVENTORY_PRIMARY_ACTION}
                                     disabled={!filtered.length}
                                     onClick={() =>
                                         export_stock_history(filtered)

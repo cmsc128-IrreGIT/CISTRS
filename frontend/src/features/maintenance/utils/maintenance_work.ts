@@ -1,4 +1,3 @@
-export const work_button_style = "bg-[#0b2238]! hover:bg-[#193951]!";
 export const linked_stock_note =
     "Stock was deducted when the issue was recorded. Linking it here leaves stock unchanged.";
 

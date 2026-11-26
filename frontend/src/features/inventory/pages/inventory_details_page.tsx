@@ -69,7 +69,7 @@ function InventoryDetails({
         part_id: string;
         mode: keyof typeof STOCK_WORKFLOW_TITLES;
     }>();
-    const { items, is_loading, error, reload } = inventory;
+    const { items, is_loading, error, reload, refresh } = inventory;
 
     const item = items.find((record) => record.part_UUID === item_id);
     if (is_loading) {
@@ -171,59 +171,58 @@ function InventoryDetails({
             </Card>
 
             <Card>
-                <WorkspaceTabs label="Item detail sections">
-                    {tabs.map(({ id, label, icon: Icon }) => {
-                        const params = new URLSearchParams(search_params);
-                        if (id === default_tab.id)
-                            params.delete(INVENTORY_DETAIL_TAB_PARAM);
-                        else params.set(INVENTORY_DETAIL_TAB_PARAM, id);
-                        const query = params.toString();
-                        const active = active_tab.id === id;
-                        return (
+                <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+                    <WorkspaceTabs
+                        label="Item detail sections"
+                        className="mb-0 flex-1 basis-[32rem]"
+                    >
+                        {tabs.map(({ id, label, icon: Icon }) => {
+                            const params = new URLSearchParams(search_params);
+                            if (id === default_tab.id)
+                                params.delete(INVENTORY_DETAIL_TAB_PARAM);
+                            else params.set(INVENTORY_DETAIL_TAB_PARAM, id);
+                            const query = params.toString();
+                            const active = active_tab.id === id;
+                            return (
+                                <Link
+                                    key={id}
+                                    to={{ search: query ? `?${query}` : "" }}
+                                    aria-current={active ? "page" : undefined}
+                                    className={inventory_tab_style(active)}
+                                >
+                                    <Icon size={16} aria-hidden="true" />{" "}
+                                    {label}
+                                </Link>
+                            );
+                        })}
+                    </WorkspaceTabs>
+                    {!read_only && (
+                        <div className="flex flex-wrap gap-2">
+                            {!decommissioned && (
+                                <Button
+                                    variant="secondary"
+                                    onClick={() =>
+                                        set_decommission_id(item.part_UUID)
+                                    }
+                                >
+                                    <Archive size={17} aria-hidden="true" />{" "}
+                                    Decommission
+                                </Button>
+                            )}
                             <Link
-                                key={id}
-                                to={{ search: query ? `?${query}` : "" }}
-                                aria-current={active ? "page" : undefined}
-                                className={inventory_tab_style(active)}
+                                to={{ pathname: "edit", search }}
+                                state={{ from_inventory: true }}
+                                className={button_styles("secondary")}
                             >
-                                <Icon size={16} aria-hidden="true" /> {label}
+                                <Pencil size={17} aria-hidden="true" /> Edit
+                                details
                             </Link>
-                        );
-                    })}
-                </WorkspaceTabs>
+                        </div>
+                    )}
+                </div>
                 <section aria-label={active_tab.label}>
                     {active_tab.id === "information" && (
-                        <>
-                            <InventoryItemInformation item={item} />
-                            {!read_only && (
-                                <div className="mt-5 flex flex-col gap-2 border-t border-slate-200 pt-4 sm:flex-row sm:flex-wrap sm:justify-end">
-                                    {!decommissioned && (
-                                        <Button
-                                            variant="secondary"
-                                            onClick={() =>
-                                                set_decommission_id(
-                                                    item.part_UUID,
-                                                )
-                                            }
-                                        >
-                                            <Archive
-                                                size={17}
-                                                aria-hidden="true"
-                                            />{" "}
-                                            Decommission part
-                                        </Button>
-                                    )}
-                                    <Link
-                                        to={{ pathname: "edit", search }}
-                                        state={{ from_inventory: true }}
-                                        className={button_styles("secondary")}
-                                    >
-                                        <Pencil size={17} aria-hidden="true" />{" "}
-                                        Edit details
-                                    </Link>
-                                </div>
-                            )}
-                        </>
+                        <InventoryItemInformation item={item} />
                     )}
                     {active_tab.id === "stock-history" && (
                         <>
@@ -238,7 +237,7 @@ function InventoryDetails({
                                             })
                                         }
                                     >
-                                        Request stock correction
+                                        Correct stock
                                     </Button>
                                 </div>
                             )}
@@ -255,7 +254,12 @@ function InventoryDetails({
                         />
                     )}
                     {active_tab.id === "history-and-usage" && (
-                        <InventoryItemUsage part_number={item.part_number} />
+                        <InventoryItemUsage
+                            key={item.part_UUID}
+                            item={item}
+                            read_only={read_only || decommissioned}
+                            on_saved={() => void refresh()}
+                        />
                     )}
                 </section>
             </Card>
@@ -274,7 +278,7 @@ function InventoryDetails({
                         key={workflow.mode}
                         mode={workflow.mode}
                         item={item}
-                        items={items}
+                        on_saved={() => void refresh()}
                         on_close={() => set_workflow(undefined)}
                     />
                 )}

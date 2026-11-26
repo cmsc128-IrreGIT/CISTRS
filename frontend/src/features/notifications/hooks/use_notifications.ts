@@ -1,93 +1,84 @@
 import { useEffect, useState } from "react";
 import { notification_service } from "../services/notification_service";
-import type { NotificationRecord } from "../types/notification_types";
+import type {
+    NotificationCategory,
+    NotificationRecord,
+} from "../types/notification_types";
+
+const service = notification_service();
 
 export default function useNotifications() {
-    const [notifications, setNotifications] = useState<NotificationRecord[]>(
-        [],
-    );
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-
-    async function load() {
-        try {
-            setLoading(true);
-            setError(null);
-            const service = notification_service();
-            const data = await service.list();
-            setNotifications(data);
-        } catch (err) {
-            setError(
-                err instanceof Error
-                    ? err.message
-                    : "Failed to load notifications",
-            );
-        } finally {
-            setLoading(false);
-        }
-    }
-
+    const [version, set_version] = useState(0);
+    const [result, set_result] = useState<{
+        version: number;
+        notifications: NotificationRecord[];
+        error: string | null;
+    }>();
     useEffect(() => {
-        let cancelled = false;
-        async function runLoad() {
-            try {
-                setLoading(true);
-                setError(null);
-                const service = notification_service();
-                const data = await service.list();
-                if (!cancelled) {
-                    setNotifications(data);
-                }
-            } catch (err) {
-                if (!cancelled) {
-                    setError(
-                        err instanceof Error
-                            ? err.message
-                            : "Failed to load notifications",
-                    );
-                }
-            } finally {
-                if (!cancelled) {
-                    setLoading(false);
-                }
-            }
-        }
-        runLoad();
+        let active = true;
+        service
+            .list()
+            .then((notifications) => {
+                if (active) set_result({ version, notifications, error: null });
+            })
+            .catch((cause: unknown) => {
+                if (active)
+                    set_result({
+                        version,
+                        notifications: [],
+                        error:
+                            cause instanceof Error
+                                ? cause.message
+                                : "Could not load notifications.",
+                    });
+            });
         return () => {
-            cancelled = true;
+            active = false;
         };
-    }, []);
+    }, [version]);
 
-    async function setRead(id: string, isRead: boolean) {
-        const service = notification_service();
-        await service.set_read(id, isRead);
-        setNotifications((prev) =>
-            prev.map((n) =>
-                n.id === id
-                    ? {
-                          ...n,
-                          read_at: isRead ? new Date().toISOString() : null,
-                      }
-                    : n,
-            ),
+    async function setRead(id: string, is_read: boolean) {
+        await service.set_read(id, is_read);
+        set_result(
+            (current) =>
+                current && {
+                    ...current,
+                    notifications: current.notifications.map((row) =>
+                        row.id === id
+                            ? {
+                                  ...row,
+                                  read_at:
+                                      row.read_at ?? new Date().toISOString(),
+                              }
+                            : row,
+                    ),
+                },
         );
     }
 
-    async function markAllRead() {
-        const service = notification_service();
-        await service.mark_all_read();
+    async function markAllRead(category?: NotificationCategory) {
+        await service.mark_all_read(category);
         const now = new Date().toISOString();
-        setNotifications((prev) =>
-            prev.map((n) => (n.read_at === null ? { ...n, read_at: now } : n)),
+        set_result(
+            (current) =>
+                current && {
+                    ...current,
+                    notifications: current.notifications.map((row) =>
+                        !row.read_at && (!category || row.category === category)
+                            ? { ...row, read_at: now }
+                            : row,
+                    ),
+                },
         );
     }
 
+    const current = result?.version === version ? result : undefined;
     return {
-        notifications,
-        loading,
-        error,
+        notifications: current?.notifications ?? [],
+        loading: !current,
+        error: current?.error ?? null,
         setRead,
         markAllRead,
-        refresh: load,
+        refresh: () => set_version((value) => value + 1),
     };
 }

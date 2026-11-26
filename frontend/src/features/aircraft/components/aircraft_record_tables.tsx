@@ -122,11 +122,11 @@ export function AircraftDocuments({ registration }: { registration: string }) {
                         render: (row) => (
                             <Button
                                 variant="ghost"
-                                className="underline underline-offset-4"
+                                className="text-link"
                                 aria-label={`View ${row.name}`}
                                 onClick={() => set_selected(row)}
                             >
-                                View
+                                View details
                             </Button>
                         ),
                     },

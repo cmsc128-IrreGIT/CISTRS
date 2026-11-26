@@ -1,8 +1,11 @@
-export type InventoryLocation = {
-    status_UUID: string;
+export type InventoryStorageLocation = {
     location_UUID: string;
     location_name: string;
     storage_area: string | null;
+};
+
+export type InventoryLocation = InventoryStorageLocation & {
+    status_UUID: string;
     current_quantity: number;
 };
 
@@ -51,17 +54,18 @@ export type InventoryTransaction = {
     transaction_UUID: string;
     transaction_type: string;
     quantity_change: number;
-    updated_by: string;
+    updated_by?: string;
     created_at: string;
     remarks: string | null;
     reference?: string | null;
     recipient?: string | null;
     supplier_name?: string | null;
     aircraft?: string | null;
+    aircraft_UUID?: string | null;
     movement_date?: string | null;
     status: {
         status_UUID: string;
-        current_quantity: number;
+        current_quantity?: number;
         part: {
             part_UUID: string;
             part_number: string;
@@ -81,6 +85,12 @@ export type InventoryTransaction = {
         l_name: string;
         suffix?: string | null;
     };
+};
+
+export type InventoryAircraftLink = {
+    aircraft_UUID: string;
+    registration: string;
+    quantity_on_aircraft: number;
 };
 
 export type InventoryRequestDecision =
@@ -106,3 +116,15 @@ export type InventoryRequestPreview = {
     created_at: string;
     reviewed_at: string | null;
 };
+
+export type InventoryLookUps = {
+    organizations: {
+        organization_UUID: string;
+        organization_name: string;
+        organization_location: string;
+    }[];
+    suppliers: { organization_UUID: string; organization_name: string }[];
+    manufacturers: { organization_UUID: string; organization_name: string }[];
+};
+
+export type LookupItem = { id: string; name: string };

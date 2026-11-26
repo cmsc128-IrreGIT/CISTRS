@@ -11,7 +11,7 @@ import type {
     InitialStock,
     InventoryFormValues,
     InventoryItem,
-    InventoryLocation,
+    InventoryStorageLocation,
 } from "../types/inventory_types";
 import { format_inventory_expiry } from "../utils/inventory_dates";
 import InventoryQuantityField from "./inventory_quantity_field";
@@ -29,7 +29,7 @@ type FieldErrors = Partial<Record<FieldName, string>>;
 type InventoryFormProps = {
     initial_values?: InventoryFormValues;
     item?: InventoryItem;
-    locations: InventoryLocation[];
+    locations: InventoryStorageLocation[];
     units?: string[];
     on_submit: (
         values: InventoryFormValues,
@@ -120,6 +120,9 @@ export default function InventoryForm({
         }
         if (!values.part_number) {
             next_errors.part_number = "Enter a part number.";
+        } else if (values.part_number.length > 50) {
+            next_errors.part_number =
+                "Part number must be at most 50 characters.";
         }
         if (!values.unit_of_measure) {
             next_errors.unit_of_measure = "Enter a unit of measure.";
@@ -241,7 +244,7 @@ export default function InventoryForm({
                                     {...props}
                                     name="part_number"
                                     placeholder="Enter part number"
-                                    maxLength={150}
+                                    maxLength={50}
                                     defaultValue={
                                         initial_values?.part_number ?? ""
                                     }
@@ -429,10 +432,12 @@ export default function InventoryForm({
                         <UnavailableField
                             label="Manufacturer"
                             value={item?.manufacturers.join(", ")}
+                            help="Setting a manufacturer is not available yet."
                         />
                         <UnavailableField
                             label="Supplier"
                             value={item?.suppliers.join(", ")}
+                            help="Setting a supplier is not available yet."
                         />
                     </fieldset>
                 </details>
@@ -441,6 +446,7 @@ export default function InventoryForm({
             <div className="sticky bottom-0 z-10 flex justify-end gap-2 border-t border-slate-200 bg-white px-4 py-3 sm:px-5">
                 <Button
                     variant="secondary"
+                    className="mr-auto"
                     onClick={on_cancel}
                     disabled={is_saving}
                 >

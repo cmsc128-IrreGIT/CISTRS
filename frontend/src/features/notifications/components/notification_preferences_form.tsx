@@ -14,16 +14,18 @@ import type {
 } from "../config/notification_preferences";
 
 const contact_style =
-    "min-h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm aria-invalid:border-red-500 focus-visible:outline-2 focus-visible:outline-[#1d4ed8]";
+    "min-h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm aria-invalid:border-red-500 focus-visible:outline-2 focus-visible:outline-[#1d4ed8] disabled:bg-slate-100 disabled:text-slate-500";
 
 export default function NotificationPreferencesForm({
     initial,
     on_save,
     on_cancel,
+    unavailable = false,
 }: {
     initial: NotificationPreferences;
-    on_save: (preferences: NotificationPreferences) => void;
+    on_save?: (preferences: NotificationPreferences) => void;
     on_cancel?: () => void;
+    unavailable?: boolean;
 }) {
     const [draft, set_draft] = useState(initial);
     const [errors, set_errors] = useState<{ email?: string; mobile?: string }>(
@@ -45,6 +47,7 @@ export default function NotificationPreferencesForm({
 
     function save(event: SubmitEvent<HTMLFormElement>) {
         event.preventDefault();
+        if (unavailable) return;
         const email = draft.email.trim();
         const mobile = draft.mobile.trim();
         const preferences = Object.values(draft.alerts);
@@ -64,39 +67,27 @@ export default function NotificationPreferencesForm({
         };
         set_errors(next_errors);
         if (!next_errors.email && !next_errors.mobile)
-            on_save({ ...draft, email, mobile });
+            on_save?.({ ...draft, email, mobile });
     }
 
     return (
         <form noValidate onSubmit={save} className="space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-                <p className="text-sm text-slate-600">
-                    Choose how you would receive each type of alert.
-                </p>
-                <div className="flex flex-wrap gap-2">
-                    {on_cancel && (
-                        <Button variant="secondary" onClick={on_cancel}>
-                            Cancel
-                        </Button>
-                    )}
-                    <Button
-                        type="submit"
-                        className="bg-[#0b2238]! hover:bg-[#193951]!"
-                    >
-                        Save preferences
-                    </Button>
-                </div>
-            </div>
+            <p className="text-sm text-slate-600">
+                {unavailable
+                    ? "Delivery settings are unavailable."
+                    : "Choose how you would receive each type of alert."}
+            </p>
             <h2 className="font-semibold text-[#0b2238]">Delivery channels</h2>
             <div className="grid gap-3 sm:grid-cols-2">
                 <FormField label="Work email" error={errors.email}>
                     {(props) => (
                         <input
                             {...props}
-                            type="email"
+                            type={unavailable ? "text" : "email"}
+                            disabled={unavailable}
                             autoComplete="email"
                             maxLength={254}
-                            value={draft.email}
+                            value={unavailable ? "Unavailable" : draft.email}
                             placeholder="Enter work email"
                             className={contact_style}
                             onChange={(event) =>
@@ -113,9 +104,10 @@ export default function NotificationPreferencesForm({
                         <input
                             {...props}
                             type="tel"
+                            disabled={unavailable}
                             autoComplete="tel"
                             maxLength={32}
-                            value={draft.mobile}
+                            value={unavailable ? "Unavailable" : draft.mobile}
                             placeholder="Add a number to enable SMS"
                             className={contact_style}
                             onChange={(event) =>
@@ -150,21 +142,28 @@ export default function NotificationPreferencesForm({
                             return (
                                 <button
                                     type="button"
-                                    role="switch"
-                                    aria-checked={checked}
+                                    disabled={unavailable}
+                                    role={unavailable ? undefined : "switch"}
+                                    aria-checked={
+                                        unavailable ? undefined : checked
+                                    }
                                     aria-label={`${channel.label} for ${alert.label}`}
                                     onClick={() =>
                                         toggle(alert.key, channel.key)
                                     }
-                                    className="inline-flex min-h-10 items-center gap-2 rounded-sm text-sm focus-visible:outline-2 focus-visible:outline-[#1d4ed8]"
+                                    className="inline-flex min-h-10 items-center gap-2 rounded-sm text-sm focus-visible:outline-2 focus-visible:outline-[#1d4ed8] disabled:cursor-not-allowed disabled:text-slate-500"
                                 >
                                     <span
                                         aria-hidden="true"
-                                        className={`inline-flex h-5 w-9 items-center rounded-full px-0.5 ${checked ? "justify-end bg-[#0b2238]" : "justify-start bg-slate-400"}`}
+                                        className={`inline-flex h-5 w-9 items-center rounded-full px-0.5 ${unavailable ? "justify-start bg-slate-200" : checked ? "justify-end bg-[#0b2238]" : "justify-start bg-slate-400"}`}
                                     >
                                         <span className="size-4 rounded-full bg-white" />
                                     </span>
-                                    {checked ? "On" : "Off"}
+                                    {unavailable
+                                        ? "Unavailable"
+                                        : checked
+                                          ? "On"
+                                          : "Off"}
                                 </button>
                             );
                         },
@@ -175,6 +174,24 @@ export default function NotificationPreferencesForm({
                 Read status applies to the inbox. Email and SMS delivery have
                 separate statuses.
             </p>
+            <div className="flex flex-wrap justify-end gap-2 border-t border-slate-200 pt-4">
+                {on_cancel && (
+                    <Button
+                        variant="secondary"
+                        className="mr-auto"
+                        onClick={on_cancel}
+                    >
+                        Cancel
+                    </Button>
+                )}
+                <Button
+                    type="submit"
+                    disabled={unavailable}
+                    className="bg-[#0b2238]! hover:bg-[#193951]!"
+                >
+                    Save preferences
+                </Button>
+            </div>
         </form>
     );
 }

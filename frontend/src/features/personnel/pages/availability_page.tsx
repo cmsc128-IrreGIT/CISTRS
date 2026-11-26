@@ -4,6 +4,7 @@ import { Navigate } from "react-router";
 import { toast } from "sonner";
 import Button from "../../../shared/components/ui/button";
 import Card from "../../../shared/components/ui/card";
+import ConfirmDialog from "../../../shared/components/feedback/confirm_dialog";
 import DataTable from "../../../shared/components/ui/data_table";
 import type { TableColumn } from "../../../shared/components/ui/data_table";
 import Pagination from "../../../shared/components/ui/pagination";
@@ -20,12 +21,13 @@ import { availability_statuses } from "../types/availability_types";
 import type { AvailabilityValues } from "../types/availability_types";
 import { usePersonnelRecords } from "../hooks/use_personnel_directory";
 import { personnel_date } from "../utils/personnel_records";
+import { button_styles } from "../../../shared/styles/button_styles";
 
 type RegisterRow = {
     id: string;
     name: string;
     position: string;
-    recorded?: { status: string; date: string; updated_at: string };
+    recorded?: { id: string; status: string; date: string; updated_at: string };
 };
 
 const filter_style =
@@ -36,36 +38,50 @@ const updated_format = new Intl.DateTimeFormat("en-GB", {
     hour: "2-digit",
     minute: "2-digit",
 });
-const columns: TableColumn<RegisterRow>[] = [
-    { id: "personnel", header: "Personnel", render: (row) => row.name },
-    {
-        id: "status",
-        header: "Recorded availability",
-        render: (row) => (
-            <PersonnelStatus
-                availability
-                status={
-                    row.recorded?.status as
-                        "Available" | "Unavailable" | "Not recorded"
-                }
-            />
-        ),
-    },
-    {
-        id: "period",
-        header: "Period",
-        render: (row) =>
-            row.recorded ? personnel_date(row.recorded.date) : "—",
-    },
-    {
-        id: "updated",
-        header: "Last updated",
-        render: (row) => {
-            const value = Date.parse(row.recorded?.updated_at ?? "");
-            return Number.isFinite(value) ? updated_format.format(value) : "—";
+function availability_columns(
+    has_actions: boolean,
+): TableColumn<RegisterRow>[] {
+    return [
+        {
+            id: "personnel",
+            header: "Personnel",
+            render: (row) => row.name,
+            cell_class_name: `${has_actions ? "w-[24%]" : "w-[30%]"} !py-3`,
         },
-    },
-];
+        {
+            id: "status",
+            header: "Recorded availability",
+            render: (row) => (
+                <PersonnelStatus
+                    availability
+                    status={
+                        row.recorded?.status as
+                            "Available" | "Unavailable" | "Not recorded"
+                    }
+                />
+            ),
+            cell_class_name: `${has_actions ? "w-[23%]" : "w-[25%]"} !py-3`,
+        },
+        {
+            id: "period",
+            header: "Period",
+            render: (row) =>
+                row.recorded ? personnel_date(row.recorded.date) : "—",
+            cell_class_name: `${has_actions ? "w-[14%]" : "w-[15%]"} !py-3 whitespace-nowrap`,
+        },
+        {
+            id: "updated",
+            header: "Last updated",
+            render: (row) => {
+                const value = Date.parse(row.recorded?.updated_at ?? "");
+                return Number.isFinite(value)
+                    ? updated_format.format(value)
+                    : "—";
+            },
+            cell_class_name: `${has_actions ? "w-[23%]" : "w-[30%]"} !py-3 whitespace-nowrap`,
+        },
+    ];
+}
 
 function local_today() {
     const now = new Date();
@@ -107,6 +123,11 @@ function AvailabilityRegister({
     const [status, set_status] = useState("");
     const [is_open, set_is_open] = useState(false);
     const [saving, set_saving] = useState(false);
+    const [removing, set_removing] = useState<{
+        id: string;
+        name: string;
+        date: string;
+    } | null>(null);
     // Use real employee records for both full Personnel users and Availability-only
     // recorders. The latter access only the limited staff-directory endpoint.
     const directory = usePersonnelRecords(
@@ -126,6 +147,27 @@ function AvailabilityRegister({
         refresh,
     } = useAvailability();
     const selected_date = date || today;
+    async function remove_record() {
+        if (!removing || saving) return;
+        const { id } = removing;
+        set_removing(null);
+        set_saving(true);
+        try {
+            await availability_service.delete(id);
+            refresh();
+            toast.success("Availability record deleted", {
+                position: "bottom-right",
+            });
+        } catch (cause) {
+            toast.error(
+                cause instanceof Error
+                    ? cause.message
+                    : "Could not delete availability.",
+            );
+        } finally {
+            set_saving(false);
+        }
+    }
     const daily_records = useMemo(
         () =>
             new Map(
@@ -135,33 +177,22 @@ function AvailabilityRegister({
             ),
         [records, selected_date],
     );
-    const positions = useMemo(
-        () =>
-            [
-                ...new Set(
-                    personnel.map((row) => row.position).filter(Boolean),
-                ),
-            ].sort(),
-        [personnel],
-    );
-    const rows = useMemo(
-        () =>
-            personnel
-                .map(({ id, name, position }) => ({
-                    id,
-                    name,
-                    position,
-                    recorded: daily_records.get(id),
-                }))
-                .filter(
-                    (row) =>
-                        (!position || row.position === position) &&
-                        (!status ||
-                            (row.recorded?.status || "Not recorded") ===
-                                status),
-                ),
-        [personnel, daily_records, position, status],
-    );
+    const positions = [
+        ...new Set(personnel.map((row) => row.position).filter(Boolean)),
+    ].sort();
+    const rows = personnel
+        .map(({ id, name, position }) => ({
+            id,
+            name,
+            position,
+            recorded: daily_records.get(id),
+        }))
+        .filter(
+            (row) =>
+                (!position || row.position === position) &&
+                (!status ||
+                    (row.recorded?.status || "Not recorded") === status),
+        );
     const { visible_rows, footer } = useTablePagination(
         rows,
         JSON.stringify([selected_date, position, status]),
@@ -269,7 +300,7 @@ function AvailabilityRegister({
                     <div className="flex items-center gap-2">
                         {can_record && (
                             <Button
-                                className="bg-[#0b2238]! hover:bg-[#193951]!"
+                                className={button_styles("primary")}
                                 disabled={
                                     !personnel.length ||
                                     directory.loading ||
@@ -324,7 +355,37 @@ function AvailabilityRegister({
                         <DataTable
                             inventory
                             caption="Personnel availability"
-                            columns={columns}
+                            columns={
+                                can_record && directory_access
+                                    ? [
+                                          ...availability_columns(true),
+                                          {
+                                              id: "actions",
+                                              header: "Actions",
+                                              render: ({ recorded, name }) =>
+                                                  recorded && (
+                                                      <button
+                                                          type="button"
+                                                          disabled={saving}
+                                                          aria-label={`Clear availability for ${name}`}
+                                                          className="inline-flex min-h-11 cursor-pointer items-center font-medium text-red-700 underline underline-offset-4 hover:text-red-900 hover:decoration-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                                          onClick={() =>
+                                                              set_removing({
+                                                                  id: recorded.id,
+                                                                  name,
+                                                                  date: recorded.date,
+                                                              })
+                                                          }
+                                                      >
+                                                          Clear availability
+                                                      </button>
+                                                  ),
+                                              cell_class_name:
+                                                  "w-[16%] !py-3 whitespace-nowrap",
+                                          },
+                                      ]
+                                    : availability_columns(false)
+                            }
                             rows={visible_rows}
                             get_row_key={(row) => row.id}
                             empty_title="No matching personnel"
@@ -346,6 +407,16 @@ function AvailabilityRegister({
                     records={records}
                     on_close={() => set_is_open(false)}
                     on_save={save}
+                />
+            )}
+            {removing && (
+                <ConfirmDialog
+                    is_open
+                    title="Clear availability"
+                    message={`Clear availability record for ${removing.name} on ${personnel_date(removing.date)}?`}
+                    confirm_text="Clear"
+                    on_confirm={() => void remove_record()}
+                    on_cancel={() => set_removing(null)}
                 />
             )}
         </section>

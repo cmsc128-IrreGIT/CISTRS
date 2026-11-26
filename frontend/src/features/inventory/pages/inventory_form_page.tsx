@@ -19,7 +19,7 @@ import type {
     InitialStock,
     InventoryFormValues,
 } from "../types/inventory_types";
-import { get_inventory_locations } from "../utils/inventory_workflows";
+import useInventoryLocations from "../hooks/use_inventory_locations";
 
 export default function InventoryFormPage() {
     const { item_id } = useParams();
@@ -48,7 +48,12 @@ export default function InventoryFormPage() {
             );
         }
     }
-    const locations = get_inventory_locations(items);
+    const {
+        locations,
+        is_loading: locations_loading,
+        error: locations_error,
+        reload: reload_locations,
+    } = useInventoryLocations();
     const existing_item = items.find((item) => item.part_UUID === item_id);
     const is_editing = Boolean(item_id);
     const units = [
@@ -104,13 +109,22 @@ export default function InventoryFormPage() {
             compact
             is_busy={is_saving}
         >
-            {is_loading ? (
+            {is_loading || (!is_editing && locations_loading) ? (
                 <div className="p-4">
                     <ScreenLoading compact label="Loading inventory…" />
                 </div>
-            ) : error ? (
+            ) : error || (!is_editing && locations_error) ? (
                 <p role="alert" className="p-4 text-sm text-red-700">
-                    {error}
+                    {error || locations_error}
+                    {!error && (
+                        <button
+                            type="button"
+                            className="ml-2 underline"
+                            onClick={() => void reload_locations()}
+                        >
+                            Try again
+                        </button>
+                    )}
                 </p>
             ) : is_editing && !existing_item ? (
                 <div className="p-4">

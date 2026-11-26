@@ -245,9 +245,10 @@ export default function PersonnelDocumentDialog({
                 certificate_number,
                 date_completed,
             });
-        } catch {
+        } catch (err) {
             // Extract server validation error
-            const message = "Failed to save document";
+            const message =
+                err instanceof Error ? err.message : "Failed to save document";
             set_errors((prev) => ({ ...prev, server: message }));
         }
     }
@@ -627,12 +628,16 @@ export default function PersonnelDocumentDialog({
                         </p>
                     )}
                     <p className="text-xs text-slate-600">
-                        Documents and files added here are available until the
-                        page is reloaded.
+                        Saved documents and files are stored with the personnel
+                        record.
                     </p>
                 </div>
                 <div className="flex flex-wrap justify-end gap-2 border-t border-slate-200 px-4 py-3 sm:px-5">
-                    <Button variant="secondary" onClick={on_close}>
+                    <Button
+                        variant="secondary"
+                        className="mr-auto"
+                        onClick={on_close}
+                    >
                         Cancel
                     </Button>
                     <Button

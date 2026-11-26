@@ -21,10 +21,7 @@ import {
     RequestStockDialog,
 } from "../components/inventory_request_dialog";
 import { WorkflowError } from "../components/inventory_workflow_fields";
-import {
-    INVENTORY_CORRECTIONS_PATH,
-    INVENTORY_PRIMARY_ACTION,
-} from "../constants/inventory_constants";
+import { INVENTORY_CORRECTIONS_PATH } from "../constants/inventory_constants";
 import {
     INVENTORY_REQUEST_PAGE_COPY,
     REQUEST_PREVIEW_NOTICE,
@@ -38,8 +35,22 @@ import {
     inventory_location_label,
     inventory_request_date,
 } from "../utils/inventory_workflows";
+import InventoryCorrectionsPage from "./inventory_corrections_page";
+import { button_styles } from "../../../shared/styles/button_styles";
 
 export default function InventoryRequestsPage({
+    correction = false,
+}: {
+    correction?: boolean;
+}) {
+    return correction ? (
+        <InventoryCorrectionsPage />
+    ) : (
+        <InventoryRequestPreviewsPage />
+    );
+}
+
+function InventoryRequestPreviewsPage({
     correction = false,
 }: {
     correction?: boolean;
@@ -105,7 +116,7 @@ export default function InventoryRequestsPage({
             render: (row) => (
                 <Button
                     variant="ghost"
-                    className="underline underline-offset-4"
+                    className="text-link"
                     onClick={() => set_selected(row)}
                 >
                     {row.status === "PENDING" && can_review
@@ -130,7 +141,7 @@ export default function InventoryRequestsPage({
                 {!correction && (
                     <div className="mb-4 flex justify-end">
                         <Button
-                            className={INVENTORY_PRIMARY_ACTION}
+                            className={button_styles("primary")}
                             disabled={!items.length}
                             onClick={() => set_creating(true)}
                         >

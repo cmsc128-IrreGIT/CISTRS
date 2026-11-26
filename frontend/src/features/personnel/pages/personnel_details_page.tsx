@@ -8,7 +8,9 @@ import {
     HeartPulse,
     IdCard,
     Pencil,
+    UserRound,
 } from "lucide-react";
+import { useState } from "react";
 import { Link, Outlet, useParams, useSearchParams } from "react-router";
 import EmptyState from "../../../shared/components/feedback/empty_state";
 import WorkspaceBreadcrumbs from "../../../shared/components/navigation/workspace_breadcrumbs";
@@ -29,6 +31,27 @@ const tabs = [
     { id: "competency", label: "Competency", icon: Award },
     { id: "flight-hours", label: "Flight Hours", icon: Clock3 },
 ];
+
+function PersonnelPhoto({ photo }: { photo?: string | null }) {
+    const [failed, set_failed] = useState(false);
+    return (
+        <div className="flex aspect-square w-full max-w-48 flex-col items-center justify-center gap-2 overflow-hidden rounded-lg bg-slate-100 text-sm text-slate-600">
+            {photo && !failed ? (
+                <img
+                    src={photo}
+                    alt="Personnel photo"
+                    className="h-full w-full object-cover"
+                    onError={() => set_failed(true)}
+                />
+            ) : (
+                <>
+                    <UserRound size={28} aria-hidden="true" />
+                    No photo available
+                </>
+            )}
+        </div>
+    );
+}
 
 export default function PersonnelDetailsPage() {
     const directory = usePersonnelDirectory();
@@ -150,6 +173,58 @@ export default function PersonnelDetailsPage() {
                 )}
                 {overview ? (
                     <div className="space-y-4">
+                        {directory.full_access && (
+                            <div className="grid gap-5 md:grid-cols-[12rem_minmax(0,1fr)]">
+                                <PersonnelPhoto
+                                    key={
+                                        record.employee?.photo || "placeholder"
+                                    }
+                                    photo={record.employee?.photo}
+                                />
+                                <div className="min-w-0 space-y-3">
+                                    <h2 className="font-semibold text-[#0b2238]">
+                                        Personal information
+                                    </h2>
+                                    <DetailsList
+                                        entries={[
+                                            {
+                                                id: "name",
+                                                label: "Full name",
+                                                value: record.name,
+                                            },
+                                            {
+                                                id: "number",
+                                                label: "Employee ID",
+                                                value: record.employee_number,
+                                            },
+                                            {
+                                                id: "birth",
+                                                label: "Date of birth",
+                                                value: personnel_date(
+                                                    record.employee
+                                                        ?.date_of_birth,
+                                                ),
+                                            },
+                                            {
+                                                id: "sex",
+                                                label: "Sex",
+                                                value:
+                                                    record.employee?.sex ||
+                                                    "Not recorded",
+                                            },
+                                            {
+                                                id: "blood",
+                                                label: "Blood type",
+                                                value:
+                                                    record.employee
+                                                        ?.blood_type ||
+                                                    "Not recorded",
+                                            },
+                                        ]}
+                                    />
+                                </div>
+                            </div>
+                        )}
                         <div className="rounded-lg bg-slate-100 p-4">
                             <h2 className="mb-3 font-semibold text-[#0b2238]">
                                 Work information
@@ -185,6 +260,32 @@ export default function PersonnelDetailsPage() {
                                                           }
                                                       />
                                                   ),
+                                              },
+                                              {
+                                                  id: "category",
+                                                  label: "Personnel category",
+                                                  value:
+                                                      record.category ||
+                                                      "Not recorded",
+                                              },
+                                              {
+                                                  id: "hired",
+                                                  label: "Date hired",
+                                                  value: personnel_date(
+                                                      record.employee
+                                                          ?.date_hired,
+                                                  ),
+                                              },
+                                              {
+                                                  id: "supervisor",
+                                                  label: "Supervisor",
+                                                  value:
+                                                      directory.rows.find(
+                                                          (row) =>
+                                                              row.id ===
+                                                              record.employee
+                                                                  ?.supervisor_emp_UUID,
+                                                      )?.name || "Not recorded",
                                               },
                                               ...(record.record_status &&
                                               record.record_status !==

@@ -6,9 +6,6 @@ import FormField from "../../../shared/components/forms/form_field";
 import ScreenLoading from "../../../shared/components/feedback/screen_loading";
 import Button from "../../../shared/components/ui/button";
 import FormDialog from "../../../shared/components/ui/form_dialog";
-import { useAuth } from "../../auth/hooks/auth_context";
-import { list_personnel } from "../../personnel/services/personnel_service";
-import type { PersonnelRecord } from "../../personnel/types/personnel_types";
 import {
     account_action_style,
     account_field_style,
@@ -16,7 +13,10 @@ import {
     preview_duties,
 } from "../config/user_management_config";
 import useUserManagement from "../hooks/use_user_management";
-import { create_account } from "../services/user_account_service";
+import {
+    create_account,
+    list_eligible_employees,
+} from "../services/user_account_service";
 import type { UserAccount } from "../types/user_account";
 import { account_name } from "../types/user_account";
 
@@ -51,10 +51,9 @@ export default function UserFormPage() {
 }
 
 function CreateAccountDialog({ on_close }: { on_close: () => void }) {
-    const { user } = useAuth();
     const workspace = useUserManagement();
-    const can_read_personnel = Boolean(user?.features.includes("Personnel"));
-    const [people, set_people] = useState<PersonnelRecord[]>();
+    const [eligible, set_eligible] =
+        useState<Awaited<ReturnType<typeof list_eligible_employees>>>();
     const [load_error, set_load_error] = useState("");
     const [attempt, set_attempt] = useState(0);
     const [selected, set_selected] = useState("");
@@ -63,11 +62,10 @@ function CreateAccountDialog({ on_close }: { on_close: () => void }) {
     const saving = useRef(false);
 
     useEffect(() => {
-        if (!can_read_personnel) return;
         const controller = new AbortController();
-        void list_personnel(controller.signal)
+        void list_eligible_employees(controller.signal)
             .then((rows) => {
-                if (!controller.signal.aborted) set_people(rows);
+                if (!controller.signal.aborted) set_eligible(rows);
             })
             .catch((cause: unknown) => {
                 if (!controller.signal.aborted)
@@ -78,15 +76,8 @@ function CreateAccountDialog({ on_close }: { on_close: () => void }) {
                     );
             });
         return () => controller.abort();
-    }, [attempt, can_read_personnel]);
+    }, [attempt]);
 
-    const linked_ids = new Set(
-        workspace.accounts.map(({ employee }) => employee.emp_UUID),
-    );
-    const eligible = people?.filter(
-        (person) =>
-            person.record_status === "Active" && !linked_ids.has(person.id),
-    );
     const person = eligible?.find(({ id }) => id === selected);
 
     async function submit(event: SubmitEvent<HTMLFormElement>) {
@@ -143,12 +134,7 @@ function CreateAccountDialog({ on_close }: { on_close: () => void }) {
         >
             <form onSubmit={submit}>
                 <div className={form_body}>
-                    {!can_read_personnel ? (
-                        <p role="status" className="text-sm text-slate-600">
-                            You need Personnel access to select an employee for
-                            this account.
-                        </p>
-                    ) : load_error ? (
+                    {load_error ? (
                         <>
                             <p role="alert" className="text-sm text-red-700">
                                 {load_error}
@@ -280,6 +266,7 @@ function CreateAccountDialog({ on_close }: { on_close: () => void }) {
                 <div className={form_footer}>
                     <Button
                         variant="secondary"
+                        className="mr-auto"
                         disabled={pending}
                         onClick={on_close}
                     >
@@ -378,7 +365,11 @@ function EditAccessDialog({
                     </fieldset>
                 </div>
                 <div className={form_footer}>
-                    <Button variant="secondary" onClick={on_close}>
+                    <Button
+                        variant="secondary"
+                        className="mr-auto"
+                        onClick={on_close}
+                    >
                         Cancel
                     </Button>
                     <Button type="submit" className={account_action_style}>

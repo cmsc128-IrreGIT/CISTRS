@@ -68,8 +68,8 @@ export default function PersonnelPage() {
             header: "Name / employee ID",
             render: (row) => (
                 <>
-                    <p className="font-medium">{row.name}</p>
-                    <p className="text-xs text-slate-600">
+                    <p className="font-semibold">{row.name}</p>
+                    <p className="text-xs font-medium text-slate-600">
                         {row.employee_number}
                     </p>
                 </>
@@ -106,7 +106,7 @@ export default function PersonnelPage() {
                               aria-label={`View ${row.name}`}
                               className="font-medium text-link"
                           >
-                              View
+                              View details
                           </Link>
                       ),
                   },
@@ -193,10 +193,7 @@ export default function PersonnelPage() {
                         {can_manage && (
                             <Link
                                 to="/personnel/new"
-                                className={button_styles(
-                                    "primary",
-                                    "bg-[#0b2238]! hover:bg-[#193951]!",
-                                )}
+                                className={button_styles("primary")}
                             >
                                 <Plus size={16} aria-hidden="true" /> Add
                                 personnel

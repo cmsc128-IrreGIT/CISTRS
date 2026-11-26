@@ -52,7 +52,7 @@ const columns = (
             <button
                 type="button"
                 onClick={() => on_request_restore(row)}
-                className="inline-flex min-h-11 items-center font-medium text-green-700 underline underline-offset-4 hover:text-green-900"
+                className="inline-flex min-h-11 cursor-pointer items-center font-medium text-green-700 underline underline-offset-4 hover:text-green-900 hover:decoration-2"
             >
                 Restore
             </button>

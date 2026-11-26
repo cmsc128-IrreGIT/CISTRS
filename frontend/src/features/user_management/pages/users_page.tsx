@@ -4,15 +4,14 @@ import { Link, Outlet } from "react-router";
 import SearchInput from "../../../shared/components/forms/search_input";
 import WorkspaceBreadcrumbs from "../../../shared/components/navigation/workspace_breadcrumbs";
 import Card from "../../../shared/components/ui/card";
+import Button from "../../../shared/components/ui/button";
 import DataTable from "../../../shared/components/ui/data_table";
 import Pagination from "../../../shared/components/ui/pagination";
 import useTablePagination from "../../../shared/hooks/use_table_pagination";
 import { button_styles } from "../../../shared/styles/button_styles";
 import AccountStatus from "../components/account_status";
-import {
-    account_action_style,
-    account_field_style,
-} from "../config/user_management_config";
+import ReferenceDataDialog from "../components/reference_data_dialog";
+import { account_field_style } from "../config/user_management_config";
 import useUserManagement from "../hooks/use_user_management";
 import { account_name } from "../types/user_account";
 
@@ -29,6 +28,7 @@ export default function UsersPage() {
     const [search, set_search] = useState("");
     const [position, set_position] = useState("");
     const [status, set_status] = useState("");
+    const [adding_reference, set_adding_reference] = useState(false);
     const term = search.trim().toLowerCase();
     const rows = workspace.accounts.map((account) => ({
         account,
@@ -64,9 +64,17 @@ export default function UsersPage() {
                 Manage sign-in accounts and their linked personnel.
             </p>
             <Card>
-                <h2 className="mb-4 font-semibold text-[#0b2238]">
-                    System accounts
-                </h2>
+                <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                    <h2 className="font-semibold text-[#0b2238]">
+                        System accounts
+                    </h2>
+                    <Button
+                        variant="secondary"
+                        onClick={() => set_adding_reference(true)}
+                    >
+                        <Plus size={18} aria-hidden="true" /> Add reference data
+                    </Button>
+                </div>
                 <div className="filter-toolbar mb-4 rounded-lg bg-slate-100 p-3">
                     <div className="filter-toolbar-search grid gap-1.5">
                         <p
@@ -115,7 +123,7 @@ export default function UsersPage() {
                     <div className="filter-toolbar-actions">
                         <Link
                             to="/users/new"
-                            className={`${button_styles()} ${account_action_style}`}
+                            className={button_styles("primary")}
                         >
                             <Plus size={16} aria-hidden="true" /> Add account
                         </Link>
@@ -133,10 +141,10 @@ export default function UsersPage() {
                             header: "Name / username",
                             render: (row) => (
                                 <>
-                                    <span className="block font-medium">
+                                    <span className="block font-semibold">
                                         {row.name}
                                     </span>
-                                    <span className="text-slate-600">
+                                    <span className="font-medium text-slate-600">
                                         {row.account.username}
                                     </span>
                                 </>
@@ -188,6 +196,11 @@ export default function UsersPage() {
                     <Pagination {...footer} item_label="account" />
                 )}
             </Card>
+            {adding_reference && (
+                <ReferenceDataDialog
+                    on_close={() => set_adding_reference(false)}
+                />
+            )}
             <Outlet context={workspace} />
         </section>
     );

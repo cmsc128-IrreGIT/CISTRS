@@ -317,6 +317,7 @@ export function RequestDetailsDialog({
                     <div className="sticky bottom-0 z-10 flex flex-wrap justify-end gap-2 border-t border-slate-200 bg-white px-4 py-3 sm:px-5">
                         <Button
                             variant="secondary"
+                            className="mr-auto"
                             onClick={() => {
                                 if (returning) {
                                     set_returning(false);

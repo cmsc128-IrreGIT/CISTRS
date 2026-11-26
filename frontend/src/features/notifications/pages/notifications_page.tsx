@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from "react";
-import { Check, ChevronDown, Settings2, RefreshCw } from "lucide-react";
+import { Check, ChevronDown, Settings2 } from "lucide-react";
 import { Link } from "react-router";
 import { toast } from "sonner";
-import { get_inventory_access } from "../../../shared/components/navigation/workspace";
 import WorkspaceBreadcrumbs from "../../../shared/components/navigation/workspace_breadcrumbs";
 import Button from "../../../shared/components/ui/button";
 import Card from "../../../shared/components/ui/card";
+import ScreenLoading from "../../../shared/components/feedback/screen_loading";
+import Pagination from "../../../shared/components/ui/pagination";
+import useTablePagination from "../../../shared/hooks/use_table_pagination";
 import { button_styles } from "../../../shared/styles/button_styles";
 import { useAuth } from "../../auth/hooks/auth_context";
 import NotificationItem from "../components/notification_item";
@@ -21,27 +23,20 @@ const group_order = [
     "Other dates",
     "Date unavailable",
 ];
+const route_features: Record<string, string> = {
+    "/inventory": "Inventory",
+    "/aircraft": "Aircraft",
+    "/maintenance": "Maintenance",
+    "/personnel": "Personnel",
+    "/logbook": "Logbook",
+};
 
 export default function NotificationsPage() {
     const { user } = useAuth();
-    return (
-        user && (
-            <Inbox
-                key={user.account_UUID}
-                features={user.features}
-                can_view_stock_history={get_inventory_access(user) === "manage"}
-            />
-        )
-    );
+    return user && <Inbox key={user.account_UUID} features={user.features} />;
 }
 
-function Inbox({
-    features,
-    can_view_stock_history,
-}: {
-    features: string[];
-    can_view_stock_history: boolean;
-}) {
+function Inbox({ features }: { features: string[] }) {
     const {
         notifications: inbox,
         loading,
@@ -52,7 +47,10 @@ function Inbox({
     } = useNotifications();
     const categories = notification_categories.filter(
         ({ key, label }) =>
-            key === "all" || key === "system" || features.includes(label),
+            key === "all" ||
+            key === "system" ||
+            features.includes(label) ||
+            inbox.some((row) => row.category === key),
     );
     const [unread_only, set_unread_only] = useState(false);
     const [category, set_category] = useState<NotificationCategory | "all">(
@@ -75,8 +73,13 @@ function Inbox({
         try {
             if (id)
                 await setRead(id, true); // Only mark as read (backend doesn't support unread)
-            else await markAllRead();
+            else await markAllRead(category === "all" ? undefined : category);
         } catch (err) {
+            toast.error(
+                err instanceof Error
+                    ? err.message
+                    : "Could not update notifications. Please try again.",
+            );
             toast.error(
                 err instanceof Error
                     ? err.message
@@ -88,17 +91,17 @@ function Inbox({
         }
     }
 
-    const rows = inbox.filter(
-        (row) =>
-            categories.some(({ key }) => key === row.category) &&
-            (row.to !== "/inventory/history" || can_view_stock_history),
-    );
+    const rows = inbox;
     const category_rows = rows.filter(
         (row) => category === "all" || row.category === category,
     );
     const unread_rows = category_rows.filter((row) => row.read_at === null);
-    const visible = [...(unread_only ? unread_rows : category_rows)].sort(
+    const filtered = [...(unread_only ? unread_rows : category_rows)].sort(
         (a, b) => Date.parse(b.created_at) - Date.parse(a.created_at),
+    );
+    const { visible_rows: visible, footer } = useTablePagination(
+        filtered,
+        JSON.stringify([unread_only, category]),
     );
     const groups = group_order
         .map((label) => ({
@@ -108,7 +111,7 @@ function Inbox({
             ),
         }))
         .filter((group) => group.rows.length > 0);
-    const has_unread = rows.some((row) => row.read_at === null);
+    const has_unread = category_rows.some((row) => row.read_at === null);
     const caught_up =
         !has_unread && rows.length > 0 && unread_only && category === "all";
 
@@ -124,14 +127,9 @@ function Inbox({
                         Loading notifications…
                     </span>
                 )}
-                {error && (
-                    <span className="text-sm text-red-600" role="alert">
-                        {error}
-                    </span>
-                )}
                 {!loading && !error && (
                     <p className="text-sm text-slate-600">
-                        Real-time inbox from server.
+                        Notifications for your account.
                     </p>
                 )}
                 <div className="flex items-center gap-2">
@@ -142,18 +140,6 @@ function Inbox({
                         <Settings2 size={16} aria-hidden="true" /> Notification
                         preferences
                     </Link>
-                    <Button
-                        variant="ghost"
-                        onClick={refresh}
-                        disabled={loading}
-                        aria-label="Refresh notifications"
-                    >
-                        <RefreshCw
-                            size={16}
-                            aria-hidden="true"
-                            className={loading ? "animate-spin" : ""}
-                        />
-                    </Button>
                 </div>
             </div>
             <Card>
@@ -167,12 +153,16 @@ function Inbox({
                             {
                                 label: "All",
                                 unread: false,
-                                count: category_rows.length,
+                                count:
+                                    loading || error
+                                        ? "—"
+                                        : category_rows.length,
                             },
                             {
                                 label: "Unread",
                                 unread: true,
-                                count: unread_rows.length,
+                                count:
+                                    loading || error ? "—" : unread_rows.length,
                             },
                         ].map((option) => (
                             <button
@@ -180,7 +170,7 @@ function Inbox({
                                 type="button"
                                 aria-pressed={unread_only === option.unread}
                                 onClick={() => set_unread_only(option.unread)}
-                                className={`min-h-10 rounded-md px-3 text-sm font-medium focus-visible:outline-2 focus-visible:outline-[#1d4ed8] ${unread_only === option.unread ? "bg-[#0b2238] text-white" : "bg-slate-100 text-slate-700 hover:bg-slate-200"}`}
+                                className={`min-h-10 cursor-pointer rounded-md px-3 text-sm font-medium focus-visible:outline-2 focus-visible:outline-[#1d4ed8] ${unread_only === option.unread ? "bg-[#0b2238] text-white" : "bg-slate-100 text-slate-700 hover:bg-slate-200"}`}
                             >
                                 {option.label} ({option.count})
                             </button>
@@ -220,12 +210,23 @@ function Inbox({
                         <Check size={15} aria-hidden="true" /> Mark all as read
                     </Button>
                 </div>
-                <p role="status" className="sr-only">
-                    {visible.length} shown. {unread_rows.length} unread in the
-                    selected scope.
-                </p>
+                {!loading && !error && (
+                    <p role="status" className="sr-only">
+                        {filtered.length} matching notifications.{" "}
+                        {unread_rows.length} unread in the selected scope.
+                    </p>
+                )}
 
-                {groups.length ? (
+                {loading ? (
+                    <ScreenLoading compact label="Loading notifications..." />
+                ) : error ? (
+                    <div role="alert" className="space-y-3">
+                        <p className="text-sm text-red-700">{error}</p>
+                        <Button variant="secondary" onClick={refresh}>
+                            Try again
+                        </Button>
+                    </div>
+                ) : groups.length ? (
                     <div className="space-y-4" aria-busy={is_saving}>
                         {groups.map(({ label, rows: group_rows }) => (
                             <section key={label} aria-label={label}>
@@ -236,7 +237,14 @@ function Inbox({
                                     {group_rows.map((row) => (
                                         <NotificationItem
                                             key={row.id}
-                                            notification={row}
+                                            notification={
+                                                row.to &&
+                                                !features.includes(
+                                                    route_features[row.to],
+                                                )
+                                                    ? { ...row, to: null }
+                                                    : row
+                                            }
                                             now={now}
                                             disabled={is_saving}
                                             on_mark_read={(id) =>
@@ -265,6 +273,9 @@ function Inbox({
                                   : "There are no alerts for your assigned features."}
                         </p>
                     </div>
+                )}
+                {!loading && !error && (
+                    <Pagination {...footer} item_label="notification" />
                 )}
             </Card>
         </section>

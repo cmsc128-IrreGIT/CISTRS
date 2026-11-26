@@ -1,6 +1,6 @@
 import WorkspaceTabs from "../../../shared/components/navigation/workspace_tabs";
-import { Plus, RefreshCw } from "lucide-react";
-import { useState, useEffect, useCallback } from "react";
+import { Pencil, Plus, Trash2 } from "lucide-react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
     Link,
     Navigate,
@@ -9,15 +9,19 @@ import {
     useSearchParams,
 } from "react-router";
 import { toast } from "sonner";
+import { API_BASE_URL, api_fetch } from "../../../shared/api/client";
 import EmptyState from "../../../shared/components/feedback/empty_state";
 import WorkspaceBreadcrumbs from "../../../shared/components/navigation/workspace_breadcrumbs";
 import Button from "../../../shared/components/ui/button";
 import Card from "../../../shared/components/ui/card";
+import ConfirmDialog from "../../../shared/components/feedback/confirm_dialog";
 import DataTable from "../../../shared/components/ui/data_table";
 import StatusBadge from "../../../shared/components/ui/status_badge";
 import { workspace_tab_style } from "../../../shared/styles/tab_styles";
-import { useAuth } from "../../auth/hooks/auth_context";
 import PersonnelDocumentDialog from "../components/personnel_document_dialog";
+import PersonnelRecordEditDialog, {
+    type PersonnelRecordEdit,
+} from "../components/edit_record_dialog";
 import { document_tabs } from "../config/personnel_document_config";
 import { usePersonnelDirectory } from "../hooks/use_personnel_directory";
 import type {
@@ -29,103 +33,91 @@ import {
     license_document,
 } from "../utils/personnel_documents";
 import { personnel_date } from "../utils/personnel_records";
-import { documents_service } from "../services/personnel_service";
+import {
+    documents_service,
+    licenses_service,
+} from "../services/personnel_service";
 
 interface DocumentRow extends PersonnelDocument {
     personnel_id: string;
     id: string; // document_UUID
     renewal_status?: string;
+    license_id?: string;
+    remarks?: string | null;
+}
+
+const uploaded_file_prefix = "/api/personnel/documents/file/";
+const preview_types = new Set([
+    "application/pdf",
+    "image/jpeg",
+    "image/png",
+    "image/gif",
+    "text/plain",
+]);
+
+async function viewUploadedFile(file_path: string) {
+    const tab = window.open("about:blank", "_blank");
+    if (!tab) {
+        toast.error("Allow pop-ups to view the document.");
+        return;
+    }
+    tab.opener = null;
+
+    try {
+        const filename = decodeURIComponent(
+            file_path.slice(uploaded_file_prefix.length),
+        );
+        if (
+            !filename ||
+            /[\\/]/.test(filename) ||
+            filename === "." ||
+            filename === ".."
+        ) {
+            throw new Error("The uploaded file address is invalid.");
+        }
+        const response = await api_fetch(
+            `${API_BASE_URL}/personnel/documents/file/${encodeURIComponent(filename)}`,
+        );
+        if (!response.ok) {
+            throw new Error(
+                response.status === 404
+                    ? "The uploaded file could not be found."
+                    : "Could not open the uploaded file.",
+            );
+        }
+
+        const file = await response.blob();
+        if (tab.closed) return;
+        const can_preview = preview_types.has(file.type.split(";")[0]);
+        const url = URL.createObjectURL(
+            can_preview
+                ? file
+                : file.slice(0, file.size, "application/octet-stream"),
+        );
+        window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+        if (can_preview) {
+            tab.location.replace(url);
+        } else {
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = filename;
+            link.click();
+            tab.close();
+        }
+    } catch (error) {
+        tab.close();
+        toast.error(
+            error instanceof Error
+                ? error.message
+                : "Could not open the uploaded file.",
+        );
+    }
 }
 
 export default function PersonnelDocumentsPage() {
-    const { user: _user } = useAuth();
     const directory = usePersonnelDirectory();
     const { personnel_id } = useParams();
-    const [params] = useSearchParams();
-    const navigate = useNavigate();
-    const [is_open, set_is_open] = useState(false);
-    const [documents, set_documents] = useState<DocumentRow[]>([]);
-    const [loading, set_loading] = useState(true);
-    const [error, set_error] = useState<string | null>(null);
     const person = directory.rows.find(({ id }) => id === personnel_id);
-    const active_tab =
-        document_tabs.find(({ id }) => id === params.get("type"))?.id ?? "all";
-
-    // Load documents from backend
-    const loadDocuments = useCallback(async () => {
-        try {
-            set_loading(true);
-            set_error(null);
-            const response = await documents_service.list({
-                emp_UUID: person?.id ?? "",
-            });
-            set_documents(
-                response.items.map((doc) => ({
-                    ...doc,
-                    id: doc.document_UUID,
-                    personnel_id: doc.emp_UUID,
-                    issued: doc.date_issued,
-                    expires: doc.expiry_date ?? "",
-                    renewal_date: doc.renewal_date ?? "",
-                    kind: doc.kind,
-                    file_path: doc.file_path ?? undefined,
-                    reference: doc.reference ?? "",
-                    renewal_status: undefined, // Backend personal documents don't have renewal status
-                })),
-            );
-        } catch (err) {
-            set_error(
-                err instanceof Error ? err.message : "Failed to load documents",
-            );
-        } finally {
-            set_loading(false);
-        }
-    }, [person]);
-
-    useEffect(() => {
-        let cancelled = false;
-        async function runLoad() {
-            try {
-                set_loading(true);
-                set_error(null);
-                const response = await documents_service.list({
-                    emp_UUID: person?.id ?? "",
-                });
-                if (!cancelled) {
-                    set_documents(
-                        response.items.map((doc) => ({
-                            ...doc,
-                            id: doc.document_UUID,
-                            personnel_id: doc.emp_UUID,
-                            issued: doc.date_issued,
-                            expires: doc.expiry_date ?? "",
-                            renewal_date: doc.renewal_date ?? "",
-                            kind: doc.kind,
-                            file_path: doc.file_path ?? undefined,
-                            reference: doc.reference ?? "",
-                            renewal_status: undefined, // Backend personal documents don't have renewal status
-                        })),
-                    );
-                }
-            } catch (err) {
-                if (!cancelled) {
-                    set_error(
-                        err instanceof Error
-                            ? err.message
-                            : "Failed to load documents",
-                    );
-                }
-            } finally {
-                if (!cancelled) {
-                    set_loading(false);
-                }
-            }
-        }
-        runLoad();
-        return () => {
-            cancelled = true;
-        };
-    }, [person?.id]);
 
     if (!directory.full_access) return <Navigate to="/403" replace />;
 
@@ -150,6 +142,87 @@ export default function PersonnelDocumentsPage() {
         );
     }
 
+    return (
+        <PersonnelDocuments
+            key={person.id}
+            person={person}
+            directory={directory}
+        />
+    );
+}
+
+function PersonnelDocuments({
+    person,
+    directory,
+}: {
+    person: ReturnType<typeof usePersonnelDirectory>["rows"][number];
+    directory: ReturnType<typeof usePersonnelDirectory>;
+}) {
+    const [params] = useSearchParams();
+    const navigate = useNavigate();
+    const [is_open, set_is_open] = useState(false);
+    const [edit, set_edit] = useState<PersonnelRecordEdit | null>(null);
+    const [deleting, set_deleting] = useState<DocumentRow | null>(null);
+    const [removing, set_removing] = useState(false);
+    const [documents, set_documents] = useState<DocumentRow[]>([]);
+    const [loading, set_loading] = useState(true);
+    const [error, set_error] = useState<string | null>(null);
+    const latest_request = useRef(0);
+    const active_tab =
+        document_tabs.find(({ id }) => id === params.get("type"))?.id ?? "all";
+
+    const loadDocuments = useCallback(
+        (signal?: AbortSignal) => {
+            const request = ++latest_request.current;
+            const isCurrent = () =>
+                !signal?.aborted && request === latest_request.current;
+
+            return documents_service
+                .list({ emp_UUID: person.id })
+                .then((response) => {
+                    if (!isCurrent()) return;
+                    set_documents(
+                        response.items.map((doc) => ({
+                            ...doc,
+                            id: doc.document_UUID,
+                            personnel_id: doc.emp_UUID,
+                            issued: doc.date_issued,
+                            expires: doc.expiry_date ?? "",
+                            renewal_date: doc.renewal_date ?? "",
+                            kind: doc.kind,
+                            file_path: doc.file_path ?? undefined,
+                            reference: doc.reference ?? "",
+                        })),
+                    );
+                })
+                .catch((err: unknown) => {
+                    if (isCurrent()) {
+                        set_error(
+                            err instanceof Error
+                                ? err.message
+                                : "Failed to load documents",
+                        );
+                    }
+                })
+                .finally(() => {
+                    if (isCurrent()) set_loading(false);
+                });
+        },
+        [person.id],
+    );
+
+    useEffect(() => {
+        const controller = new AbortController();
+        void loadDocuments(controller.signal);
+        return () => controller.abort();
+    }, [loadDocuments]);
+
+    function refreshDocuments() {
+        set_loading(true);
+        set_error(null);
+        return loadDocuments();
+    }
+
     const profile_path = `/personnel/${encodeURIComponent(person.id)}`;
     const documents_path = `${profile_path}/documents`;
 
@@ -157,6 +230,7 @@ export default function PersonnelDocumentsPage() {
     const license_docs = person.licenses.map(license_document).map((doc) => ({
         ...doc,
         personnel_id: person.id,
+        license_id: doc.id,
         id: `license-${doc.id}`, // Prefix to avoid conflicts
     }));
 
@@ -166,6 +240,33 @@ export default function PersonnelDocumentsPage() {
     const rows: DocumentRow[] = [...backend_docs, ...license_docs].filter(
         ({ kind }) => active_tab === "all" || kind === active_tab,
     );
+
+    async function delete_record() {
+        if (!deleting || removing) return;
+        const { id, license_id } = deleting;
+        set_deleting(null);
+        set_removing(true);
+        try {
+            if (license_id) {
+                await licenses_service.delete(license_id);
+                directory.reload();
+            } else {
+                await documents_service.delete(id);
+                await refreshDocuments();
+            }
+            toast.success(license_id ? "License deleted" : "Document deleted", {
+                position: "bottom-right",
+            });
+        } catch (cause) {
+            toast.error(
+                cause instanceof Error
+                    ? cause.message
+                    : "Could not delete the record.",
+            );
+        } finally {
+            set_removing(false);
+        }
+    }
 
     async function save(draft: PersonnelDocumentDraft) {
         if (!directory.can_manage) return;
@@ -233,10 +334,11 @@ export default function PersonnelDocumentsPage() {
             );
         }
 
-        await loadDocuments();
+        await refreshDocuments();
+        if (draft.kind === "License") directory.reload();
         set_is_open(false);
         if (
-            draft.personnel_id !== personnel_id ||
+            draft.personnel_id !== person.id ||
             (active_tab !== "all" && active_tab !== draft.kind)
         ) {
             void navigate(
@@ -287,7 +389,21 @@ export default function PersonnelDocumentsPage() {
                     <h2 className="font-semibold text-[#0b2238]">
                         Documents / {person.name}
                     </h2>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                        {directory.can_manage &&
+                            (active_tab === "all" ||
+                                active_tab === "License") && (
+                                <Button
+                                    variant="secondary"
+                                    disabled={removing}
+                                    onClick={() =>
+                                        set_edit({ kind: "license" })
+                                    }
+                                >
+                                    <Plus size={16} aria-hidden="true" /> Add
+                                    license
+                                </Button>
+                            )}
                         {directory.can_manage && (
                             <Button
                                 className="bg-[#0b2238]! hover:bg-[#193951]!"
@@ -297,18 +413,6 @@ export default function PersonnelDocumentsPage() {
                                 document
                             </Button>
                         )}
-                        <Button
-                            variant="ghost"
-                            onClick={loadDocuments}
-                            disabled={loading}
-                            aria-label="Refresh documents"
-                        >
-                            <RefreshCw
-                                size={16}
-                                aria-hidden="true"
-                                className={loading ? "animate-spin" : ""}
-                            />
-                        </Button>
                     </div>
                 </div>
                 {error && (
@@ -316,7 +420,7 @@ export default function PersonnelDocumentsPage() {
                         {error}{" "}
                         <Button
                             variant="ghost"
-                            onClick={loadDocuments}
+                            onClick={refreshDocuments}
                             className="ml-2"
                         >
                             Retry
@@ -388,20 +492,90 @@ export default function PersonnelDocumentsPage() {
                             {
                                 id: "file",
                                 header: "File",
-                                render: (row) =>
-                                    row.file_path ? (
+                                render: ({ file_path }) => {
+                                    if (!file_path) return "No file";
+                                    if (
+                                        file_path.startsWith(
+                                            uploaded_file_prefix,
+                                        )
+                                    ) {
+                                        return (
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    void viewUploadedFile(
+                                                        file_path,
+                                                    )
+                                                }
+                                                className="whitespace-nowrap text-link"
+                                            >
+                                                View file
+                                            </button>
+                                        );
+                                    }
+                                    return (
                                         <a
-                                            href={row.file_path}
+                                            href={file_path}
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             className="whitespace-nowrap text-link"
                                         >
                                             View file
                                         </a>
-                                    ) : (
-                                        "No file"
-                                    ),
+                                    );
+                                },
                             },
+                            ...(directory.can_manage
+                                ? [
+                                      {
+                                          id: "actions",
+                                          header: "Actions",
+                                          render: (row: DocumentRow) => (
+                                              <div className="flex gap-1">
+                                                  <Button
+                                                      variant="ghost"
+                                                      className="px-2"
+                                                      disabled={removing}
+                                                      aria-label={`Edit ${row.name}`}
+                                                      onClick={() =>
+                                                          set_edit(
+                                                              row.license_id
+                                                                  ? {
+                                                                        kind: "license",
+                                                                        id: row.license_id,
+                                                                    }
+                                                                  : {
+                                                                        kind: "document",
+                                                                        document:
+                                                                            row,
+                                                                    },
+                                                          )
+                                                      }
+                                                  >
+                                                      <Pencil
+                                                          size={16}
+                                                          aria-hidden="true"
+                                                      />
+                                                  </Button>
+                                                  <Button
+                                                      variant="ghost"
+                                                      className="px-2 text-red-700"
+                                                      disabled={removing}
+                                                      aria-label={`Delete ${row.name}`}
+                                                      onClick={() =>
+                                                          set_deleting(row)
+                                                      }
+                                                  >
+                                                      <Trash2
+                                                          size={16}
+                                                          aria-hidden="true"
+                                                      />
+                                                  </Button>
+                                              </div>
+                                          ),
+                                      },
+                                  ]
+                                : []),
                         ]}
                         rows={rows}
                         empty_title="No documents recorded"
@@ -416,6 +590,38 @@ export default function PersonnelDocumentsPage() {
                     kind={active_tab === "all" ? undefined : active_tab}
                     on_close={() => set_is_open(false)}
                     on_save={save}
+                />
+            )}
+            {edit && directory.can_manage && (
+                <PersonnelRecordEditDialog
+                    edit={edit}
+                    employee_id={person.id}
+                    on_close={() => set_edit(null)}
+                    on_saved={() => {
+                        set_edit(null);
+                        if (edit.kind === "license") directory.reload();
+                        else void refreshDocuments();
+                        toast.success(
+                            edit.kind === "license"
+                                ? "License saved"
+                                : "Document updated",
+                            { position: "bottom-right" },
+                        );
+                    }}
+                />
+            )}
+            {deleting && directory.can_manage && (
+                <ConfirmDialog
+                    is_open
+                    title={
+                        deleting.license_id
+                            ? "Delete license"
+                            : "Delete document"
+                    }
+                    message={`Delete ${deleting.name}?`}
+                    confirm_text="Delete"
+                    on_confirm={() => void delete_record()}
+                    on_cancel={() => set_deleting(null)}
                 />
             )}
         </section>

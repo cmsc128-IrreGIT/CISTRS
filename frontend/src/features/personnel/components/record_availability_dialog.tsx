@@ -146,7 +146,11 @@ export default function RecordAvailabilityDialog({
                     </fieldset>
                 </div>
                 <div className="flex flex-wrap justify-between gap-2 border-t border-slate-200 px-4 py-3 sm:px-5">
-                    <Button variant="secondary" onClick={on_close}>
+                    <Button
+                        variant="secondary"
+                        className="mr-auto"
+                        onClick={on_close}
+                    >
                         Cancel
                     </Button>
                     <Button

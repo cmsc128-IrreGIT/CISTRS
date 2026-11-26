@@ -1,6 +1,7 @@
 import { Bell, Check, Clock3, Package, Plane, Wrench } from "lucide-react";
 import { Link } from "react-router";
 import Button from "../../../shared/components/ui/button";
+import StatusBadge from "../../../shared/components/ui/status_badge";
 import type { NotificationRecord } from "../types/notification_types";
 import { notification_relative_time } from "../utils/notification_time";
 
@@ -24,7 +25,7 @@ export default function NotificationItem({
     on_mark_read: (id: string) => void;
 }) {
     const unread = notification.read_at === null;
-    const Icon = category_icons[notification.category];
+    const Icon = category_icons[notification.category] ?? Bell;
     const date = new Date(notification.created_at);
     const timestamp = Number.isFinite(date.getTime())
         ? date.toLocaleString()
@@ -63,6 +64,20 @@ export default function NotificationItem({
                     ) : (
                         notification.title
                     )}
+                    {notification.severity &&
+                        notification.severity !== "Info" && (
+                            <span className="ml-2 inline-flex">
+                                <StatusBadge
+                                    tone={
+                                        notification.severity === "Critical"
+                                            ? "danger"
+                                            : "warning"
+                                    }
+                                >
+                                    {notification.severity}
+                                </StatusBadge>
+                            </span>
+                        )}
                 </h3>
                 <p className="mt-0.5 wrap-anywhere text-sm text-slate-600">
                     {notification.message}
@@ -81,7 +96,7 @@ export default function NotificationItem({
                 {unread && (
                     <Button
                         variant="ghost"
-                        className="size-10! min-h-10! p-0! text-slate-600! hover:bg-slate-200/60! hover:text-[#0b2238]!"
+                        className="size-10! min-h-10! cursor-pointer p-0! text-slate-600! hover:bg-slate-200/60! hover:text-[#0b2238]!"
                         title="Mark as read"
                         aria-label={`Mark as read: ${notification.title}`}
                         disabled={disabled}

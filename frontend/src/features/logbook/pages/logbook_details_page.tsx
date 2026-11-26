@@ -2,37 +2,39 @@ import { Link, Outlet, useParams } from "react-router";
 import EmptyState from "../../../shared/components/feedback/empty_state";
 import WorkspaceBreadcrumbs from "../../../shared/components/navigation/workspace_breadcrumbs";
 import Card from "../../../shared/components/ui/card";
+import LoadingState from "../../../shared/components/feedback/loading_state";
+import ErrorState from "../../../shared/components/feedback/error_state";
 import { button_styles } from "../../../shared/styles/button_styles";
 import LogbookDetails from "../components/logbook_details";
-import useLogbook from "../hooks/use_logbook";
-import {
-    entry_reference,
-    logbook_breadcrumb_title,
-} from "../utils/logbook_entries";
+import { useLogbookData } from "../hooks/use_logbook";
+import { entry_reference } from "../utils/logbook_entries";
 
 export default function LogbookDetailsPage() {
     const { entry_id } = useParams();
-    const entry = useLogbook().find((row) => row.id === entry_id);
+    const { records, is_loading, error, reload } = useLogbookData();
+    const entry = records.find((row) => row.sector_UUID === entry_id);
 
     return (
-        <section aria-labelledby="page_title" className="max-w-5xl space-y-4">
+        <section aria-labelledby="page_title" className="space-y-4">
             <WorkspaceBreadcrumbs
-                parents={[{ label: logbook_breadcrumb_title, to: "/logbook" }]}
+                parents={[{ label: "Logbook", to: "/logbook" }]}
                 current={entry ? entry_reference(entry) : "Entry not found"}
             />
-            <h1
-                id="page_title"
-                className="text-2xl font-semibold text-[#0b2238]"
-            >
-                Logbook Entry Details
-            </h1>
-            {entry ? (
+            {is_loading ? (
+                <Card>
+                    <LoadingState message="Loading logbook entry…" />
+                </Card>
+            ) : error ? (
+                <Card>
+                    <ErrorState description={error} on_retry={reload} />
+                </Card>
+            ) : entry ? (
                 <LogbookDetails entry={entry} />
             ) : (
                 <Card>
                     <EmptyState
                         title="Entry not found"
-                        description="Choose an existing entry from the aircraft logbook."
+                        description="Choose an existing flight sector from the aircraft logbook."
                         action={
                             <Link
                                 to="/logbook"
