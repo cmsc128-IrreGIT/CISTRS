@@ -2,7 +2,10 @@
 import type { LogbookEmployee, LogbookEntry } from "../types/logbook_types";
 
 const entry_date_format = new Intl.DateTimeFormat("en-GB", {
-    day: "numeric", month: "short", year: "numeric", timeZone: "UTC",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC",
 });
 // const short_date_format = new Intl.DateTimeFormat("en-GB", {
 //     day: "numeric", month: "short", timeZone: "UTC",
@@ -23,7 +26,9 @@ export function entry_date(date: string, short = false) {
     if (Number.isNaN(value.getTime())) return "Not recorded";
     if (!short) return entry_date_format.format(value);
     return new Intl.DateTimeFormat("en-GB", {
-        day: "numeric", month: "short", timeZone: "UTC",
+        day: "numeric",
+        month: "short",
+        timeZone: "UTC",
     }).format(value);
 }
 
@@ -32,12 +37,17 @@ export function entry_time(timestamp?: string | null) {
     const value = new Date(timestamp);
     if (Number.isNaN(value.getTime())) return "Not recorded";
     return new Intl.DateTimeFormat("en-GB", {
-        hour: "2-digit", minute: "2-digit", timeZone: "UTC", hourCycle: "h23",
+        hour: "2-digit",
+        minute: "2-digit",
+        timeZone: "UTC",
+        hourCycle: "h23",
     }).format(value);
 }
 
 export function employee_name(employee?: LogbookEmployee | null) {
-    return employee ? `${employee.f_name} ${employee.l_name}`.trim() : "Not recorded";
+    return employee
+        ? `${employee.f_name} ${employee.l_name}`.trim()
+        : "Not recorded";
 }
 
 // export function entry_updated_at(timestamp?: string) {

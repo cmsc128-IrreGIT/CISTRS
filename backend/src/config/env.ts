@@ -18,7 +18,7 @@ export const env = {
     // Examples: "15m", "8h", "7d"
     jwtExpiresIn: process.env.JWT_EXPIRES_IN ?? "8h",
     bcryptRounds: 12,
-    
+
     // Set NOTIFICATION_JOBS=off to stop the daily scan and WhatsApp sender
     // (for example when running scripts or tests).
     notificationJobsEnabled: process.env.NOTIFICATION_JOBS !== "off",

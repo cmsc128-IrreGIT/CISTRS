@@ -1,7 +1,14 @@
 import WorkspaceTabs from "../../../shared/components/navigation/workspace_tabs";
 import { Archive, Pencil } from "lucide-react";
 import { useContext, useState } from "react";
-import { Link, Outlet, useLocation, useNavigate, useParams, useSearchParams } from "react-router";
+import {
+    Link,
+    Outlet,
+    useLocation,
+    useNavigate,
+    useParams,
+    useSearchParams,
+} from "react-router";
 import EmptyState from "../../../shared/components/feedback/empty_state";
 import ScreenLoading from "../../../shared/components/feedback/screen_loading";
 import { get_inventory_access } from "../../../shared/components/navigation/workspace";
@@ -53,9 +60,15 @@ function InventoryDetails({
     const { search } = useLocation();
     const read_only =
         get_inventory_access(useContext(AuthContext)?.user ?? null) === "read";
-    const { decommission_item, is_decommissioned } = useDecommissionedInventory();
-    const [decommission_id, set_decommission_id] = useState<string | null>(null);
-    const [workflow, set_workflow] = useState<{ part_id: string; mode: keyof typeof STOCK_WORKFLOW_TITLES }>();
+    const { decommission_item, is_decommissioned } =
+        useDecommissionedInventory();
+    const [decommission_id, set_decommission_id] = useState<string | null>(
+        null,
+    );
+    const [workflow, set_workflow] = useState<{
+        part_id: string;
+        mode: keyof typeof STOCK_WORKFLOW_TITLES;
+    }>();
     const { items, is_loading, error, reload, refresh } = inventory;
 
     const item = items.find((record) => record.part_UUID === item_id);
@@ -91,13 +104,17 @@ function InventoryDetails({
     );
     const selected_tab = search_params.get(INVENTORY_DETAIL_TAB_PARAM);
     const default_tab = INVENTORY_DETAIL_TABS[0];
-    const active_tab = tabs.find((tab) => tab.id === selected_tab) ?? default_tab;
+    const active_tab =
+        tabs.find((tab) => tab.id === selected_tab) ?? default_tab;
     const stock_status = get_stock_status(item);
     const decommissioned = is_decommissioned(item.part_UUID);
 
     return (
         <section aria-labelledby="page_title" className="min-w-0 space-y-4">
-            <InventoryBreadcrumbs current={item.part_name} read_only={read_only} />
+            <InventoryBreadcrumbs
+                current={item.part_name}
+                read_only={read_only}
+            />
             <Card>
                 <h1
                     id="page_title"
@@ -107,25 +124,45 @@ function InventoryDetails({
                 </h1>
                 <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 rounded-lg border border-slate-200 bg-slate-100 px-3 py-3 sm:px-4">
                     <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5">
-                        <h2 className="text-sm font-medium text-slate-600">Current stock</h2>
+                        <h2 className="text-sm font-medium text-slate-600">
+                            Current stock
+                        </h2>
                         <div className="flex min-w-0 flex-wrap items-center gap-2 border-l border-slate-300 pl-3">
                             <p className="wrap-anywhere text-lg font-semibold tabular-nums text-[#0b2238]">
                                 {item.total_quantity} {item.unit_of_measure}
                             </p>
-                            <span className={`rounded-md px-2 py-1 text-xs font-medium ${decommissioned ? "border border-slate-200 bg-white text-slate-700" : STOCK_STATUS_STYLES[stock_status]}`}>
-                                {decommissioned ? "Decommissioned" : STOCK_STATUS_LABELS[stock_status]}
+                            <span
+                                className={`rounded-md px-2 py-1 text-xs font-medium ${decommissioned ? "border border-slate-200 bg-white text-slate-700" : STOCK_STATUS_STYLES[stock_status]}`}
+                            >
+                                {decommissioned
+                                    ? "Decommissioned"
+                                    : STOCK_STATUS_LABELS[stock_status]}
                             </span>
                         </div>
                     </div>
                     {!read_only && !decommissioned && (
                         <div className="flex w-full flex-wrap gap-2 sm:w-auto">
-                            <Button className="flex-1 sm:flex-none"
-                                onClick={() => set_workflow({ part_id: item.part_UUID, mode: "receive" })}>
+                            <Button
+                                className="flex-1 sm:flex-none"
+                                onClick={() =>
+                                    set_workflow({
+                                        part_id: item.part_UUID,
+                                        mode: "receive",
+                                    })
+                                }
+                            >
                                 Receive stock
                             </Button>
-                            <Button className={`flex-1 sm:flex-none ${INVENTORY_PRIMARY_ACTION}`}
+                            <Button
+                                className={`flex-1 sm:flex-none ${INVENTORY_PRIMARY_ACTION}`}
                                 disabled={item.total_quantity <= 0}
-                                onClick={() => set_workflow({ part_id: item.part_UUID, mode: "issue" })}>
+                                onClick={() =>
+                                    set_workflow({
+                                        part_id: item.part_UUID,
+                                        mode: "issue",
+                                    })
+                                }
+                            >
                                 Issue stock
                             </Button>
                         </div>
@@ -135,10 +172,14 @@ function InventoryDetails({
 
             <Card>
                 <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
-                    <WorkspaceTabs label="Item detail sections" className="mb-0 flex-1 basis-[32rem]">
+                    <WorkspaceTabs
+                        label="Item detail sections"
+                        className="mb-0 flex-1 basis-[32rem]"
+                    >
                         {tabs.map(({ id, label, icon: Icon }) => {
                             const params = new URLSearchParams(search_params);
-                            if (id === default_tab.id) params.delete(INVENTORY_DETAIL_TAB_PARAM);
+                            if (id === default_tab.id)
+                                params.delete(INVENTORY_DETAIL_TAB_PARAM);
                             else params.set(INVENTORY_DETAIL_TAB_PARAM, id);
                             const query = params.toString();
                             const active = active_tab.id === id;
@@ -149,7 +190,8 @@ function InventoryDetails({
                                     aria-current={active ? "page" : undefined}
                                     className={inventory_tab_style(active)}
                                 >
-                                    <Icon size={16} aria-hidden="true" /> {label}
+                                    <Icon size={16} aria-hidden="true" />{" "}
+                                    {label}
                                 </Link>
                             );
                         })}
@@ -159,9 +201,12 @@ function InventoryDetails({
                             {!decommissioned && (
                                 <Button
                                     variant="secondary"
-                                    onClick={() => set_decommission_id(item.part_UUID)}
+                                    onClick={() =>
+                                        set_decommission_id(item.part_UUID)
+                                    }
                                 >
-                                    <Archive size={17} aria-hidden="true" /> Decommission
+                                    <Archive size={17} aria-hidden="true" />{" "}
+                                    Decommission
                                 </Button>
                             )}
                             <Link
@@ -169,7 +214,8 @@ function InventoryDetails({
                                 state={{ from_inventory: true }}
                                 className={button_styles("secondary")}
                             >
-                                <Pencil size={17} aria-hidden="true" /> Edit details
+                                <Pencil size={17} aria-hidden="true" /> Edit
+                                details
                             </Link>
                         </div>
                     )}
@@ -184,7 +230,12 @@ function InventoryDetails({
                                 <div className="mb-3 flex justify-end">
                                     <Button
                                         variant="secondary"
-                                        onClick={() => set_workflow({ part_id: item.part_UUID, mode: "correction" })}
+                                        onClick={() =>
+                                            set_workflow({
+                                                part_id: item.part_UUID,
+                                                mode: "correction",
+                                            })
+                                        }
                                     >
                                         Correct stock
                                     </Button>
@@ -203,30 +254,48 @@ function InventoryDetails({
                         />
                     )}
                     {active_tab.id === "history-and-usage" && (
-                        <InventoryItemUsage key={item.part_UUID} item={item} read_only={read_only || decommissioned} on_saved={() => void refresh()} />
+                        <InventoryItemUsage
+                            key={item.part_UUID}
+                            item={item}
+                            read_only={read_only || decommissioned}
+                            on_saved={() => void refresh()}
+                        />
                     )}
                 </section>
             </Card>
 
             {active_tab.id === "information" && (
                 <p className="px-1 text-sm text-slate-600">
-                    Stock availability reflects quantity only. Approval for aircraft use is separate.
+                    Stock availability reflects quantity only. Approval for
+                    aircraft use is separate.
                 </p>
             )}
 
-            {workflow?.part_id === item.part_UUID && !read_only && !decommissioned && (
-                <InventoryStockWorkflowDialog key={workflow.mode} mode={workflow.mode} item={item}
-                    on_saved={() => void refresh()} on_close={() => set_workflow(undefined)} />
-            )}
+            {workflow?.part_id === item.part_UUID &&
+                !read_only &&
+                !decommissioned && (
+                    <InventoryStockWorkflowDialog
+                        key={workflow.mode}
+                        mode={workflow.mode}
+                        item={item}
+                        on_saved={() => void refresh()}
+                        on_close={() => set_workflow(undefined)}
+                    />
+                )}
 
-            {decommission_id === item.part_UUID && !read_only && !decommissioned && (
-                <InventoryLifecycleDialog item={item} on_close={() => set_decommission_id(null)}
-                    on_saved={() => {
-                        decommission_item(item.part_UUID);
-                        set_decommission_id(null);
-                        navigate("/inventory/decommissioned");
-                    }} />
-            )}
+            {decommission_id === item.part_UUID &&
+                !read_only &&
+                !decommissioned && (
+                    <InventoryLifecycleDialog
+                        item={item}
+                        on_close={() => set_decommission_id(null)}
+                        on_saved={() => {
+                            decommission_item(item.part_UUID);
+                            set_decommission_id(null);
+                            navigate("/inventory/decommissioned");
+                        }}
+                    />
+                )}
         </section>
     );
 }

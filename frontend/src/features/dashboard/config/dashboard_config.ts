@@ -31,7 +31,13 @@ type DashboardConfig = {
 };
 
 const administrator: DashboardConfig = {
-    metrics: ["inventory", "stock", "aircraft", "pending", "staff_availability"],
+    metrics: [
+        "inventory",
+        "stock",
+        "aircraft",
+        "pending",
+        "staff_availability",
+    ],
     panels: ["stock", "aircraft", "maintenance"],
     activity: "inventory",
 };
@@ -108,7 +114,8 @@ export function get_dashboard_config(
         due: maintenance,
         work: maintenance,
         checklists: pilot && logbook,
-        staff_availability: workspace === "administrator" && (personnel || availability),
+        staff_availability:
+            workspace === "administrator" && (personnel || availability),
         logbook: logbook && !inventory_dashboard,
         personnel: personnel && !inventory_dashboard && !logbook,
         availability:

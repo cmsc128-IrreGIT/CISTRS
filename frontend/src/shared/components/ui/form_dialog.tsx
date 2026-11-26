@@ -22,7 +22,11 @@ export default function FormDialog({
 }) {
     const ref = useRef<HTMLDialogElement>(null);
     const id = useId();
-    const width_style = { xl: "max-w-xl", "2xl": "max-w-2xl", "3xl": "max-w-3xl" }[max_width ?? (wide || !compact ? "3xl" : "xl")];
+    const width_style = {
+        xl: "max-w-xl",
+        "2xl": "max-w-2xl",
+        "3xl": "max-w-3xl",
+    }[max_width ?? (wide || !compact ? "3xl" : "xl")];
     useEffect(() => {
         const dialog = ref.current;
         if (dialog && !dialog.open) dialog.showModal();
@@ -41,7 +45,9 @@ export default function FormDialog({
             aria-busy={is_busy || undefined}
             className={`fixed inset-0 m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] overflow-y-auto rounded-xl bg-white p-0 text-[#172b3a] shadow-xl ${width_style} ${compact ? "backdrop:bg-[#0b2238]/50" : "backdrop:bg-[#0b2238]/65"}`}
         >
-            <header className={`sticky top-0 z-10 flex items-center justify-between gap-4 border-b border-slate-200 bg-white ${compact ? "px-4 py-2 sm:px-5" : "px-5 py-3 sm:px-7"}`}>
+            <header
+                className={`sticky top-0 z-10 flex items-center justify-between gap-4 border-b border-slate-200 bg-white ${compact ? "px-4 py-2 sm:px-5" : "px-5 py-3 sm:px-7"}`}
+            >
                 <h2 id={id} className="text-xl font-semibold">
                     {title}
                 </h2>

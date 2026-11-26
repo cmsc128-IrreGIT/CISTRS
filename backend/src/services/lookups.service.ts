@@ -26,15 +26,27 @@ export async function listLookups() {
     ] = await Promise.all([
         prisma.flightType.findMany({
             orderBy: { type_name: "asc" },
-            select: { flight_type_UUID: true, type_name: true, description: true },
+            select: {
+                flight_type_UUID: true,
+                type_name: true,
+                description: true,
+            },
         }),
         prisma.flightStatus.findMany({
             orderBy: { status_name: "asc" },
-            select: { flight_status_UUID: true, status_name: true, description: true },
+            select: {
+                flight_status_UUID: true,
+                status_name: true,
+                description: true,
+            },
         }),
         prisma.delayCategory.findMany({
             orderBy: { category_name: "asc" },
-            select: { delay_category_UUID: true, category_name: true, description: true },
+            select: {
+                delay_category_UUID: true,
+                category_name: true,
+                description: true,
+            },
         }),
         prisma.base.findMany({
             where: { base_status: "Active" },
@@ -43,16 +55,28 @@ export async function listLookups() {
         }),
         prisma.employmentStatus.findMany({
             orderBy: { status_name: "asc" },
-            select: { emp_status_UUID: true, status_name: true, description: true },
+            select: {
+                emp_status_UUID: true,
+                status_name: true,
+                description: true,
+            },
         }),
         prisma.personnelCategory.findMany({
             orderBy: { category_name: "asc" },
-            select: { personnel_category_UUID: true, category_name: true, description: true },
+            select: {
+                personnel_category_UUID: true,
+                category_name: true,
+                description: true,
+            },
         }),
         listPositions(),
         prisma.aircraftType.findMany({
             orderBy: { type_name: "asc" },
-            select: { aircraft_type_UUID: true, type_name: true, description: true },
+            select: {
+                aircraft_type_UUID: true,
+                type_name: true,
+                description: true,
+            },
         }),
         listAircraftStatuses(),
         listSuppliers(),
@@ -99,7 +123,10 @@ async function listManufacturers() {
 function flattenOrganizations(
     rows: {
         organization_UUID: string;
-        organization: { organization_name: string; organization_location: string };
+        organization: {
+            organization_name: string;
+            organization_location: string;
+        };
     }[],
 ) {
     return rows

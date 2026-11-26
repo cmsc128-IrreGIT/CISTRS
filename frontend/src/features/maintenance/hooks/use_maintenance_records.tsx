@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { maintenance_service } from "../services/maintenance_service";
-import type { MaintenanceAdRecord, MaintenanceCpcpTask } from "../types/maintenance_types";
+import type {
+    MaintenanceAdRecord,
+    MaintenanceCpcpTask,
+} from "../types/maintenance_types";
 
 type Records = { ads: MaintenanceAdRecord[]; tasks: MaintenanceCpcpTask[] };
 const empty_records: Records = { ads: [], tasks: [] };
@@ -18,21 +21,38 @@ export default function useMaintenanceRecords(enabled = true) {
     useEffect(() => {
         if (!scope.enabled) return;
         let active = true;
-        Promise.all([maintenance_service.list_ad_records(), maintenance_service.list_cpcp_tasks()])
+        Promise.all([
+            maintenance_service.list_ad_records(),
+            maintenance_service.list_cpcp_tasks(),
+        ])
             .then(([ads, tasks]) => {
-                if (active) set_result({ scope, version, records: { ads, tasks }, error: "" });
+                if (active)
+                    set_result({
+                        scope,
+                        version,
+                        records: { ads, tasks },
+                        error: "",
+                    });
             })
             .catch((cause: unknown) => {
                 if (!active) return;
-                const error = cause instanceof Error ? cause.message : "Could not load maintenance.";
+                const error =
+                    cause instanceof Error
+                        ? cause.message
+                        : "Could not load maintenance.";
                 set_result((previous) => ({
                     scope,
                     version,
-                    records: previous?.scope === scope ? previous.records : empty_records,
+                    records:
+                        previous?.scope === scope
+                            ? previous.records
+                            : empty_records,
                     error,
                 }));
             });
-        return () => { active = false; };
+        return () => {
+            active = false;
+        };
     }, [scope, version]);
 
     const current = result?.scope === scope ? result : null;
@@ -40,7 +60,7 @@ export default function useMaintenanceRecords(enabled = true) {
     return {
         ...(current?.records ?? empty_records),
         loading,
-        error: loading ? "" : current?.error ?? "",
+        error: loading ? "" : (current?.error ?? ""),
         reload: () => set_version((value) => value + 1),
     };
 }

@@ -1,6 +1,9 @@
 import { Link } from "react-router";
 import DataTable from "../../../shared/components/ui/data_table";
-import type { TableColumn, TableRowHighlight } from "../../../shared/components/ui/data_table";
+import type {
+    TableColumn,
+    TableRowHighlight,
+} from "../../../shared/components/ui/data_table";
 import StatusBadge from "../../../shared/components/ui/status_badge";
 import type { PreviewRecord } from "../../../shared/types/record_types";
 const columns: TableColumn<PreviewRecord>[] = [

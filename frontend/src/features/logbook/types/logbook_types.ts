@@ -12,9 +12,15 @@ export type LogbookEmployee = {
     l_name: string;
 };
 
-export type LogbookFlightStatus = { flight_status_UUID: string; status_name: string };
+export type LogbookFlightStatus = {
+    flight_status_UUID: string;
+    status_name: string;
+};
 export type LogbookFlightType = { flight_type_UUID: string; type_name: string };
-export type LogbookDelayCategory = { delay_category_UUID: string; category_name: string };
+export type LogbookDelayCategory = {
+    delay_category_UUID: string;
+    category_name: string;
+};
 export type LogbookReference = { id: string; name: string };
 export type LogbookLookups = {
     flight_statuses: LogbookFlightStatus[];

@@ -48,10 +48,19 @@ export default function InventoryFormPage() {
             );
         }
     }
-    const { locations, is_loading: locations_loading, error: locations_error, reload: reload_locations } = useInventoryLocations();
+    const {
+        locations,
+        is_loading: locations_loading,
+        error: locations_error,
+        reload: reload_locations,
+    } = useInventoryLocations();
     const existing_item = items.find((item) => item.part_UUID === item_id);
     const is_editing = Boolean(item_id);
-    const units = [...new Set(items.map((item) => item.unit_of_measure.trim()).filter(Boolean))].sort();
+    const units = [
+        ...new Set(
+            items.map((item) => item.unit_of_measure.trim()).filter(Boolean),
+        ),
+    ].sort();
 
     async function handle_save(
         values: InventoryFormValues,
@@ -64,23 +73,29 @@ export default function InventoryFormPage() {
             if (item_id) {
                 await update_inventory_item(item_id, values);
 
-                toast.success("Inventory item updated.", { position: "bottom-right" });
+                toast.success("Inventory item updated.", {
+                    position: "bottom-right",
+                });
             } else {
                 await create_inventory_item({
                     ...values,
                     initial_stock,
                 });
 
-                toast.success("Inventory item added.", { position: "bottom-right" });
+                toast.success("Inventory item added.", {
+                    position: "bottom-right",
+                });
             }
 
             if (mounted.current) close_form();
             void refresh();
         } catch (error) {
             if (mounted.current) {
-                set_save_error(error instanceof Error && error.message
-                    ? error.message
-                    : "The inventory request failed.");
+                set_save_error(
+                    error instanceof Error && error.message
+                        ? error.message
+                        : "The inventory request failed.",
+                );
             }
         } finally {
             if (mounted.current) set_is_saving(false);
@@ -101,10 +116,20 @@ export default function InventoryFormPage() {
             ) : error || (!is_editing && locations_error) ? (
                 <p role="alert" className="p-4 text-sm text-red-700">
                     {error || locations_error}
-                    {!error && <button type="button" className="ml-2 underline" onClick={() => void reload_locations()}>Try again</button>}
+                    {!error && (
+                        <button
+                            type="button"
+                            className="ml-2 underline"
+                            onClick={() => void reload_locations()}
+                        >
+                            Try again
+                        </button>
+                    )}
                 </p>
             ) : is_editing && !existing_item ? (
-                <div className="p-4"><InventoryNotFound /></div>
+                <div className="p-4">
+                    <InventoryNotFound />
+                </div>
             ) : (
                 <InventoryForm
                     key={item_id ?? "new"}

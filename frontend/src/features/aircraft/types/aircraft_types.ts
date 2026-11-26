@@ -30,4 +30,7 @@ export type AircraftRecord = {
     status_description: string;
     hours_updated_at: string;
 };
-export type AircraftStatusInput = { aircraft_status_UUID?: string; current_hours?: number };
+export type AircraftStatusInput = {
+    aircraft_status_UUID?: string;
+    current_hours?: number;
+};

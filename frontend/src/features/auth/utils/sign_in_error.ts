@@ -8,13 +8,15 @@ const account_access_messages = new Set([
 
 export function sign_in_error(cause: unknown) {
     if (cause instanceof ApiError) {
-        if (cause.status === 401) return "Invalid username or password. Check both and try again.";
+        if (cause.status === 401)
+            return "Invalid username or password. Check both and try again.";
         if (cause.status === 403) {
             return account_access_messages.has(cause.message)
                 ? cause.message
                 : "Your account cannot sign in. Contact your administrator.";
         }
-        if (cause.status === 429) return "Too many sign-in attempts. Wait a moment and try again.";
+        if (cause.status === 429)
+            return "Too many sign-in attempts. Wait a moment and try again.";
     }
     if (cause instanceof ApiConnectionError) {
         return "Cannot reach the server. Check your connection and try again.";

@@ -12,7 +12,10 @@ import {
     uuidField,
     type RuleIssue,
 } from "../common/fields.js";
-import { assertActiveEmployee, employeeSummarySelect } from "../common/lookups.js";
+import {
+    assertActiveEmployee,
+    employeeSummarySelect,
+} from "../common/lookups.js";
 import { latestEntryDate } from "./shared.js";
 
 // =============================================================================
@@ -47,7 +50,9 @@ export const fuelInclude = {
     receiver: { select: employeeSummarySelect },
 } satisfies Prisma.FuelTransactionInclude;
 
-type FuelRow = Prisma.FuelTransactionGetPayload<{ include: typeof fuelInclude }>;
+type FuelRow = Prisma.FuelTransactionGetPayload<{
+    include: typeof fuelInclude;
+}>;
 
 export function toFuelResponse(row: FuelRow) {
     return {

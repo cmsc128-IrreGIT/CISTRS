@@ -11,9 +11,7 @@ import useTablePagination from "../../../shared/hooks/use_table_pagination";
 import { button_styles } from "../../../shared/styles/button_styles";
 import AccountStatus from "../components/account_status";
 import ReferenceDataDialog from "../components/reference_data_dialog";
-import {
-    account_field_style,
-} from "../config/user_management_config";
+import { account_field_style } from "../config/user_management_config";
 import useUserManagement from "../hooks/use_user_management";
 import { account_name } from "../types/user_account";
 
@@ -67,8 +65,13 @@ export default function UsersPage() {
             </p>
             <Card>
                 <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-                    <h2 className="font-semibold text-[#0b2238]">System accounts</h2>
-                    <Button variant="secondary" onClick={() => set_adding_reference(true)}>
+                    <h2 className="font-semibold text-[#0b2238]">
+                        System accounts
+                    </h2>
+                    <Button
+                        variant="secondary"
+                        onClick={() => set_adding_reference(true)}
+                    >
                         <Plus size={18} aria-hidden="true" /> Add reference data
                     </Button>
                 </div>
@@ -193,7 +196,11 @@ export default function UsersPage() {
                     <Pagination {...footer} item_label="account" />
                 )}
             </Card>
-            {adding_reference && <ReferenceDataDialog on_close={() => set_adding_reference(false)} />}
+            {adding_reference && (
+                <ReferenceDataDialog
+                    on_close={() => set_adding_reference(false)}
+                />
+            )}
             <Outlet context={workspace} />
         </section>
     );

@@ -7,18 +7,18 @@ The frontend is implemented across the main CISTRS modules, but not all features
 
 ## Integration status
 
-| Module | Current state | Remaining work |
-| --- | --- | --- |
-| Authentication / Profile | Live login and session APIs; local changes support employee full names. | Verify login, session restore, logout, and names across staff accounts. |
-| Dashboard | Mixed: live Inventory data; preview Aircraft, Maintenance, Logbook, Availability, and Personnel count. | Replace preview counts with authorized live records. |
-| Inventory | Live parts listing, details, create/update, and transaction history. Some stock requests and correction flows use previews. | Check stock operations, payload fields, and persistence. |
-| Aircraft | Fleet and status workflows currently use a preview store. | Connect to existing `/api/aircraft` routes and align identifiers/statuses. |
-| Maintenance | Work records and task screens currently use previews. | Map UI records to backend maintenance routes and supported fields. |
-| Technical Logbook | Entries and export interface use preview data. | Connect sector, fuel, and export APIs; verify field mapping. |
-| Personnel | Live Personnel API for authorized users; limited read-only directory endpoint for other authenticated staff. | Verify actual account permissions and approved directory fields. Personnel edits/documents may still be previews. |
-| Availability | Directory shows an Availability column; authorized users have a recording tab. Records use an in-memory preview store. | Agree with backend team on persistent records and read/write API before integration. |
-| User Accounts | Live account listing and creation; duty/status edits are previews. | Connect only supported management actions and verify position-based access. |
-| Notifications / Settings | Inbox, preferences, and some settings use frontend preview state. | Confirm which operations need backend persistence. |
+| Module                   | Current state                                                                                                               | Remaining work                                                                                                    |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| Authentication / Profile | Live login and session APIs; local changes support employee full names.                                                     | Verify login, session restore, logout, and names across staff accounts.                                           |
+| Dashboard                | Mixed: live Inventory data; preview Aircraft, Maintenance, Logbook, Availability, and Personnel count.                      | Replace preview counts with authorized live records.                                                              |
+| Inventory                | Live parts listing, details, create/update, and transaction history. Some stock requests and correction flows use previews. | Check stock operations, payload fields, and persistence.                                                          |
+| Aircraft                 | Fleet and status workflows currently use a preview store.                                                                   | Connect to existing `/api/aircraft` routes and align identifiers/statuses.                                        |
+| Maintenance              | Work records and task screens currently use previews.                                                                       | Map UI records to backend maintenance routes and supported fields.                                                |
+| Technical Logbook        | Entries and export interface use preview data.                                                                              | Connect sector, fuel, and export APIs; verify field mapping.                                                      |
+| Personnel                | Live Personnel API for authorized users; limited read-only directory endpoint for other authenticated staff.                | Verify actual account permissions and approved directory fields. Personnel edits/documents may still be previews. |
+| Availability             | Directory shows an Availability column; authorized users have a recording tab. Records use an in-memory preview store.      | Agree with backend team on persistent records and read/write API before integration.                              |
+| User Accounts            | Live account listing and creation; duty/status edits are previews.                                                          | Connect only supported management actions and verify position-based access.                                       |
+| Notifications / Settings | Inbox, preferences, and some settings use frontend preview state.                                                           | Confirm which operations need backend persistence.                                                                |
 
 ## Where to work
 

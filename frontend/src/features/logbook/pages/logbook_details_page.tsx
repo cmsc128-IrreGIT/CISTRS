@@ -20,12 +20,30 @@ export default function LogbookDetailsPage() {
                 parents={[{ label: "Logbook", to: "/logbook" }]}
                 current={entry ? entry_reference(entry) : "Entry not found"}
             />
-            {is_loading ? <Card><LoadingState message="Loading logbook entry…" /></Card> : error ? (
-                <Card><ErrorState description={error} on_retry={reload} /></Card>
-            ) : entry ? <LogbookDetails entry={entry} /> : (
+            {is_loading ? (
                 <Card>
-                    <EmptyState title="Entry not found" description="Choose an existing flight sector from the aircraft logbook."
-                        action={<Link to="/logbook" className={button_styles("secondary")}>Return to logbook</Link>} />
+                    <LoadingState message="Loading logbook entry…" />
+                </Card>
+            ) : error ? (
+                <Card>
+                    <ErrorState description={error} on_retry={reload} />
+                </Card>
+            ) : entry ? (
+                <LogbookDetails entry={entry} />
+            ) : (
+                <Card>
+                    <EmptyState
+                        title="Entry not found"
+                        description="Choose an existing flight sector from the aircraft logbook."
+                        action={
+                            <Link
+                                to="/logbook"
+                                className={button_styles("secondary")}
+                            >
+                                Return to logbook
+                            </Link>
+                        }
+                    />
                 </Card>
             )}
             {entry && <Outlet />}

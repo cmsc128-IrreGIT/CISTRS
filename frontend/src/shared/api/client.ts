@@ -166,18 +166,23 @@ export const notificationsApi = {
     }): Promise<NotificationsResponse> => {
         const searchParams = new URLSearchParams();
         if (params?.category) searchParams.set("category", params.category);
-        if (params?.unread !== undefined) searchParams.set("unread", params.unread ? "true" : "false");
+        if (params?.unread !== undefined)
+            searchParams.set("unread", params.unread ? "true" : "false");
         if (params?.page) searchParams.set("page", String(params.page));
         if (params?.limit) searchParams.set("limit", String(params.limit));
         const query = searchParams.toString();
-        return api<NotificationsResponse>(`/notifications${query ? `?${query}` : ""}`);
+        return api<NotificationsResponse>(
+            `/notifications${query ? `?${query}` : ""}`,
+        );
     },
 
     unreadCount: (): Promise<UnreadCountResponse> =>
         api<UnreadCountResponse>("/notifications/unread-count"),
 
     markRead: (recipientUUID: string): Promise<MarkReadResponse> =>
-        api<MarkReadResponse>(`/notifications/${recipientUUID}/read`, { method: "PATCH" }),
+        api<MarkReadResponse>(`/notifications/${recipientUUID}/read`, {
+            method: "PATCH",
+        }),
 
     markAllRead: (category?: string): Promise<MarkAllReadResponse> =>
         api<MarkAllReadResponse>("/notifications/read-all", {
@@ -188,7 +193,9 @@ export const notificationsApi = {
 };
 
 // Helper to fetch list responses with X-Total-Count header
-async function fetchList<T>(path: string): Promise<{ items: T[]; total: number; page: number; limit: number }> {
+async function fetchList<T>(
+    path: string,
+): Promise<{ items: T[]; total: number; page: number; limit: number }> {
     const response = await api_fetch(`${API_BASE_URL}${path}`);
     if (!response.ok) {
         throw new ApiError(response.status, "Failed to fetch list");
@@ -218,7 +225,9 @@ export const availabilityApi = {
         if (params?.limit) searchParams.set("limit", String(params.limit));
         if (params?.offset) searchParams.set("offset", String(params.offset));
         const query = searchParams.toString();
-        return fetchList<AvailabilityRecord>(`/personnel/availability${query ? `?${query}` : ""}`);
+        return fetchList<AvailabilityRecord>(
+            `/personnel/availability${query ? `?${query}` : ""}`,
+        );
     },
 
     get: (availability_UUID: string): Promise<AvailabilityRecord> =>
@@ -236,18 +245,27 @@ export const availabilityApi = {
             body: JSON.stringify(data),
         }),
 
-    update: (availability_UUID: string, data: {
-        status?: "Available" | "Unavailable";
-        notes?: string | null;
-    }): Promise<AvailabilityRecord> =>
-        api<AvailabilityRecord>(`/personnel/availability/${availability_UUID}`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data),
-        }),
+    update: (
+        availability_UUID: string,
+        data: {
+            status?: "Available" | "Unavailable";
+            notes?: string | null;
+        },
+    ): Promise<AvailabilityRecord> =>
+        api<AvailabilityRecord>(
+            `/personnel/availability/${availability_UUID}`,
+            {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data),
+            },
+        ),
 
     delete: (availability_UUID: string): Promise<{ deleted: boolean }> =>
-        api<{ deleted: boolean }>(`/personnel/availability/${availability_UUID}`, { method: "DELETE" }),
+        api<{ deleted: boolean }>(
+            `/personnel/availability/${availability_UUID}`,
+            { method: "DELETE" },
+        ),
 };
 
 export const documentsApi = {
@@ -267,7 +285,9 @@ export const documentsApi = {
         if (params?.limit) searchParams.set("limit", String(params.limit));
         if (params?.offset) searchParams.set("offset", String(params.offset));
         const query = searchParams.toString();
-        return fetchList<PersonalDocument>(`/personnel/documents${query ? `?${query}` : ""}`);
+        return fetchList<PersonalDocument>(
+            `/personnel/documents${query ? `?${query}` : ""}`,
+        );
     },
 
     get: (document_UUID: string): Promise<PersonalDocument> =>
@@ -290,16 +310,19 @@ export const documentsApi = {
             body: JSON.stringify(data),
         }),
 
-    update: (document_UUID: string, data: {
-        kind?: "License" | "Training" | "Medical" | "Company ID" | "Other";
-        name?: string;
-        reference?: string | null;
-        date_issued?: string;
-        expiry_date?: string | null;
-        renewal_date?: string | null;
-        file_path?: string | null;
-        remarks?: string | null;
-    }): Promise<PersonalDocument> =>
+    update: (
+        document_UUID: string,
+        data: {
+            kind?: "License" | "Training" | "Medical" | "Company ID" | "Other";
+            name?: string;
+            reference?: string | null;
+            date_issued?: string;
+            expiry_date?: string | null;
+            renewal_date?: string | null;
+            file_path?: string | null;
+            remarks?: string | null;
+        },
+    ): Promise<PersonalDocument> =>
         api<PersonalDocument>(`/personnel/documents/${document_UUID}`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
@@ -307,7 +330,9 @@ export const documentsApi = {
         }),
 
     delete: (document_UUID: string): Promise<{ deleted: boolean }> =>
-        api<{ deleted: boolean }>(`/personnel/documents/${document_UUID}`, { method: "DELETE" }),
+        api<{ deleted: boolean }>(`/personnel/documents/${document_UUID}`, {
+            method: "DELETE",
+        }),
 };
 
 export const licensesApi = {
@@ -317,30 +342,36 @@ export const licensesApi = {
     get: (emp_license_UUID: string): Promise<EmployeeLicense> =>
         api<EmployeeLicense>(`/personnel/licenses/${emp_license_UUID}`),
 
-    create: (emp_UUID: string, data: {
-        license_type_UUID: string;
-        renewal_status_UUID: string;
-        license_number: string;
-        issuing_authority: string;
-        date_issued: string;
-        expiry_date?: string | null;
-        remarks?: string | null;
-    }): Promise<EmployeeLicense> =>
+    create: (
+        emp_UUID: string,
+        data: {
+            license_type_UUID: string;
+            renewal_status_UUID: string;
+            license_number: string;
+            issuing_authority: string;
+            date_issued: string;
+            expiry_date?: string | null;
+            remarks?: string | null;
+        },
+    ): Promise<EmployeeLicense> =>
         api<EmployeeLicense>(`/personnel/employees/${emp_UUID}/licenses`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(data),
         }),
 
-    update: (emp_license_UUID: string, data: {
-        license_type_UUID?: string;
-        renewal_status_UUID?: string;
-        license_number?: string;
-        issuing_authority?: string;
-        date_issued?: string;
-        expiry_date?: string | null;
-        remarks?: string | null;
-    }): Promise<EmployeeLicense> =>
+    update: (
+        emp_license_UUID: string,
+        data: {
+            license_type_UUID?: string;
+            renewal_status_UUID?: string;
+            license_number?: string;
+            issuing_authority?: string;
+            date_issued?: string;
+            expiry_date?: string | null;
+            remarks?: string | null;
+        },
+    ): Promise<EmployeeLicense> =>
         api<EmployeeLicense>(`/personnel/licenses/${emp_license_UUID}`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
@@ -348,5 +379,7 @@ export const licensesApi = {
         }),
 
     delete: (emp_license_UUID: string): Promise<{ deleted: boolean }> =>
-        api<{ deleted: boolean }>(`/personnel/licenses/${emp_license_UUID}`, { method: "DELETE" }),
+        api<{ deleted: boolean }>(`/personnel/licenses/${emp_license_UUID}`, {
+            method: "DELETE",
+        }),
 };

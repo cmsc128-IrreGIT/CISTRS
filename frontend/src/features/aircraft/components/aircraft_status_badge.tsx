@@ -9,7 +9,9 @@ export default function AircraftStatusBadge({ status }: { status?: string }) {
                     ? "success"
                     : normalized.includes("maintenance")
                       ? "warning"
-                      : normalized === "aog" || normalized.includes("out of service") || normalized.includes("unairworthy")
+                      : normalized === "aog" ||
+                          normalized.includes("out of service") ||
+                          normalized.includes("unairworthy")
                         ? "danger"
                         : "neutral"
             }

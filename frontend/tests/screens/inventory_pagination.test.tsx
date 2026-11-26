@@ -1,4 +1,10 @@
-import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
+import {
+    cleanup,
+    render,
+    screen,
+    waitFor,
+    within,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, expect, it, vi } from "vitest";
 import { MemoryRouter } from "react-router";
@@ -98,7 +104,9 @@ it("uses a dash placeholder only when the expiry date is missing", () => {
     );
     const table = screen.getByRole("table");
     const cell = (part: string, expiry: string) =>
-        within(within(table).getByRole("row", { name: new RegExp(part) })).getByRole("cell", { name: expiry });
+        within(
+            within(table).getByRole("row", { name: new RegExp(part) }),
+        ).getByRole("cell", { name: expiry });
 
     expect(cell("Part 01", "--")).toBeInTheDocument();
     expect(cell("Part 02", "Not applicable")).toBeInTheDocument();
@@ -130,9 +138,7 @@ it("filters low and out-of-stock items and recovers after an unmatched search", 
     expect(
         screen.getByRole("heading", { name: "No matching items" }),
     ).toBeInTheDocument();
-    await user.click(
-        screen.getByRole("button", { name: "Clear filters" }),
-    );
+    await user.click(screen.getByRole("button", { name: "Clear filters" }));
     expect(screen.getByRole("status")).toHaveTextContent(
         "Showing 1–5 of 12 items",
     );
@@ -178,35 +184,59 @@ it("shows all locations and only shows the Category controls when data exists", 
 it("opens the inventory page containing the notification target and highlights the matching row", async () => {
     const user = userEvent.setup();
     render(
-        <MemoryRouter initialEntries={[{ pathname: "/inventory", state: { highlight_record: "part-10" } }]}>
+        <MemoryRouter
+            initialEntries={[
+                {
+                    pathname: "/inventory",
+                    state: { highlight_record: "part-10" },
+                },
+            ]}
+        >
             <InventoryPage />
         </MemoryRouter>,
     );
 
-    expect(screen.getByRole("status")).toHaveTextContent("Showing 11–12 of 12 items");
-    await waitFor(() => expect(screen.getByRole("row", { name: /Part 11/ })).toHaveClass("record-highlight"));
-    expect(screen.getByRole("row", { name: /Part 12/ })).not.toHaveClass("record-highlight");
+    expect(screen.getByRole("status")).toHaveTextContent(
+        "Showing 11–12 of 12 items",
+    );
+    await waitFor(() =>
+        expect(screen.getByRole("row", { name: /Part 11/ })).toHaveClass(
+            "record-highlight",
+        ),
+    );
+    expect(screen.getByRole("row", { name: /Part 12/ })).not.toHaveClass(
+        "record-highlight",
+    );
     await user.click(screen.getByRole("button", { name: "Previous page" }));
-    expect(screen.getByRole("status")).toHaveTextContent("Showing 6–10 of 12 items");
+    expect(screen.getByRole("status")).toHaveTextContent(
+        "Showing 6–10 of 12 items",
+    );
 });
 
-
 it("scrolls the active inventory tab into view on a narrow strip", () => {
-    const bounds = vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(function (this: HTMLElement) {
-        return this.hasAttribute("aria-current")
-            ? new DOMRect(360, 0, 130, 44)
-            : new DOMRect(0, 0, 270, 44);
-    });
-    const width = vi.spyOn(HTMLElement.prototype, "clientWidth", "get").mockReturnValue(270);
+    const bounds = vi
+        .spyOn(HTMLElement.prototype, "getBoundingClientRect")
+        .mockImplementation(function (this: HTMLElement) {
+            return this.hasAttribute("aria-current")
+                ? new DOMRect(360, 0, 130, 44)
+                : new DOMRect(0, 0, 270, 44);
+        });
+    const width = vi
+        .spyOn(HTMLElement.prototype, "clientWidth", "get")
+        .mockReturnValue(270);
     try {
         render(
             <MemoryRouter initialEntries={["/inventory/corrections"]}>
                 <InventoryTabs />
             </MemoryRouter>,
         );
-        const tabs = screen.getByRole("navigation", { name: "Inventory sections" });
+        const tabs = screen.getByRole("navigation", {
+            name: "Inventory sections",
+        });
         expect(tabs.scrollLeft).toBe(290);
-        expect(within(tabs).getByRole("link", { name: "Stock Corrections" })).toHaveAttribute("aria-current", "page");
+        expect(
+            within(tabs).getByRole("link", { name: "Stock Corrections" }),
+        ).toHaveAttribute("aria-current", "page");
     } finally {
         width.mockRestore();
         bounds.mockRestore();

@@ -7,7 +7,9 @@ export function useLogbookData(enabled = true) {
         logbook_service.get_snapshot,
         logbook_service.get_snapshot,
     );
-    useEffect(() => { if (enabled) void logbook_service.load(); }, [enabled]);
+    useEffect(() => {
+        if (enabled) void logbook_service.load();
+    }, [enabled]);
     return { ...state, reload: logbook_service.reload };
 }
 

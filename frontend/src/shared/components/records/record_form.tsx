@@ -110,11 +110,18 @@ export default function RecordForm({
             </div>
             <div className="flex justify-end gap-3 border-t border-slate-200 pt-4">
                 {on_cancel ? (
-                    <Button variant="secondary" className="mr-auto" onClick={on_cancel}>
+                    <Button
+                        variant="secondary"
+                        className="mr-auto"
+                        onClick={on_cancel}
+                    >
                         Cancel
                     </Button>
                 ) : (
-                    <Link to={cancel_to} className={button_styles("secondary", "mr-auto")}>
+                    <Link
+                        to={cancel_to}
+                        className={button_styles("secondary", "mr-auto")}
+                    >
                         Cancel
                     </Link>
                 )}

@@ -1,4 +1,4 @@
-import { CalendarDays} from "lucide-react";
+import { CalendarDays } from "lucide-react";
 import { useState, useMemo } from "react";
 import { Navigate } from "react-router";
 import { toast } from "sonner";
@@ -38,7 +38,9 @@ const updated_format = new Intl.DateTimeFormat("en-GB", {
     hour: "2-digit",
     minute: "2-digit",
 });
-function availability_columns(has_actions: boolean): TableColumn<RegisterRow>[] {
+function availability_columns(
+    has_actions: boolean,
+): TableColumn<RegisterRow>[] {
     return [
         {
             id: "personnel",
@@ -121,7 +123,11 @@ function AvailabilityRegister({
     const [status, set_status] = useState("");
     const [is_open, set_is_open] = useState(false);
     const [saving, set_saving] = useState(false);
-    const [removing, set_removing] = useState<{ id: string; name: string; date: string } | null>(null);
+    const [removing, set_removing] = useState<{
+        id: string;
+        name: string;
+        date: string;
+    } | null>(null);
     // Use real employee records for both full Personnel users and Availability-only
     // recorders. The latter access only the limited staff-directory endpoint.
     const directory = usePersonnelRecords(
@@ -149,9 +155,15 @@ function AvailabilityRegister({
         try {
             await availability_service.delete(id);
             refresh();
-            toast.success("Availability record deleted", { position: "bottom-right" });
+            toast.success("Availability record deleted", {
+                position: "bottom-right",
+            });
         } catch (cause) {
-            toast.error(cause instanceof Error ? cause.message : "Could not delete availability.");
+            toast.error(
+                cause instanceof Error
+                    ? cause.message
+                    : "Could not delete availability.",
+            );
         } finally {
             set_saving(false);
         }
@@ -331,18 +343,37 @@ function AvailabilityRegister({
                         <DataTable
                             inventory
                             caption="Personnel availability"
-                            columns={can_record && directory_access ? [...availability_columns(true), {
-                                id: "actions",
-                                header: "Actions",
-                                render: ({ recorded, name }) => recorded && (
-                                    <button type="button" disabled={saving} aria-label={`Clear availability for ${name}`}
-                                        className="inline-flex min-h-11 cursor-pointer items-center font-medium text-red-700 underline underline-offset-4 hover:text-red-900 hover:decoration-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                        onClick={() => set_removing({ id: recorded.id, name, date: recorded.date })}>
-                                        Clear availability
-                                    </button>
-                                ),
-                                cell_class_name: "w-[16%] !py-3 whitespace-nowrap",
-                            }] : availability_columns(false)}
+                            columns={
+                                can_record && directory_access
+                                    ? [
+                                          ...availability_columns(true),
+                                          {
+                                              id: "actions",
+                                              header: "Actions",
+                                              render: ({ recorded, name }) =>
+                                                  recorded && (
+                                                      <button
+                                                          type="button"
+                                                          disabled={saving}
+                                                          aria-label={`Clear availability for ${name}`}
+                                                          className="inline-flex min-h-11 cursor-pointer items-center font-medium text-red-700 underline underline-offset-4 hover:text-red-900 hover:decoration-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                                          onClick={() =>
+                                                              set_removing({
+                                                                  id: recorded.id,
+                                                                  name,
+                                                                  date: recorded.date,
+                                                              })
+                                                          }
+                                                      >
+                                                          Clear availability
+                                                      </button>
+                                                  ),
+                                              cell_class_name:
+                                                  "w-[16%] !py-3 whitespace-nowrap",
+                                          },
+                                      ]
+                                    : availability_columns(false)
+                            }
                             rows={visible_rows}
                             get_row_key={(row) => row.id}
                             empty_title="No matching personnel"
@@ -366,9 +397,16 @@ function AvailabilityRegister({
                     on_save={save}
                 />
             )}
-            {removing && <ConfirmDialog is_open title="Clear availability"
-                message={`Clear availability record for ${removing.name} on ${personnel_date(removing.date)}?`}
-                confirm_text="Clear" on_confirm={() => void remove_record()} on_cancel={() => set_removing(null)} />}
+            {removing && (
+                <ConfirmDialog
+                    is_open
+                    title="Clear availability"
+                    message={`Clear availability record for ${removing.name} on ${personnel_date(removing.date)}?`}
+                    confirm_text="Clear"
+                    on_confirm={() => void remove_record()}
+                    on_cancel={() => set_removing(null)}
+                />
+            )}
         </section>
     );
 }

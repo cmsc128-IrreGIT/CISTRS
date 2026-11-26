@@ -13,7 +13,10 @@ import {
     preview_duties,
 } from "../config/user_management_config";
 import useUserManagement from "../hooks/use_user_management";
-import { create_account, list_eligible_employees } from "../services/user_account_service";
+import {
+    create_account,
+    list_eligible_employees,
+} from "../services/user_account_service";
 import type { UserAccount } from "../types/user_account";
 import { account_name } from "../types/user_account";
 
@@ -49,7 +52,8 @@ export default function UserFormPage() {
 
 function CreateAccountDialog({ on_close }: { on_close: () => void }) {
     const workspace = useUserManagement();
-    const [eligible, set_eligible] = useState<Awaited<ReturnType<typeof list_eligible_employees>>>();
+    const [eligible, set_eligible] =
+        useState<Awaited<ReturnType<typeof list_eligible_employees>>>();
     const [load_error, set_load_error] = useState("");
     const [attempt, set_attempt] = useState(0);
     const [selected, set_selected] = useState("");

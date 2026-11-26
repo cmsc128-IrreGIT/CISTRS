@@ -78,12 +78,22 @@ export default function FormField({
     );
 }
 
-
-function FieldHelp({ id, label, text }: { id: string; label: string; text: string }) {
+function FieldHelp({
+    id,
+    label,
+    text,
+}: {
+    id: string;
+    label: string;
+    text: string;
+}) {
     const [dismissed, set_dismissed] = useState(false);
 
     return (
-        <span className="group/help inline-flex" onPointerEnter={() => set_dismissed(false)}>
+        <span
+            className="group/help inline-flex"
+            onPointerEnter={() => set_dismissed(false)}
+        >
             <button
                 type="button"
                 aria-label={`About ${label.toLowerCase()}`}

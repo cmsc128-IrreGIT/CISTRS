@@ -48,7 +48,11 @@ export default function InventoryQuantityField({
                         step="1"
                         defaultValue={default_value}
                         placeholder={placeholder}
-                        onChange={on_value_change && ((event) => on_value_change(event.currentTarget.value))}
+                        onChange={
+                            on_value_change &&
+                            ((event) =>
+                                on_value_change(event.currentTarget.value))
+                        }
                         className={`${INVENTORY_FORM_INPUT} appearance-none pr-10 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none`}
                     />
                     <div className="absolute inset-y-px right-px flex w-9 flex-col justify-center rounded-r-md">

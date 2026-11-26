@@ -4,18 +4,24 @@ import { help_guides } from "../../config/help_guides";
 import type { HelpGuideId } from "../../config/help_guides";
 import GuideDialog from "./guide_dialog";
 
-export default function FeatureHelp({ title, text, guide_id }: {
+export default function FeatureHelp({
+    title,
+    text,
+    guide_id,
+}: {
     title: string;
     text?: string;
     guide_id?: HelpGuideId;
 }) {
     const [is_open, set_is_open] = useState(false);
-    const guide = guide_id ? help_guides[guide_id] : {
-        label: title,
-        title: `${title} guide`,
-        description: text ?? "",
-        icon: CircleHelp,
-    };
+    const guide = guide_id
+        ? help_guides[guide_id]
+        : {
+              label: title,
+              title: `${title} guide`,
+              description: text ?? "",
+              icon: CircleHelp,
+          };
 
     return (
         <>
@@ -27,7 +33,13 @@ export default function FeatureHelp({ title, text, guide_id }: {
             >
                 <CircleHelp size={18} aria-hidden="true" />
             </button>
-            {is_open && <GuideDialog guide={guide} directory_link={Boolean(guide_id)} on_close={() => set_is_open(false)} />}
+            {is_open && (
+                <GuideDialog
+                    guide={guide}
+                    directory_link={Boolean(guide_id)}
+                    on_close={() => set_is_open(false)}
+                />
+            )}
         </>
     );
 }

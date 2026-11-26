@@ -6,11 +6,20 @@ export default function useAircraft() {
 }
 
 export function useAircraftData() {
-    const state = useSyncExternalStore(aircraft_service.subscribe, aircraft_service.get_snapshot, aircraft_service.get_snapshot);
-    useEffect(() => { void aircraft_service.load(); }, []);
+    const state = useSyncExternalStore(
+        aircraft_service.subscribe,
+        aircraft_service.get_snapshot,
+        aircraft_service.get_snapshot,
+    );
+    useEffect(() => {
+        void aircraft_service.load();
+    }, []);
     return { ...state, reload: aircraft_service.reload };
 }
 
 export function useAircraftStatusHistory() {
-    return useSyncExternalStore(aircraft_service.subscribe_to_status_history, aircraft_service.list_status_history);
+    return useSyncExternalStore(
+        aircraft_service.subscribe_to_status_history,
+        aircraft_service.list_status_history,
+    );
 }

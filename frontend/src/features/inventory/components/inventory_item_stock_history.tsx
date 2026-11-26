@@ -14,8 +14,13 @@ export default function InventoryItemStockHistory({
 }: {
     part_id: string;
 }) {
-    const { history, is_loading, error, reload } = useInventoryHistory(true, part_id);
-    const [selected, set_selected] = useState<InventoryTransaction | null>(null);
+    const { history, is_loading, error, reload } = useInventoryHistory(
+        true,
+        part_id,
+    );
+    const [selected, set_selected] = useState<InventoryTransaction | null>(
+        null,
+    );
     const movements = history
         .filter((row) => row.status.part.part_UUID === part_id)
         .sort(

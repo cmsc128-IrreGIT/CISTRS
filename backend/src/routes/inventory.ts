@@ -1,4 +1,9 @@
-import { Router, type NextFunction, type Request, type Response } from "express";
+import {
+    Router,
+    type NextFunction,
+    type Request,
+    type Response,
+} from "express";
 import { parseOrThrow, parseUuid } from "../lib/validate.js";
 import {
     assignPartToAircraft,
@@ -98,12 +103,20 @@ inventoryRouter.get("/parts/:part_UUID/stock", async (req, res) => {
 // body: { quantity (whole number, 0 or more), remarks? }
 // Sets the quantity at that location (creates the stock row if needed) and
 // records the change in the history. Availability follows the new quantity.
-inventoryRouter.put("/parts/:part_UUID/stock/:location_UUID", async (req, res) => {
-    const part_UUID = parseUuid(req.params.part_UUID, "part ID");
-    const location_UUID = parseUuid(req.params.location_UUID, "location ID");
-    const input = parseOrThrow(setStockSchema, req.body);
-    res.json(await setStock(part_UUID, location_UUID, input, req.user!.emp_UUID));
-});
+inventoryRouter.put(
+    "/parts/:part_UUID/stock/:location_UUID",
+    async (req, res) => {
+        const part_UUID = parseUuid(req.params.part_UUID, "part ID");
+        const location_UUID = parseUuid(
+            req.params.location_UUID,
+            "location ID",
+        );
+        const input = parseOrThrow(setStockSchema, req.body);
+        res.json(
+            await setStock(part_UUID, location_UUID, input, req.user!.emp_UUID),
+        );
+    },
+);
 
 // -----------------------------------------------------------------------------
 // BE-05: aircraft <-> inventory
@@ -125,7 +138,10 @@ inventoryRouter.post(
     "/parts/:part_UUID/aircraft/:aircraft_UUID/return",
     async (req, res) => {
         const part_UUID = parseUuid(req.params.part_UUID, "part ID");
-        const aircraft_UUID = parseUuid(req.params.aircraft_UUID, "aircraft ID");
+        const aircraft_UUID = parseUuid(
+            req.params.aircraft_UUID,
+            "aircraft ID",
+        );
         const input = parseOrThrow(returnFromAircraftSchema, req.body);
         res.json(
             await returnPartFromAircraft(

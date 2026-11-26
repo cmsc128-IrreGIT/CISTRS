@@ -31,7 +31,9 @@ export type PersonnelEmployeeResponse = {
     record_status?: string | null;
     base?: { base_name: string; base_UUID?: string } | null;
     employment_status?: { status_name: string } | null;
-    contacts?: { contact?: { contact_type: string; contact_value: string } | null }[];
+    contacts?: {
+        contact?: { contact_type: string; contact_value: string } | null;
+    }[];
     licenses?: PersonnelLicense[];
 };
 
@@ -78,13 +80,17 @@ export type PersonnelInput = {
 export type PersonnelLookups = {
     bases: { base_UUID: string; base_name: string }[];
     employment_statuses: { emp_status_UUID: string; status_name: string }[];
-    personnel_categories: { personnel_category_UUID: string; category_name: string }[];
+    personnel_categories: {
+        personnel_category_UUID: string;
+        category_name: string;
+    }[];
     positions: { position_UUID: string; position_name: string }[];
 };
 
 export type LookupItem = { id: string; name: string };
 
-export type PersonnelDocumentKind = "License" | "Training" | "Medical" | "Company ID" | "Other";
+export type PersonnelDocumentKind =
+    "License" | "Training" | "Medical" | "Company ID" | "Other";
 
 export type PersonnelDocument = {
     id: string;

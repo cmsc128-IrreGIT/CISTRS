@@ -1,6 +1,9 @@
 import WorkspaceTabs from "../../../shared/components/navigation/workspace_tabs";
 import { Link, useMatch } from "react-router";
-import { INVENTORY_TABS, inventory_tab_style } from "../constants/inventory_constants";
+import {
+    INVENTORY_TABS,
+    inventory_tab_style,
+} from "../constants/inventory_constants";
 
 export function InventoryBreadcrumbs({
     current,
@@ -20,14 +23,14 @@ export function InventoryBreadcrumbs({
             <span aria-hidden="true">›</span>
             {current ? (
                 <>
-                    <Link
-                        className="text-link"
-                        to="/inventory"
-                    >
+                    <Link className="text-link" to="/inventory">
                         Inventory
                     </Link>
                     <span aria-hidden="true">›</span>
-                    <span aria-current="page" className="break-words font-semibold [overflow-wrap:anywhere]">
+                    <span
+                        aria-current="page"
+                        className="break-words font-semibold [overflow-wrap:anywhere]"
+                    >
                         {current}
                     </span>
                 </>
@@ -42,9 +45,10 @@ export function InventoryBreadcrumbs({
 
 export function InventoryTabs() {
     const match = useMatch("/inventory/:section?");
-    const current = match?.params.section === "new"
-        ? "/inventory"
-        : match?.pathnameBase.toLowerCase();
+    const current =
+        match?.params.section === "new"
+            ? "/inventory"
+            : match?.pathnameBase.toLowerCase();
     return (
         <WorkspaceTabs label="Inventory sections">
             {INVENTORY_TABS.map(({ label, to, icon: Icon }) => {

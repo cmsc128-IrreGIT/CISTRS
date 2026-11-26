@@ -30,7 +30,10 @@ import { employeeSummarySelect } from "./common/lookups.js";
 const BLOOD_TYPES = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"] as const;
 
 // Must match the CHECK constraint employee_blood_type_valid in the database.
-const bloodTypeField = z.enum(BLOOD_TYPES, "Blood type must be one of A+, A-, B+, B-, AB+, AB-, O+, O-");
+const bloodTypeField = z.enum(
+    BLOOD_TYPES,
+    "Blood type must be one of A+, A-, B+, B-, AB+, AB-, O+, O-",
+);
 
 const employeeFields = {
     // Stored upper-case, e.g. "SA-0042".
@@ -170,7 +173,10 @@ async function assertReferences(refs: References, selfId?: string) {
     if (refs.supervisor_emp_UUID) {
         const supervisorId = refs.supervisor_emp_UUID;
         if (selfId && supervisorId === selfId) {
-            throw new HttpError(400, "An employee cannot be their own supervisor");
+            throw new HttpError(
+                400,
+                "An employee cannot be their own supervisor",
+            );
         }
 
         const supervisor = await prisma.employee.findUnique({
@@ -332,13 +338,20 @@ export async function createEmployee(
 
 export const listEmployeesQuerySchema = z.object({
     record_status: z
-        .enum(["Active", "Inactive"], "record_status must be Active or Inactive")
+        .enum(
+            ["Active", "Inactive"],
+            "record_status must be Active or Inactive",
+        )
         .optional(),
     personnel_category_UUID: uuidField("personnel_category_UUID").optional(),
     base_UUID: uuidField("base_UUID").optional(),
     // Case-insensitive partial match on employee number or name. Several words
     // must each match something ("adrian reyes").
-    q: z.string().trim().max(100, "q must be at most 100 characters").optional(),
+    q: z
+        .string()
+        .trim()
+        .max(100, "q must be at most 100 characters")
+        .optional(),
     // Without a limit every matching record is returned, as before.
     limit: z.coerce
         .number("limit must be a number")
@@ -366,10 +379,30 @@ export async function listEmployees(query: ListEmployeesQuery) {
         ...(tokens.length > 0 && {
             AND: tokens.map((token) => ({
                 OR: [
-                    { emp_number: { contains: token, mode: "insensitive" as const } },
-                    { f_name: { contains: token, mode: "insensitive" as const } },
-                    { m_name: { contains: token, mode: "insensitive" as const } },
-                    { l_name: { contains: token, mode: "insensitive" as const } },
+                    {
+                        emp_number: {
+                            contains: token,
+                            mode: "insensitive" as const,
+                        },
+                    },
+                    {
+                        f_name: {
+                            contains: token,
+                            mode: "insensitive" as const,
+                        },
+                    },
+                    {
+                        m_name: {
+                            contains: token,
+                            mode: "insensitive" as const,
+                        },
+                    },
+                    {
+                        l_name: {
+                            contains: token,
+                            mode: "insensitive" as const,
+                        },
+                    },
                 ],
             })),
         }),
@@ -466,10 +499,7 @@ export async function updateEmployee(
     );
 
     // Deactivating yourself would lock you out of the system.
-    if (
-        changes.record_status === "Inactive" &&
-        emp_UUID === actor_emp_UUID
-    ) {
+    if (changes.record_status === "Inactive" && emp_UUID === actor_emp_UUID) {
         throw new HttpError(400, "You cannot deactivate your own record");
     }
 
@@ -486,8 +516,7 @@ export async function updateEmployee(
                       f_name: changes.f_name ?? existing.f_name,
                       l_name: changes.l_name ?? existing.l_name,
                       date_of_birth:
-                          changes.date_of_birth ??
-                          day(existing.date_of_birth),
+                          changes.date_of_birth ?? day(existing.date_of_birth),
                   }
                 : {}),
         },
@@ -559,26 +588,42 @@ function toLicenseResponse(license: LicenseWithRelations) {
 const licenseFields = {
     license_type_UUID: uuidField("license_type_UUID"),
     renewal_status_UUID: uuidField("renewal_status_UUID"),
-    license_number: z.string().min(1, "License number is required").max(100, "License number must be at most 100 characters"),
-    issuing_authority: z.string().min(1, "Issuing authority is required").max(200, "Issuing authority must be at most 200 characters"),
+    license_number: z
+        .string()
+        .min(1, "License number is required")
+        .max(100, "License number must be at most 100 characters"),
+    issuing_authority: z
+        .string()
+        .min(1, "Issuing authority is required")
+        .max(200, "Issuing authority must be at most 200 characters"),
     date_issued: dateField("date_issued"),
     expiry_date: dateField("expiry_date").nullable().optional(),
-    remarks: z.string().max(1000, "Remarks must be at most 1000 characters").nullable().optional(),
+    remarks: z
+        .string()
+        .max(1000, "Remarks must be at most 1000 characters")
+        .nullable()
+        .optional(),
 };
 
-export const createLicenseSchema = z.object({
-    emp_UUID: uuidField("emp_UUID"),
-    ...licenseFields,
-}).strict();
+export const createLicenseSchema = z
+    .object({
+        emp_UUID: uuidField("emp_UUID"),
+        ...licenseFields,
+    })
+    .strict();
 
 export type CreateLicenseInput = z.infer<typeof createLicenseSchema>;
 
-export const updateLicenseSchema = z.object({
-    ...licenseFields,
-}).partial().strict().refine(
-    (input) => Object.values(input).some((value) => value !== undefined),
-    "At least one field must be provided",
-);
+export const updateLicenseSchema = z
+    .object({
+        ...licenseFields,
+    })
+    .partial()
+    .strict()
+    .refine(
+        (input) => Object.values(input).some((value) => value !== undefined),
+        "At least one field must be provided",
+    );
 
 export type UpdateLicenseInput = z.infer<typeof updateLicenseSchema>;
 
@@ -591,7 +636,10 @@ async function findLicenseOr404(emp_license_UUID: string) {
     return license;
 }
 
-async function assertLicenseReferences(input: { license_type_UUID?: string; renewal_status_UUID?: string }) {
+async function assertLicenseReferences(input: {
+    license_type_UUID?: string;
+    renewal_status_UUID?: string;
+}) {
     if (input.license_type_UUID) {
         const type = await prisma.licenseType.findUnique({
             where: { license_type_UUID: input.license_type_UUID },
@@ -609,7 +657,11 @@ async function assertLicenseReferences(input: { license_type_UUID?: string; rene
 }
 
 // POST /api/personnel/employees/:emp_UUID/licenses
-export async function createLicense(emp_UUID: string, input: CreateLicenseInput, actor_emp_UUID: string) {
+export async function createLicense(
+    emp_UUID: string,
+    input: CreateLicenseInput,
+    actor_emp_UUID: string,
+) {
     await assertEmployeeExistsOr404(emp_UUID);
     await assertLicenseReferences(input);
 
@@ -622,7 +674,11 @@ export async function createLicense(emp_UUID: string, input: CreateLicenseInput,
         },
         select: { emp_license_UUID: true },
     });
-    if (existing) throw new HttpError(409, "License with this number already exists for this employee and type");
+    if (existing)
+        throw new HttpError(
+            409,
+            "License with this number already exists for this employee and type",
+        );
 
     const created = await prisma.employeeLicense.create({
         data: {
@@ -670,13 +726,18 @@ export async function updateLicense(
     // Check references if changed
     if (input.license_type_UUID || input.renewal_status_UUID) {
         await assertLicenseReferences({
-            license_type_UUID: input.license_type_UUID ?? existing.license_type_UUID,
-            renewal_status_UUID: input.renewal_status_UUID ?? existing.renewal_status_UUID,
+            license_type_UUID:
+                input.license_type_UUID ?? existing.license_type_UUID,
+            renewal_status_UUID:
+                input.renewal_status_UUID ?? existing.renewal_status_UUID,
         });
     }
 
     // Check duplicate if license_number or license_type_UUID changed
-    if (input.license_number !== undefined || input.license_type_UUID !== undefined) {
+    if (
+        input.license_number !== undefined ||
+        input.license_type_UUID !== undefined
+    ) {
         const checkType = input.license_type_UUID ?? existing.license_type_UUID;
         const checkNumber = input.license_number ?? existing.license_number;
         const duplicate = await prisma.employeeLicense.findFirst({
@@ -688,7 +749,11 @@ export async function updateLicense(
             },
             select: { emp_license_UUID: true },
         });
-        if (duplicate) throw new HttpError(409, "License with this number already exists for this employee and type");
+        if (duplicate)
+            throw new HttpError(
+                409,
+                "License with this number already exists for this employee and type",
+            );
     }
 
     const data: Prisma.EmployeeLicenseUncheckedUpdateInput = {};
@@ -697,12 +762,17 @@ export async function updateLicense(
         data.date_issued = toDbDate(input.date_issued);
     }
     if (input.expiry_date !== undefined) {
-        data.expiry_date = input.expiry_date === null ? null : toDbDate(input.expiry_date);
+        data.expiry_date =
+            input.expiry_date === null ? null : toDbDate(input.expiry_date);
     }
-    if (input.license_type_UUID !== undefined) data.license_type_UUID = input.license_type_UUID;
-    if (input.renewal_status_UUID !== undefined) data.renewal_status_UUID = input.renewal_status_UUID;
-    if (input.license_number !== undefined) data.license_number = input.license_number;
-    if (input.issuing_authority !== undefined) data.issuing_authority = input.issuing_authority;
+    if (input.license_type_UUID !== undefined)
+        data.license_type_UUID = input.license_type_UUID;
+    if (input.renewal_status_UUID !== undefined)
+        data.renewal_status_UUID = input.renewal_status_UUID;
+    if (input.license_number !== undefined)
+        data.license_number = input.license_number;
+    if (input.issuing_authority !== undefined)
+        data.issuing_authority = input.issuing_authority;
     if (input.remarks !== undefined) data.remarks = input.remarks;
 
     if (Object.keys(data).length === 0) {
@@ -719,7 +789,10 @@ export async function updateLicense(
 }
 
 // DELETE /api/personnel/licenses/:emp_license_UUID
-export async function deleteLicense(emp_license_UUID: string, actor_emp_UUID: string) {
+export async function deleteLicense(
+    emp_license_UUID: string,
+    actor_emp_UUID: string,
+) {
     await findLicenseOr404(emp_license_UUID);
     await prisma.employeeLicense.delete({ where: { emp_license_UUID } });
     return { deleted: true };
@@ -732,5 +805,6 @@ async function assertEmployeeExistsOr404(emp_UUID: string) {
         select: { emp_UUID: true, record_status: true },
     });
     if (!employee) throw new HttpError(404, "Employee not found");
-    if (employee.record_status !== "Active") throw new HttpError(400, "Employee is not active");
+    if (employee.record_status !== "Active")
+        throw new HttpError(400, "Employee is not active");
 }

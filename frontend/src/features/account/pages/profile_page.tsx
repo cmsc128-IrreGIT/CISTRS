@@ -26,65 +26,131 @@ function Profile({ user }: { user: SessionUser }) {
     useEffect(() => {
         if (!can_read_personnel) return;
         const controller = new AbortController();
-        void get_personnel(user.emp_UUID, controller.signal).then((person) => {
-            if (!controller.signal.aborted) set_record(person);
-        }).catch(() => {
-            // The authenticated account fields remain available if the directory is unreachable.
-        });
+        void get_personnel(user.emp_UUID, controller.signal)
+            .then((person) => {
+                if (!controller.signal.aborted) set_record(person);
+            })
+            .catch(() => {
+                // The authenticated account fields remain available if the directory is unreachable.
+            });
         return () => controller.abort();
     }, [can_read_personnel, user.emp_UUID]);
 
     const full_name = record?.name || user.full_name?.trim() || "";
     const name = full_name || user.username;
-    const initials = name.split(/[\s._-]+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
+    const initials = name
+        .split(/[\s._-]+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((part) => part[0])
+        .join("")
+        .toUpperCase();
     const sections = [
-        { title: "Account", entries: [
-            { label: "Username", value: user.username },
-            { label: "Full name", value: full_name || "Unavailable from the current session" },
-            { label: "Work email", value: record?.email || "Not available" },
-            { label: "Account status", value: <StatusBadge tone="success">Active</StatusBadge> },
-        ] },
-        { title: "Work information", entries: [
-            { label: "Position", value: user.position?.position_name || record?.position || "Not recorded" },
-            { label: "Department", value: record?.department || "Not available" },
-            { label: "Access", value: user.features.join(", ") || "Not assigned" },
-        ] },
+        {
+            title: "Account",
+            entries: [
+                { label: "Username", value: user.username },
+                {
+                    label: "Full name",
+                    value: full_name || "Unavailable from the current session",
+                },
+                {
+                    label: "Work email",
+                    value: record?.email || "Not available",
+                },
+                {
+                    label: "Account status",
+                    value: <StatusBadge tone="success">Active</StatusBadge>,
+                },
+            ],
+        },
+        {
+            title: "Work information",
+            entries: [
+                {
+                    label: "Position",
+                    value:
+                        user.position?.position_name ||
+                        record?.position ||
+                        "Not recorded",
+                },
+                {
+                    label: "Department",
+                    value: record?.department || "Not available",
+                },
+                {
+                    label: "Access",
+                    value: user.features.join(", ") || "Not assigned",
+                },
+            ],
+        },
     ];
 
     async function copy_request() {
         const correction = draft.trim();
         if (!correction) return;
         try {
-            await navigator.clipboard.writeText(`Profile correction request for ${name} (${user.username})\n\n${correction}`);
-            set_copy_status("Request copied. Share it with your administrator.");
+            await navigator.clipboard.writeText(
+                `Profile correction request for ${name} (${user.username})\n\n${correction}`,
+            );
+            set_copy_status(
+                "Request copied. Share it with your administrator.",
+            );
         } catch {
-            set_copy_status("Clipboard unavailable. Select and copy the details to share with your administrator.");
+            set_copy_status(
+                "Clipboard unavailable. Select and copy the details to share with your administrator.",
+            );
         }
     }
 
     return (
         <section aria-labelledby="page_title" className="space-y-4">
             <WorkspaceBreadcrumbs current="My profile" />
-            <h1 id="page_title" className="sr-only">My profile</h1>
+            <h1 id="page_title" className="sr-only">
+                My profile
+            </h1>
             <Card>
                 <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                     <div className="flex min-w-0 items-center gap-3">
-                        <span aria-hidden="true" className="flex size-10 shrink-0 items-center justify-center rounded-full bg-blue-50 font-semibold text-[#0b2238]">{initials}</span>
-                        <h2 className="wrap-anywhere text-lg font-semibold text-[#0b2238]">{name}</h2>
+                        <span
+                            aria-hidden="true"
+                            className="flex size-10 shrink-0 items-center justify-center rounded-full bg-blue-50 font-semibold text-[#0b2238]"
+                        >
+                            {initials}
+                        </span>
+                        <h2 className="wrap-anywhere text-lg font-semibold text-[#0b2238]">
+                            {name}
+                        </h2>
                     </div>
-                    <Button variant="secondary" onClick={() => { set_copy_status(""); set_correcting(true); }}>
-                        <Pencil size={16} aria-hidden="true" /> Request correction
+                    <Button
+                        variant="secondary"
+                        onClick={() => {
+                            set_copy_status("");
+                            set_correcting(true);
+                        }}
+                    >
+                        <Pencil size={16} aria-hidden="true" /> Request
+                        correction
                     </Button>
                 </div>
                 <div className="grid gap-3 sm:grid-cols-2">
                     {sections.map(({ title, entries }) => (
-                        <section key={title} className="min-w-0 rounded-lg bg-slate-100 p-4">
-                            <h3 className="mb-3 font-semibold text-[#0b2238]">{title}</h3>
+                        <section
+                            key={title}
+                            className="min-w-0 rounded-lg bg-slate-100 p-4"
+                        >
+                            <h3 className="mb-3 font-semibold text-[#0b2238]">
+                                {title}
+                            </h3>
                             <dl className="space-y-3">
                                 {entries.map(({ label, value }) => (
                                     <div key={label}>
-                                        <dt className="text-sm text-slate-600">{label}</dt>
-                                        <dd className="mt-1 wrap-anywhere font-medium text-slate-900">{value}</dd>
+                                        <dt className="text-sm text-slate-600">
+                                            {label}
+                                        </dt>
+                                        <dd className="mt-1 wrap-anywhere font-medium text-slate-900">
+                                            {value}
+                                        </dd>
                                     </div>
                                 ))}
                             </dl>
@@ -93,23 +159,54 @@ function Profile({ user }: { user: SessionUser }) {
                 </div>
             </Card>
             {correcting && (
-                <FormDialog title="Request profile correction" compact on_close={() => set_correcting(false)}>
+                <FormDialog
+                    title="Request profile correction"
+                    compact
+                    on_close={() => set_correcting(false)}
+                >
                     <div className="space-y-3 p-4 sm:px-5">
-                        <p className="text-sm text-slate-600">Describe the correction and share it with your administrator.</p>
+                        <p className="text-sm text-slate-600">
+                            Describe the correction and share it with your
+                            administrator.
+                        </p>
                         <FormField label="Correction details">
-                            {(props) => <textarea {...props} rows={3} maxLength={1000} value={draft} placeholder="Enter the details to update"
-                                onChange={(event) => { set_draft(event.currentTarget.value); set_copy_status(""); }}
-                                className="w-full resize-y rounded-lg border border-slate-300 p-3 text-sm" />}
+                            {(props) => (
+                                <textarea
+                                    {...props}
+                                    rows={3}
+                                    maxLength={1000}
+                                    value={draft}
+                                    placeholder="Enter the details to update"
+                                    onChange={(event) => {
+                                        set_draft(event.currentTarget.value);
+                                        set_copy_status("");
+                                    }}
+                                    className="w-full resize-y rounded-lg border border-slate-300 p-3 text-sm"
+                                />
+                            )}
                         </FormField>
-                        {copy_status && <p role="status" className="text-sm text-slate-600">{copy_status}</p>}
+                        {copy_status && (
+                            <p role="status" className="text-sm text-slate-600">
+                                {copy_status}
+                            </p>
+                        )}
                     </div>
                     <div className="flex justify-end gap-2 border-t border-slate-200 p-4 sm:px-5">
-                        <Button variant="secondary" onClick={() => set_correcting(false)}>Close</Button>
-                        <Button disabled={!draft.trim()} onClick={() => void copy_request()}>Copy request</Button>
+                        <Button
+                            variant="secondary"
+                            onClick={() => set_correcting(false)}
+                        >
+                            Close
+                        </Button>
+                        <Button
+                            disabled={!draft.trim()}
+                            onClick={() => void copy_request()}
+                        >
+                            Copy request
+                        </Button>
                     </div>
                 </FormDialog>
             )}
         </section>
     );
 }
-

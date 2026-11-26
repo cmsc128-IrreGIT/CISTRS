@@ -47,7 +47,9 @@ async function fill_required(user: ReturnType<typeof userEvent.setup>) {
     await user.click(screen.getByRole("button", { name: "Other…" }));
     const custom_unit = screen.getByLabelText("Other unit");
     expect(custom_unit).toHaveFocus();
-    expect(custom_unit.parentElement).toContainElement(screen.getByLabelText("Unit *"));
+    expect(custom_unit.parentElement).toContainElement(
+        screen.getByLabelText("Unit *"),
+    );
     await user.type(custom_unit, " pieces ");
     await user.clear(screen.getByLabelText("Minimum stock level *"));
     await user.type(screen.getByLabelText("Minimum stock level *"), "2");
@@ -56,10 +58,7 @@ describe("Inventory form", () => {
     it("submits trimmed values and opening stock with a location ID", async () => {
         const { user, on_submit } = render_form();
         await fill_required(user);
-        await user.selectOptions(
-            screen.getByLabelText("Location"),
-            "Store",
-        );
+        await user.selectOptions(screen.getByLabelText("Location"), "Store");
         await user.clear(screen.getByLabelText("Opening quantity *"));
         await user.type(screen.getByLabelText("Opening quantity *"), "5");
         await user.click(screen.getByRole("button", { name: "Save" }));
@@ -74,7 +73,11 @@ describe("Inventory form", () => {
         expect(on_submit).not.toHaveBeenCalled();
         expect(screen.getByLabelText("Item name *")).toBeInvalid();
         expect(screen.getByLabelText("Item name *")).toHaveFocus();
-        expect(screen.getByText("Enter an item name. Spaces alone are not accepted.")).toBeVisible();
+        expect(
+            screen.getByText(
+                "Enter an item name. Spaces alone are not accepted.",
+            ),
+        ).toBeVisible();
     });
     it("rejects whitespace names and allows correction", async () => {
         const { user, on_submit } = render_form({
@@ -109,25 +112,30 @@ describe("Inventory form", () => {
         await user.click(screen.getByRole("button", { name: "Save" }));
         expect(on_submit).not.toHaveBeenCalled();
         expect(screen.getByLabelText("Location")).toBeInvalid();
-        await user.selectOptions(
-            screen.getByLabelText("Location"),
-            "Store",
-        );
+        await user.selectOptions(screen.getByLabelText("Location"), "Store");
         await user.click(screen.getByRole("button", { name: "Save" }));
         expect(on_submit).toHaveBeenCalledOnce();
     });
     it("steps quantities with visible controls without going below zero", async () => {
         const { user, on_submit } = render_form();
         const opening = screen.getByLabelText("Opening quantity *");
-        const increase = screen.getByRole("button", { name: "Increase opening quantity" });
-        const decrease = screen.getByRole("button", { name: "Decrease opening quantity" });
+        const increase = screen.getByRole("button", {
+            name: "Increase opening quantity",
+        });
+        const decrease = screen.getByRole("button", {
+            name: "Decrease opening quantity",
+        });
         await user.click(decrease);
         expect(opening).toHaveValue(0);
         await user.click(increase);
         expect(opening).toHaveValue(1);
         await user.click(decrease);
         expect(opening).toHaveValue(0);
-        await user.click(screen.getByRole("button", { name: "Increase minimum stock level" }));
+        await user.click(
+            screen.getByRole("button", {
+                name: "Increase minimum stock level",
+            }),
+        );
         expect(screen.getByLabelText("Minimum stock level *")).toHaveValue(1);
         expect(screen.getByLabelText("Expiry date")).toBeDisabled();
         expect(on_submit).not.toHaveBeenCalled();
@@ -135,16 +143,29 @@ describe("Inventory form", () => {
     it("filters storage areas by location and sends the selected area's ID", async () => {
         const { user, on_submit } = render_form(undefined, [
             { ...locations[0], storage_area: "Warehouse A" },
-            { ...locations[0], location_UUID: "location-2", storage_area: "Warehouse B" },
-            { ...locations[0], location_UUID: "location-3", location_name: "Hangar", storage_area: "Bay 1" },
+            {
+                ...locations[0],
+                location_UUID: "location-2",
+                storage_area: "Warehouse B",
+            },
+            {
+                ...locations[0],
+                location_UUID: "location-3",
+                location_name: "Hangar",
+                storage_area: "Bay 1",
+            },
         ]);
         const location = screen.getByLabelText("Location");
         const area = screen.getByLabelText("Storage area");
         expect(area).toBeDisabled();
         await fill_required(user);
         await user.selectOptions(location, "Store");
-        expect(screen.queryByRole("option", { name: "Bay 1" })).not.toBeInTheDocument();
-        await user.click(screen.getByRole("button", { name: "Increase opening quantity" }));
+        expect(
+            screen.queryByRole("option", { name: "Bay 1" }),
+        ).not.toBeInTheDocument();
+        await user.click(
+            screen.getByRole("button", { name: "Increase opening quantity" }),
+        );
         const save = screen.getByRole("button", { name: "Save" });
         await user.click(save);
         expect(area).toBeInvalid();

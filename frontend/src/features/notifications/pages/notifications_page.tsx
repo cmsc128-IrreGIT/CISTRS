@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Check, ChevronDown, Settings2} from "lucide-react";
+import { Check, ChevronDown, Settings2 } from "lucide-react";
 import { Link } from "react-router";
 import { toast } from "sonner";
 import WorkspaceBreadcrumbs from "../../../shared/components/navigation/workspace_breadcrumbs";

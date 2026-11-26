@@ -60,11 +60,7 @@ function toDate(value: unknown): Date | null {
     return date;
 }
 
-function requireString(
-    row: Row,
-    field: string,
-    table: string,
-): string {
+function requireString(row: Row, field: string, table: string): string {
     const value = row[field];
 
     if (typeof value !== "string" || value.trim() === "") {
@@ -430,8 +426,7 @@ async function seedAll(tx: Prisma.TransactionClient) {
                 row.last_accomplished_date ?? row.date_of_compliance,
             ),
             next_due_date: toDate(row.next_due_date),
-            next_due_hours:
-                row.next_due_hours ?? row.due_hours ?? null,
+            next_due_hours: row.next_due_hours ?? row.due_hours ?? null,
             mechanic_license_number: requireString(
                 row,
                 "mechanic_license_number",
@@ -451,15 +446,9 @@ async function seedAll(tx: Prisma.TransactionClient) {
             }),
         (row) => ({
             ...row,
-            assigned_to: requireString(
-                row,
-                "assigned_to",
-                "CPCP_TASK",
-            ),
+            assigned_to: requireString(row, "assigned_to", "CPCP_TASK"),
             due_date: toDate(row.due_date),
-            last_accomplished_date: toDate(
-                row.last_accomplished_date,
-            ),
+            last_accomplished_date: toDate(row.last_accomplished_date),
         }),
     );
 
@@ -580,12 +569,10 @@ async function verify() {
         TRAINING_RECORD: () => prisma.trainingRecord.count(),
 
         USER_ACCOUNT: () => prisma.userAccount.count(),
-        POSITION_FEATURE_ACCESS: () =>
-            prisma.positionFeatureAccess.count(),
+        POSITION_FEATURE_ACCESS: () => prisma.positionFeatureAccess.count(),
 
         INVENTORY_STATUS: () => prisma.inventoryStatus.count(),
-        INVENTORY_TRANSACTION: () =>
-            prisma.inventoryTransaction.count(),
+        INVENTORY_TRANSACTION: () => prisma.inventoryTransaction.count(),
 
         AIRCRAFT_STATUS: () => prisma.aircraftStatus.count(),
         AIRCRAFT_TYPE: () => prisma.aircraftType.count(),
@@ -599,7 +586,8 @@ async function verify() {
         FLIGHT_SECTOR: () => prisma.flightSector.count(),
         FUEL_TRANSACTION: () => prisma.fuelTransaction.count(),
         NOTIFICATION_TYPE: () => prisma.notificationType.count(),
-        NOTIFICATION_TYPE_POSITION: () => prisma.notificationTypePosition.count(),
+        NOTIFICATION_TYPE_POSITION: () =>
+            prisma.notificationTypePosition.count(),
         NOTIFICATION: () => prisma.notification.count(),
         NOTIFICATION_RECIPIENT: () => prisma.notificationRecipient.count(),
     };

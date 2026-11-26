@@ -31,7 +31,10 @@ export default function InventoryUnitField({
     useEffect(() => {
         if (!open) return;
         function close_outside(event: PointerEvent) {
-            if (event.target instanceof Node && !root.current?.contains(event.target)) {
+            if (
+                event.target instanceof Node &&
+                !root.current?.contains(event.target)
+            ) {
                 set_open(false);
             }
         }
@@ -55,13 +58,22 @@ export default function InventoryUnitField({
             help="Use the unit you count this item in, such as pcs, box, or set."
             error={error}
         >
-            {({ id, "aria-describedby": described_by, "aria-invalid": invalid }) => {
+            {({
+                id,
+                "aria-describedby": described_by,
+                "aria-invalid": invalid,
+            }) => {
                 const options_id = `${id}_options`;
                 return (
                     <div
                         ref={root}
                         onBlur={(event) => {
-                            if (event.relatedTarget && !event.currentTarget.contains(event.relatedTarget)) {
+                            if (
+                                event.relatedTarget &&
+                                !event.currentTarget.contains(
+                                    event.relatedTarget,
+                                )
+                            ) {
                                 set_open(false);
                             }
                         }}
@@ -74,9 +86,13 @@ export default function InventoryUnitField({
                         }}
                     >
                         <div className="relative">
-                            <div className={custom
-                                ? `flex min-h-10 rounded-md border bg-white focus-within:outline-2 focus-within:outline-[#1d4ed8] ${invalid ? "border-red-500" : "border-slate-200"}`
-                                : undefined}>
+                            <div
+                                className={
+                                    custom
+                                        ? `flex min-h-10 rounded-md border bg-white focus-within:outline-2 focus-within:outline-[#1d4ed8] ${invalid ? "border-red-500" : "border-slate-200"}`
+                                        : undefined
+                                }
+                            >
                                 <button
                                     ref={trigger}
                                     id={id}
@@ -85,19 +101,31 @@ export default function InventoryUnitField({
                                     aria-expanded={open}
                                     aria-controls={options_id}
                                     aria-describedby={described_by}
-                                    aria-invalid={!custom && invalid ? true : undefined}
+                                    aria-invalid={
+                                        !custom && invalid ? true : undefined
+                                    }
                                     onClick={(event) => {
                                         event.currentTarget.focus();
                                         set_open(!open);
                                     }}
-                                    className={custom
-                                        ? "flex shrink-0 items-center gap-1.5 rounded-l-md border-r border-slate-200 px-2.5 text-sm text-slate-700 hover:bg-slate-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#1d4ed8]"
-                                        : `${INVENTORY_FORM_INPUT} flex items-center justify-between gap-2 text-left`}
+                                    className={
+                                        custom
+                                            ? "flex shrink-0 items-center gap-1.5 rounded-l-md border-r border-slate-200 px-2.5 text-sm text-slate-700 hover:bg-slate-50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#1d4ed8]"
+                                            : `${INVENTORY_FORM_INPUT} flex items-center justify-between gap-2 text-left`
+                                    }
                                 >
-                                    <span className={`min-w-0 wrap-anywhere ${unit || custom ? "" : "text-slate-500"}`}>
-                                        {custom ? "Other:" : unit || "Select a unit"}
+                                    <span
+                                        className={`min-w-0 wrap-anywhere ${unit || custom ? "" : "text-slate-500"}`}
+                                    >
+                                        {custom
+                                            ? "Other:"
+                                            : unit || "Select a unit"}
                                     </span>
-                                    <ChevronDown size={16} aria-hidden="true" className="shrink-0 text-slate-500" />
+                                    <ChevronDown
+                                        size={16}
+                                        aria-hidden="true"
+                                        className="shrink-0 text-slate-500"
+                                    />
                                 </button>
                                 {custom && (
                                     <input
@@ -109,7 +137,9 @@ export default function InventoryUnitField({
                                         required
                                         maxLength={20}
                                         value={unit}
-                                        onChange={(event) => set_unit(event.currentTarget.value)}
+                                        onChange={(event) =>
+                                            set_unit(event.currentTarget.value)
+                                        }
                                         placeholder="Enter a unit"
                                         className="min-w-0 flex-1 bg-transparent px-2.5 text-sm text-[#0b2238] outline-none placeholder:text-slate-500 disabled:text-slate-500"
                                     />
@@ -126,7 +156,9 @@ export default function InventoryUnitField({
                                     <button
                                         key={option}
                                         type="button"
-                                        aria-pressed={!custom && unit === option}
+                                        aria-pressed={
+                                            !custom && unit === option
+                                        }
                                         onClick={() => select(option, false)}
                                         className="block min-h-9 w-full wrap-anywhere rounded px-2 text-left text-sm text-[#0b2238] hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-[#1d4ed8] aria-pressed:bg-slate-100"
                                     >
@@ -135,14 +167,22 @@ export default function InventoryUnitField({
                                 ))}
                                 <button
                                     type="button"
-                                    onClick={() => select(custom ? unit : "", true)}
+                                    onClick={() =>
+                                        select(custom ? unit : "", true)
+                                    }
                                     className="block min-h-9 w-full rounded px-2 text-left text-sm text-[#0b2238] hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-[#1d4ed8]"
                                 >
                                     Other…
                                 </button>
                             </div>
                         </div>
-                        {!custom && <input type="hidden" name={field_name} value={unit} />}
+                        {!custom && (
+                            <input
+                                type="hidden"
+                                name={field_name}
+                                value={unit}
+                            />
+                        )}
                     </div>
                 );
             }}

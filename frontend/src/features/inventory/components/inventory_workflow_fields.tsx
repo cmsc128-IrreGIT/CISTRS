@@ -31,16 +31,41 @@ export function WorkflowInput({
 }) {
     return (
         <FormField label={label} required={required && !unavailable}>
-            {(props) => multiline ? (
-                <textarea {...props} name={name} defaultValue={unavailable ? "Unavailable" : default_value} placeholder={placeholder} disabled={unavailable}
-                    className={`${INVENTORY_FORM_INPUT} resize-y`} maxLength={500} rows={rows} />
-            ) : (
-                <input {...props} name={name} type={unavailable ? "text" : type} defaultValue={unavailable ? "Unavailable" : default_value} placeholder={placeholder} disabled={unavailable}
-                    className={INVENTORY_FORM_INPUT}
-                    maxLength={type === "text" ? 150 : undefined}
-                    min={type === "number" ? min : undefined}
-                    max={type === "number" ? MAX_LOCATION_QUANTITY : undefined} />
-            )}
+            {(props) =>
+                multiline ? (
+                    <textarea
+                        {...props}
+                        name={name}
+                        defaultValue={
+                            unavailable ? "Unavailable" : default_value
+                        }
+                        placeholder={placeholder}
+                        disabled={unavailable}
+                        className={`${INVENTORY_FORM_INPUT} resize-y`}
+                        maxLength={500}
+                        rows={rows}
+                    />
+                ) : (
+                    <input
+                        {...props}
+                        name={name}
+                        type={unavailable ? "text" : type}
+                        defaultValue={
+                            unavailable ? "Unavailable" : default_value
+                        }
+                        placeholder={placeholder}
+                        disabled={unavailable}
+                        className={INVENTORY_FORM_INPUT}
+                        maxLength={type === "text" ? 150 : undefined}
+                        min={type === "number" ? min : undefined}
+                        max={
+                            type === "number"
+                                ? MAX_LOCATION_QUANTITY
+                                : undefined
+                        }
+                    />
+                )
+            }
         </FormField>
     );
 }
@@ -71,13 +96,19 @@ export function WorkflowSelect({
                         name={name}
                         defaultValue={default_value}
                         value={value}
-                        onChange={on_change && ((event) => on_change(event.currentTarget.value))}
+                        onChange={
+                            on_change &&
+                            ((event) => on_change(event.currentTarget.value))
+                        }
                         className={`${INVENTORY_FORM_INPUT} appearance-none pr-9`}
                     >
                         {children}
                     </select>
-                    <ChevronDown size={16} aria-hidden="true"
-                        className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-slate-600" />
+                    <ChevronDown
+                        size={16}
+                        aria-hidden="true"
+                        className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-slate-600"
+                    />
                 </div>
             )}
         </FormField>
@@ -105,7 +136,14 @@ export function WorkflowActions({
 }) {
     return (
         <div className="sticky bottom-0 z-10 flex flex-wrap justify-end gap-2 border-t border-slate-200 bg-white px-4 py-3 sm:px-5">
-            <Button variant="secondary" className={`cursor-pointer ${cancel_label === "Cancel" ? "mr-auto" : ""}`} onClick={on_cancel} disabled={is_saving}>{cancel_label}</Button>
+            <Button
+                variant="secondary"
+                className={`cursor-pointer ${cancel_label === "Cancel" ? "mr-auto" : ""}`}
+                onClick={on_cancel}
+                disabled={is_saving}
+            >
+                {cancel_label}
+            </Button>
             <Button
                 type={type}
                 variant={tone === "danger" ? "danger" : "primary"}
@@ -121,10 +159,21 @@ export function WorkflowActions({
 }
 
 export function WorkflowNotice({ children }: { children: ReactNode }) {
-    return <p className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-900">{children}</p>;
+    return (
+        <p className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-900">
+            {children}
+        </p>
+    );
 }
 
 export function WorkflowError({ message }: { message: string | null }) {
     if (!message) return null;
-    return <p role="alert" className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-800">{message}</p>;
+    return (
+        <p
+            role="alert"
+            className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-800"
+        >
+            {message}
+        </p>
+    );
 }

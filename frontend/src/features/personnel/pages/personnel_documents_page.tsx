@@ -19,7 +19,9 @@ import DataTable from "../../../shared/components/ui/data_table";
 import StatusBadge from "../../../shared/components/ui/status_badge";
 import { workspace_tab_style } from "../../../shared/styles/tab_styles";
 import PersonnelDocumentDialog from "../components/personnel_document_dialog";
-import PersonnelRecordEditDialog, { type PersonnelRecordEdit } from "../components/edit_record_dialog";
+import PersonnelRecordEditDialog, {
+    type PersonnelRecordEdit,
+} from "../components/edit_record_dialog";
 import { document_tabs } from "../config/personnel_document_config";
 import { usePersonnelDirectory } from "../hooks/use_personnel_directory";
 import type {
@@ -31,7 +33,10 @@ import {
     license_document,
 } from "../utils/personnel_documents";
 import { personnel_date } from "../utils/personnel_records";
-import { documents_service, licenses_service } from "../services/personnel_service";
+import {
+    documents_service,
+    licenses_service,
+} from "../services/personnel_service";
 
 interface DocumentRow extends PersonnelDocument {
     personnel_id: string;
@@ -249,9 +254,15 @@ function PersonnelDocuments({
                 await documents_service.delete(id);
                 await refreshDocuments();
             }
-            toast.success(license_id ? "License deleted" : "Document deleted", { position: "bottom-right" });
+            toast.success(license_id ? "License deleted" : "Document deleted", {
+                position: "bottom-right",
+            });
         } catch (cause) {
-            toast.error(cause instanceof Error ? cause.message : "Could not delete the record.");
+            toast.error(
+                cause instanceof Error
+                    ? cause.message
+                    : "Could not delete the record.",
+            );
         } finally {
             set_removing(false);
         }
@@ -379,11 +390,20 @@ function PersonnelDocuments({
                         Documents / {person.name}
                     </h2>
                     <div className="flex flex-wrap items-center gap-2">
-                        {directory.can_manage && (active_tab === "all" || active_tab === "License") && (
-                            <Button variant="secondary" disabled={removing} onClick={() => set_edit({ kind: "license" })}>
-                                <Plus size={16} aria-hidden="true" /> Add license
-                            </Button>
-                        )}
+                        {directory.can_manage &&
+                            (active_tab === "all" ||
+                                active_tab === "License") && (
+                                <Button
+                                    variant="secondary"
+                                    disabled={removing}
+                                    onClick={() =>
+                                        set_edit({ kind: "license" })
+                                    }
+                                >
+                                    <Plus size={16} aria-hidden="true" /> Add
+                                    license
+                                </Button>
+                            )}
                         {directory.can_manage && (
                             <Button
                                 className="bg-[#0b2238]! hover:bg-[#193951]!"
@@ -505,23 +525,57 @@ function PersonnelDocuments({
                                     );
                                 },
                             },
-                            ...(directory.can_manage ? [{
-                                id: "actions",
-                                header: "Actions",
-                                render: (row: DocumentRow) => (
-                                    <div className="flex gap-1">
-                                        <Button variant="ghost" className="px-2" disabled={removing}
-                                            aria-label={`Edit ${row.name}`}
-                                            onClick={() => set_edit(row.license_id ? { kind: "license", id: row.license_id } : { kind: "document", document: row })}>
-                                            <Pencil size={16} aria-hidden="true" />
-                                        </Button>
-                                        <Button variant="ghost" className="px-2 text-red-700" disabled={removing}
-                                            aria-label={`Delete ${row.name}`} onClick={() => set_deleting(row)}>
-                                            <Trash2 size={16} aria-hidden="true" />
-                                        </Button>
-                                    </div>
-                                ),
-                            }] : []),
+                            ...(directory.can_manage
+                                ? [
+                                      {
+                                          id: "actions",
+                                          header: "Actions",
+                                          render: (row: DocumentRow) => (
+                                              <div className="flex gap-1">
+                                                  <Button
+                                                      variant="ghost"
+                                                      className="px-2"
+                                                      disabled={removing}
+                                                      aria-label={`Edit ${row.name}`}
+                                                      onClick={() =>
+                                                          set_edit(
+                                                              row.license_id
+                                                                  ? {
+                                                                        kind: "license",
+                                                                        id: row.license_id,
+                                                                    }
+                                                                  : {
+                                                                        kind: "document",
+                                                                        document:
+                                                                            row,
+                                                                    },
+                                                          )
+                                                      }
+                                                  >
+                                                      <Pencil
+                                                          size={16}
+                                                          aria-hidden="true"
+                                                      />
+                                                  </Button>
+                                                  <Button
+                                                      variant="ghost"
+                                                      className="px-2 text-red-700"
+                                                      disabled={removing}
+                                                      aria-label={`Delete ${row.name}`}
+                                                      onClick={() =>
+                                                          set_deleting(row)
+                                                      }
+                                                  >
+                                                      <Trash2
+                                                          size={16}
+                                                          aria-hidden="true"
+                                                      />
+                                                  </Button>
+                                              </div>
+                                          ),
+                                      },
+                                  ]
+                                : []),
                         ]}
                         rows={rows}
                         empty_title="No documents recorded"
@@ -538,16 +592,38 @@ function PersonnelDocuments({
                     on_save={save}
                 />
             )}
-            {edit && directory.can_manage && <PersonnelRecordEditDialog edit={edit} employee_id={person.id}
-                on_close={() => set_edit(null)} on_saved={() => {
-                    set_edit(null);
-                    if (edit.kind === "license") directory.reload();
-                    else void refreshDocuments();
-                    toast.success(edit.kind === "license" ? "License saved" : "Document updated", { position: "bottom-right" });
-                }} />}
-            {deleting && directory.can_manage && <ConfirmDialog is_open title={deleting.license_id ? "Delete license" : "Delete document"}
-                message={`Delete ${deleting.name}?`} confirm_text="Delete"
-                on_confirm={() => void delete_record()} on_cancel={() => set_deleting(null)} />}
+            {edit && directory.can_manage && (
+                <PersonnelRecordEditDialog
+                    edit={edit}
+                    employee_id={person.id}
+                    on_close={() => set_edit(null)}
+                    on_saved={() => {
+                        set_edit(null);
+                        if (edit.kind === "license") directory.reload();
+                        else void refreshDocuments();
+                        toast.success(
+                            edit.kind === "license"
+                                ? "License saved"
+                                : "Document updated",
+                            { position: "bottom-right" },
+                        );
+                    }}
+                />
+            )}
+            {deleting && directory.can_manage && (
+                <ConfirmDialog
+                    is_open
+                    title={
+                        deleting.license_id
+                            ? "Delete license"
+                            : "Delete document"
+                    }
+                    message={`Delete ${deleting.name}?`}
+                    confirm_text="Delete"
+                    on_confirm={() => void delete_record()}
+                    on_cancel={() => set_deleting(null)}
+                />
+            )}
         </section>
     );
 }

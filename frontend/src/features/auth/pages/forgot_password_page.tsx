@@ -8,9 +8,22 @@ export default function ForgotPasswordPage() {
         <AuthBackdrop brand_to="/login">
             <div className="grid place-items-center px-5 py-8 sm:py-12">
                 <AuthPanel labelled_by="page_title">
-                    <h1 id="page_title" className="text-2xl font-bold tracking-tight">Forgot your password?</h1>
-                    <p className="mt-3 text-sm leading-6 text-slate-600">Contact your administrator for help resetting your CISTRS password.</p>
-                    <Link to="/login" className={button_styles("secondary", "mt-5")}>Back to login</Link>
+                    <h1
+                        id="page_title"
+                        className="text-2xl font-bold tracking-tight"
+                    >
+                        Forgot your password?
+                    </h1>
+                    <p className="mt-3 text-sm leading-6 text-slate-600">
+                        Contact your administrator for help resetting your
+                        CISTRS password.
+                    </p>
+                    <Link
+                        to="/login"
+                        className={button_styles("secondary", "mt-5")}
+                    >
+                        Back to login
+                    </Link>
                 </AuthPanel>
             </div>
         </AuthBackdrop>

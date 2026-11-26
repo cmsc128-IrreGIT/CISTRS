@@ -19,10 +19,16 @@ export type UserAccount = {
     };
 };
 
-export type CreateAccount = { emp_UUID: string; username: string; password: string };
+export type CreateAccount = {
+    emp_UUID: string;
+    username: string;
+    password: string;
+};
 
 export type AccountAccessPreview = { status: string; duties: string[] };
 
 export function account_name(account: UserAccount) {
-    return account.full_name || employee_name(account.employee) || "Not recorded";
+    return (
+        account.full_name || employee_name(account.employee) || "Not recorded"
+    );
 }

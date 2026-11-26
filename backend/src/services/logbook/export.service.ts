@@ -48,14 +48,40 @@ export type ExportInput = z.infer<typeof exportSchema>;
 // One file, two kinds of row, in order: each SECTOR row is immediately followed
 // by the FUEL rows linked to it. Columns that do not apply to a row are empty.
 const HEADER = [
-    "record_type", "sector_UUID", "aircraft_registration", "flight_date", "route",
-    "flight_status", "flight_type", "day_night", "pilot_in_command",
-    "second_in_command", "observer", "std", "sta", "off_block", "airborne",
-    "touchdown", "on_block", "flight_time", "pax_count", "fuel_departure",
-    "fuel_arrival", "fuel_used", "fuel_unit", "delay_category", "delay_cause",
-    "qa_check_status", "entered_by", "fuel_transaction_UUID",
-    "fuel_transaction_date", "fuel_transaction_type", "fuel_quantity_gal",
-    "fuel_issued_to", "fuel_recorded_by", "fuel_remarks",
+    "record_type",
+    "sector_UUID",
+    "aircraft_registration",
+    "flight_date",
+    "route",
+    "flight_status",
+    "flight_type",
+    "day_night",
+    "pilot_in_command",
+    "second_in_command",
+    "observer",
+    "std",
+    "sta",
+    "off_block",
+    "airborne",
+    "touchdown",
+    "on_block",
+    "flight_time",
+    "pax_count",
+    "fuel_departure",
+    "fuel_arrival",
+    "fuel_used",
+    "fuel_unit",
+    "delay_category",
+    "delay_cause",
+    "qa_check_status",
+    "entered_by",
+    "fuel_transaction_UUID",
+    "fuel_transaction_date",
+    "fuel_transaction_type",
+    "fuel_quantity_gal",
+    "fuel_issued_to",
+    "fuel_recorded_by",
+    "fuel_remarks",
 ];
 
 interface Person {
@@ -70,13 +96,33 @@ type SectorResponse = ReturnType<typeof toSectorResponse>;
 
 function sectorRow(s: SectorResponse): CsvValue[] {
     const row: CsvValue[] = [
-        "SECTOR", s.sector_UUID, s.aircraft.registration, s.flight_date, s.route,
-        s.flight_status.status_name, s.flight_type.type_name, s.day_night,
-        person(s.pic), person(s.sic), person(s.observer), s.std, s.sta,
-        s.off_block, s.airborne, s.touchdown, s.on_block, s.flight_time,
-        s.pax_count, s.fuel_departure, s.fuel_arrival, s.fuel_used, s.fuel_unit,
-        s.delay_category?.category_name ?? null, s.delay_cause,
-        s.qa_check_status, person(s.entered_by),
+        "SECTOR",
+        s.sector_UUID,
+        s.aircraft.registration,
+        s.flight_date,
+        s.route,
+        s.flight_status.status_name,
+        s.flight_type.type_name,
+        s.day_night,
+        person(s.pic),
+        person(s.sic),
+        person(s.observer),
+        s.std,
+        s.sta,
+        s.off_block,
+        s.airborne,
+        s.touchdown,
+        s.on_block,
+        s.flight_time,
+        s.pax_count,
+        s.fuel_departure,
+        s.fuel_arrival,
+        s.fuel_used,
+        s.fuel_unit,
+        s.delay_category?.category_name ?? null,
+        s.delay_cause,
+        s.qa_check_status,
+        person(s.entered_by),
     ];
     // the fuel_* columns stay empty on a sector row
     while (row.length < HEADER.length) row.push(null);
@@ -150,12 +196,18 @@ export async function exportLogbook(input: ExportInput) {
     const lines: CsvValue[][] = [HEADER];
     for (const sector of sectors) {
         lines.push(sectorRow(sector));
-        for (const fuel of sector.fuel_transactions) lines.push(fuelRow(sector, fuel));
+        for (const fuel of sector.fuel_transactions)
+            lines.push(fuelRow(sector, fuel));
     }
 
     const stamp = new Date().toISOString().slice(0, 10);
-    const range = input.from || input.to ? `-${input.from ?? "start"}_to_${input.to ?? "end"}` : "";
-    const who = aircraft ? aircraft.registration.replace(/[^A-Za-z0-9_-]/g, "") : "all-aircraft";
+    const range =
+        input.from || input.to
+            ? `-${input.from ?? "start"}_to_${input.to ?? "end"}`
+            : "";
+    const who = aircraft
+        ? aircraft.registration.replace(/[^A-Za-z0-9_-]/g, "")
+        : "all-aircraft";
     return {
         csv: toCsv(lines),
         total,

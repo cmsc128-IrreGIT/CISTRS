@@ -43,8 +43,11 @@ export default function InventoryHistoryPage() {
     const cutoff = new Date();
     cutoff.setHours(0, 0, 0, 0);
     cutoff.setDate(cutoff.getDate() - (Number(days) - 1));
-    const cutoff_day = new Date(cutoff.getTime() - cutoff.getTimezoneOffset() * 60_000)
-        .toISOString().slice(0, 10);
+    const cutoff_day = new Date(
+        cutoff.getTime() - cutoff.getTimezoneOffset() * 60_000,
+    )
+        .toISOString()
+        .slice(0, 10);
     const show_reference = history.some(
         (row) => row.reference?.trim() || row.recipient?.trim(),
     );
@@ -53,9 +56,10 @@ export default function InventoryHistoryPage() {
         .filter(
             (row) =>
                 (!action || format_movement(row) === action) &&
-                (!days || (row.movement_date
-                    ? row.movement_date.slice(0, 10) >= cutoff_day
-                    : Date.parse(row.created_at) >= cutoff.getTime())) &&
+                (!days ||
+                    (row.movement_date
+                        ? row.movement_date.slice(0, 10) >= cutoff_day
+                        : Date.parse(row.created_at) >= cutoff.getTime())) &&
                 [
                     row.status.part.part_name,
                     row.status.part.part_number,
@@ -98,7 +102,10 @@ export default function InventoryHistoryPage() {
                     <>
                         <div className="filter-toolbar mb-4 rounded-md bg-[#f5f8fa] p-4">
                             <div className="filter-toolbar-search grid gap-1.5">
-                                <p aria-hidden="true" className="text-sm font-medium">
+                                <p
+                                    aria-hidden="true"
+                                    className="text-sm font-medium"
+                                >
                                     Search
                                 </p>
                                 <SearchInput
@@ -148,16 +155,31 @@ export default function InventoryHistoryPage() {
                                 <Button
                                     // className={INVENTORY_PRIMARY_ACTION}
                                     disabled={!filtered.length}
-                                    onClick={() => export_stock_history(filtered)}
+                                    onClick={() =>
+                                        export_stock_history(filtered)
+                                    }
                                 >
-                                    <Download size={17} aria-hidden="true" /> Export records
+                                    <Download size={17} aria-hidden="true" />{" "}
+                                    Export records
                                 </Button>
-                                <FeatureHelp title="exporting stock movements" guide_id="export" />
+                                <FeatureHelp
+                                    title="exporting stock movements"
+                                    guide_id="export"
+                                />
                             </div>
                         </div>
-                        {highlight && !history.some((row) => row.transaction_UUID === highlight.id) && (
-                            <p role="status" className="mb-3 text-sm text-slate-600">The linked transaction is unavailable in recent Stock History.</p>
-                        )}
+                        {highlight &&
+                            !history.some(
+                                (row) => row.transaction_UUID === highlight.id,
+                            ) && (
+                                <p
+                                    role="status"
+                                    className="mb-3 text-sm text-slate-600"
+                                >
+                                    The linked transaction is unavailable in
+                                    recent Stock History.
+                                </p>
+                            )}
                         <h2 className="mb-3 text-base font-semibold text-[#0b2238]">
                             Receipts and issues
                         </h2>

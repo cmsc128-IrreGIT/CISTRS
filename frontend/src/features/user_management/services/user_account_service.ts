@@ -13,7 +13,10 @@ type EligibleEmployee = {
 };
 
 export async function list_eligible_employees(signal: AbortSignal) {
-    const employees = await api<EligibleEmployee[]>("/users/eligible-employees", { signal });
+    const employees = await api<EligibleEmployee[]>(
+        "/users/eligible-employees",
+        { signal },
+    );
     return employees.map((employee) => ({
         id: employee.emp_UUID,
         employee_number: employee.emp_number,

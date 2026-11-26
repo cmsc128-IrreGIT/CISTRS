@@ -39,7 +39,6 @@ app.get("/api/health", (_req, res) => {
 // /api/auth/login is public. /me and /logout check the token themselves.
 app.use("/api/auth", authRouter);
 
-
 // ---------------------------------------------------------------------------
 // PROTECTED routes: everything below this line needs a valid token
 app.use("/api", requireAuth);
@@ -52,19 +51,27 @@ app.use("/api/admin", requireFeature(FEATURE.UserAccounts), adminRouter);
 app.use("/api/inventory", requireFeature(FEATURE.Inventory), inventoryRouter);
 app.use("/api/aircraft", requireFeature(FEATURE.Aircraft), aircraftRouter);
 app.use("/api/logbook", requireFeature(FEATURE.Logbook), logbookRouter);
-app.use("/api/maintenance", requireFeature(FEATURE.Maintenance), maintenanceRouter);
+app.use(
+    "/api/maintenance",
+    requireFeature(FEATURE.Maintenance),
+    maintenanceRouter,
+);
 // Basic staff information is available to any authenticated account.
 // Full employee records remain protected by the Personnel feature.
 app.use("/api/personnel/directory", staffDirectoryRouter);
 app.use("/api/personnel", requireFeature(FEATURE.Personnel), personnelRouter);
-app.use("/api/notifications", requireFeature(FEATURE.Notifications), notificationsRouter);
+app.use(
+    "/api/notifications",
+    requireFeature(FEATURE.Notifications),
+    notificationsRouter,
+);
 
 // Unknown /api paths answer with JSON instead of Express's HTML 404 page.
 app.use("/api", (_req, res) => {
     res.status(404).json({ message: "Route not found" });
 });
 
-app.use(errorHandler);	// Must be the LAST app.use
+app.use(errorHandler); // Must be the LAST app.use
 
 const server = app.listen(port, () => {
     console.log(`CISTRS backend running on http://localhost:${port}`);

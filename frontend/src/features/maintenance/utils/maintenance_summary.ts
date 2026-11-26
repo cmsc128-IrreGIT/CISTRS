@@ -12,7 +12,9 @@ export function maintenance_summary(record: MaintenanceRecord) {
         due_hours: ad ? record.next_due_hours : record.due_hours,
         status: record.due_status,
         overdue: record.overdue,
-        accomplished_date: (ad ? record.date_of_compliance : record.last_accomplished_date) ?? "",
+        accomplished_date:
+            (ad ? record.date_of_compliance : record.last_accomplished_date) ??
+            "",
         recorded_by: employee_name(ad ? record.mechanic : record.assignee),
         performed_by: employee_name(ad ? record.mechanic : record.assignee),
     };

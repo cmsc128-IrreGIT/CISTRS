@@ -8,9 +8,15 @@ import DetailsList from "../../../shared/components/ui/details_list";
 import StatusBadge from "../../../shared/components/ui/status_badge";
 import Button from "../../../shared/components/ui/button";
 import FormDialog from "../../../shared/components/ui/form_dialog";
-import { INVENTORY_DATE_OPTIONS, INVENTORY_PRIMARY_ACTION } from "../constants/inventory_constants";
+import {
+    INVENTORY_DATE_OPTIONS,
+    INVENTORY_PRIMARY_ACTION,
+} from "../constants/inventory_constants";
 import { STOCK_MOVEMENT_TONES } from "../constants/stock_history_constants";
-import { inventory_location_label, inventory_request_date } from "../utils/inventory_workflows";
+import {
+    inventory_location_label,
+    inventory_request_date,
+} from "../utils/inventory_workflows";
 import type { InventoryTransaction } from "../types/inventory_types";
 import {
     format_movement,
@@ -43,7 +49,11 @@ export function StockMovementTable({
             header: "Date",
             render: (row) => {
                 if (row.movement_date) {
-                    return <time dateTime={row.movement_date}>{inventory_request_date(row.movement_date)}</time>;
+                    return (
+                        <time dateTime={row.movement_date}>
+                            {inventory_request_date(row.movement_date)}
+                        </time>
+                    );
                 }
                 const date = Date.parse(row.created_at);
                 return Number.isNaN(date) ? (
@@ -194,8 +204,16 @@ export function StockMovementDetails({
                             },
                             {
                                 id: "date",
-                                label: selected.movement_date ? "Movement date" : "Date and time",
-                                value: selected.movement_date ? inventory_request_date(selected.movement_date) : new Date(selected.created_at).toLocaleString(),
+                                label: selected.movement_date
+                                    ? "Movement date"
+                                    : "Date and time",
+                                value: selected.movement_date
+                                    ? inventory_request_date(
+                                          selected.movement_date,
+                                      )
+                                    : new Date(
+                                          selected.created_at,
+                                      ).toLocaleString(),
                             },
                             {
                                 id: "reference",
@@ -212,8 +230,24 @@ export function StockMovementDetails({
                                 label: "Recipient",
                                 value: selected.recipient || "—",
                             },
-                            ...(selected.supplier_name ? [{ id: "supplier", label: "Supplier", value: selected.supplier_name }] : []),
-                            ...(selected.aircraft ? [{ id: "aircraft", label: "Aircraft", value: selected.aircraft }] : []),
+                            ...(selected.supplier_name
+                                ? [
+                                      {
+                                          id: "supplier",
+                                          label: "Supplier",
+                                          value: selected.supplier_name,
+                                      },
+                                  ]
+                                : []),
+                            ...(selected.aircraft
+                                ? [
+                                      {
+                                          id: "aircraft",
+                                          label: "Aircraft",
+                                          value: selected.aircraft,
+                                      },
+                                  ]
+                                : []),
                             {
                                 id: "part",
                                 label: "Part number",
@@ -232,12 +266,16 @@ export function StockMovementDetails({
                             {
                                 id: "location",
                                 label: "Location / Storage area",
-                                value: inventory_location_label(selected.status.location),
+                                value: inventory_location_label(
+                                    selected.status.location,
+                                ),
                             },
                             {
                                 id: "staff",
                                 label: "Recorded by",
-                                value: employee_name(selected.updater) || "Not recorded",
+                                value:
+                                    employee_name(selected.updater) ||
+                                    "Not recorded",
                             },
                             {
                                 id: "remarks",
@@ -249,7 +287,9 @@ export function StockMovementDetails({
                 </div>
             </div>
             <div className="flex justify-end border-t border-slate-200 px-4 py-3 sm:px-5">
-                <Button className={INVENTORY_PRIMARY_ACTION} onClick={on_close}>Close</Button>
+                <Button className={INVENTORY_PRIMARY_ACTION} onClick={on_close}>
+                    Close
+                </Button>
             </div>
         </FormDialog>
     );

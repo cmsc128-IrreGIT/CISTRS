@@ -70,7 +70,10 @@ notificationsRouter.post("/read-all", async (req, res, next) => {
 // PATCH /api/notifications/:recipient_UUID/read
 notificationsRouter.patch("/:recipient_UUID/read", async (req, res, next) => {
     try {
-        const recipientUUID = parseOrThrow(idSchema, String(req.params.recipient_UUID));
+        const recipientUUID = parseOrThrow(
+            idSchema,
+            String(req.params.recipient_UUID),
+        );
         res.json(await markRead(currentEmpUUID(req), recipientUUID));
     } catch (error) {
         next(error);
