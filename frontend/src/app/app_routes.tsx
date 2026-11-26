@@ -1,4 +1,3 @@
-import MaintenanceDetailsPage from "../features/maintenance/pages/maintenance_details_page";
 import HelpPage from "../shared/pages/help_page";
 import { lazy, Suspense, type ReactNode } from "react";
 import ScreenLoading from "../shared/components/feedback/screen_loading";
@@ -255,7 +254,11 @@ export default function AppRoutes() {
                     />
                     <Route
                         path="/maintenance/:maintenance_id"
-                        element={<MaintenanceDetailsPage />}
+                        element={
+                            <Suspense fallback={<ScreenLoading />}>
+                                <MaintenancePage />
+                            </Suspense>
+                        }
                     />
                     <Route
                         path="/maintenance/new"
