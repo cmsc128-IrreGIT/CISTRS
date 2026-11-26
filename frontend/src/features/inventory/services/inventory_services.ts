@@ -96,15 +96,14 @@ export async function get_inventory_history(
             `${API_BASE_URL}${path}?limit=${limit}&offset=${records.length}`,
         );
         const total_header = response.headers.get("X-Total-Count");
-        const page =
-            await handle_response<
-                (Omit<InventoryTransaction, "aircraft"> & {
-                    aircraft?:
-                        | { aircraft_UUID: string; registration: string | null }
-                        | string
-                        | null;
-                })[]
-            >(response);
+        const page = await handle_response<
+            (Omit<InventoryTransaction, "aircraft"> & {
+                aircraft?:
+                    | { aircraft_UUID: string; registration: string | null }
+                    | string
+                    | null;
+            })[]
+        >(response);
         records.push(
             ...page.map((row) => ({
                 ...row,

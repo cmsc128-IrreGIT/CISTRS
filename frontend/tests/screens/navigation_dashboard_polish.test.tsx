@@ -43,7 +43,9 @@ it("requires confirmation before calling the existing logout action", async () =
     await person.click(
         within(screen.getByRole("dialog", { name: "Log out?" })).getByRole(
             "button",
-            { name: "Cancel" },
+            {
+                name: "Cancel",
+            },
         ),
     );
     expect(logout).not.toHaveBeenCalled();
@@ -51,7 +53,9 @@ it("requires confirmation before calling the existing logout action", async () =
     await person.click(
         within(screen.getByRole("dialog", { name: "Log out?" })).getByRole(
             "button",
-            { name: "Log out" },
+            {
+                name: "Log out",
+            },
         ),
     );
     expect(logout).toHaveBeenCalledOnce();

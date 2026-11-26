@@ -106,7 +106,9 @@ it("uses a dash placeholder only when the expiry date is missing", () => {
     const cell = (part: string, expiry: string) =>
         within(
             within(table).getByRole("row", { name: new RegExp(part) }),
-        ).getByRole("cell", { name: expiry });
+        ).getByRole("cell", {
+            name: expiry,
+        });
 
     expect(cell("Part 01", "--")).toBeInTheDocument();
     expect(cell("Part 02", "Not applicable")).toBeInTheDocument();

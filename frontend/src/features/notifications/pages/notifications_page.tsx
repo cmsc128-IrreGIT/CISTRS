@@ -80,6 +80,11 @@ function Inbox({ features }: { features: string[] }) {
                     ? err.message
                     : "Could not update notifications. Please try again.",
             );
+            toast.error(
+                err instanceof Error
+                    ? err.message
+                    : "Could not update notifications. Please try again.",
+            );
         } finally {
             saving_ref.current = false;
             set_is_saving(false);

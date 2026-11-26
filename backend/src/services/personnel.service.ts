@@ -660,7 +660,7 @@ async function assertLicenseReferences(input: {
 export async function createLicense(
     emp_UUID: string,
     input: CreateLicenseInput,
-    actor_emp_UUID: string,
+    _actor_emp_UUID: string,
 ) {
     await assertEmployeeExistsOr404(emp_UUID);
     await assertLicenseReferences(input);
@@ -719,7 +719,7 @@ export async function getLicense(emp_license_UUID: string) {
 export async function updateLicense(
     emp_license_UUID: string,
     input: UpdateLicenseInput,
-    actor_emp_UUID: string,
+    _actor_emp_UUID: string,
 ) {
     const existing = await findLicenseOr404(emp_license_UUID);
 
@@ -791,7 +791,7 @@ export async function updateLicense(
 // DELETE /api/personnel/licenses/:emp_license_UUID
 export async function deleteLicense(
     emp_license_UUID: string,
-    actor_emp_UUID: string,
+    _actor_emp_UUID: string,
 ) {
     await findLicenseOr404(emp_license_UUID);
     await prisma.employeeLicense.delete({ where: { emp_license_UUID } });

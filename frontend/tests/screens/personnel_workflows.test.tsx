@@ -312,7 +312,9 @@ it("adds and edits previews over the correct background without writing to the A
     await user.click(
         within(
             screen.getByRole("navigation", { name: "Breadcrumb" }),
-        ).getByRole("link", { name: "Personnel" }),
+        ).getByRole("link", {
+            name: "Personnel",
+        }),
     );
     await user.click(screen.getByRole("link", { name: "Add personnel" }));
     const add = within(

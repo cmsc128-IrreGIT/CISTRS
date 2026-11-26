@@ -4,6 +4,35 @@ import Card from "../../../shared/components/ui/card";
 import DetailsList from "../../../shared/components/ui/details_list";
 import NotificationPreferencesForm from "../components/notification_preferences_form";
 import { default_notification_preferences } from "../config/notification_preferences";
+// import type {
+//     DeliveryChannel,
+//     NotificationPreferences,
+// } from "../config/notification_preferences";
+
+// const preferences_by_account = new Map<string, NotificationPreferences>();
+
+// function channel_summary(
+//     preferences: NotificationPreferences,
+//     channel: DeliveryChannel,
+// ) {
+//     const enabled = Object.values(preferences.alerts).filter(
+//         (alert) => alert[channel],
+//     ).length;
+//     if (!enabled) {
+//         if (channel === "email" && !preferences.email)
+//             return "Off · work email not added";
+//         if (channel === "sms" && !preferences.mobile)
+//             return "Off · mobile number not added";
+//         return "Off";
+//     }
+//     return (
+//         <StatusBadge tone="success">
+//             {enabled === Object.keys(preferences.alerts).length
+//                 ? "Enabled"
+//                 : "Enabled for some alerts"}
+//         </StatusBadge>
+//     );
+// }
 
 export default function NotificationPreferencesPage() {
     const navigate = useNavigate();

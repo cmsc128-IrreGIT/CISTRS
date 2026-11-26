@@ -78,6 +78,13 @@ export default function PersonnelFormPage() {
                 replace
             />
         );
+    if (personnel_id && !record)
+        return (
+            <Navigate
+                to={`/personnel/${encodeURIComponent(personnel_id)}`}
+                replace
+            />
+        );
 
     function close() {
         void navigate(destination, { replace: true });

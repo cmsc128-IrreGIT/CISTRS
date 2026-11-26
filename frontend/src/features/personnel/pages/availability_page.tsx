@@ -1,4 +1,4 @@
-import { CalendarDays } from "lucide-react";
+import { CalendarDays, RefreshCw } from "lucide-react";
 import { useState, useMemo } from "react";
 import { Navigate } from "react-router";
 import { toast } from "sonner";
@@ -313,6 +313,18 @@ function AvailabilityRegister({
                                 Record availability
                             </Button>
                         )}
+                        <Button
+                            variant="ghost"
+                            onClick={refresh}
+                            disabled={availLoading || saving}
+                            aria-label="Refresh availability"
+                        >
+                            <RefreshCw
+                                size={16}
+                                aria-hidden="true"
+                                className={availLoading ? "animate-spin" : ""}
+                            />
+                        </Button>
                     </div>
                 </div>
                 {directory.error ? (

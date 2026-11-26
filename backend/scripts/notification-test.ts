@@ -134,6 +134,7 @@ async function expectDbError(
         if (actual === code) return;
         throw new Error(
             `${message}: expected Prisma error ${code}, got ${actual ?? String(error)}`,
+            { cause: error },
         );
     }
     throw new Error(
@@ -2083,14 +2084,18 @@ async function sectionWorker() {
         if (effective === "http400")
             return new Response(
                 JSON.stringify({ error: { message: "Template not approved" } }),
-                { status: 400 },
+                {
+                    status: 400,
+                },
             );
         if (effective === "noid") return new Response("{}", { status: 200 });
         if (effective === "html502")
             return new Response("<html>Bad gateway</html>", { status: 502 });
         return new Response(
             JSON.stringify({ messages: [{ id: `wamid.TEST${++counter}` }] }),
-            { status: 200 },
+            {
+                status: 200,
+            },
         );
     }) as typeof fetch;
 
@@ -2320,7 +2325,13 @@ async function sectionWorker() {
                 "PER_MED_EXPIRED",
                 msg("wa-noid"),
             );
-            await M.processWhatsappQueue();
+            try {
+                await M.processWhatsappQueue();
+            } catch (err) {
+                throw new Error("processWhatsappQueue threw unexpectedly", {
+                    cause: err,
+                });
+            }
             const row = await getRow(id);
             eq(row.whatsapp_status, "Failed", "status");
             assert(
@@ -2440,19 +2451,25 @@ async function sectionWorker() {
                 S.emp_UUID,
                 "PER_MED_EXPIRED",
                 msg("wa-mix-ok-1"),
-                { createdAt: new Date(now - 3_000) },
+                {
+                    createdAt: new Date(now - 3_000),
+                },
             );
             const b = await makeRow(
                 S.emp_UUID,
                 "PER_MED_EXPIRED",
                 msg("wa-mix-FAILME"),
-                { createdAt: new Date(now - 2_000) },
+                {
+                    createdAt: new Date(now - 2_000),
+                },
             );
             const c = await makeRow(
                 S.emp_UUID,
                 "PER_MED_EXPIRED",
                 msg("wa-mix-ok-2"),
-                { createdAt: new Date(now - 1_000) },
+                {
+                    createdAt: new Date(now - 1_000),
+                },
             );
             eq(await M.processWhatsappQueue(), 2, "sent count");
             eq((await getRow(a)).whatsapp_status, "Sent", "first");
@@ -2810,7 +2827,9 @@ async function sectionApi() {
             const res = await api(
                 "GET",
                 `/api/notifications?limit=100&category=${category}`,
-                { token },
+                {
+                    token,
+                },
             );
             eq(res.status, 200, `status for ${category}`);
             for (const item of res.json.items)
@@ -2957,7 +2976,9 @@ async function sectionApi() {
         const first = await api(
             "PATCH",
             `/api/notifications/${mine.recipient_UUID}/read`,
-            { token: nicole },
+            {
+                token: nicole,
+            },
         );
         eq(first.status, 200, "status");
         eq(
@@ -2977,7 +2998,9 @@ async function sectionApi() {
         const second = await api(
             "PATCH",
             `/api/notifications/${mine.recipient_UUID}/read`,
-            { token: nicole },
+            {
+                token: nicole,
+            },
         );
         eq(second.status, 200, "second call status");
         eq(
@@ -2998,7 +3021,9 @@ async function sectionApi() {
         const res = await api(
             "PATCH",
             `/api/notifications/${adriansRow.recipient_UUID}/read`,
-            { token: await tokenFor(EMP.nicole) },
+            {
+                token: await tokenFor(EMP.nicole),
+            },
         );
         eq(res.status, 404, "status");
         eq((await rowOf(target, EMP.adrian)).read_at, null, "row was changed");

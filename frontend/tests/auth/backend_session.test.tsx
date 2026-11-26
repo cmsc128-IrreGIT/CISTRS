@@ -127,14 +127,14 @@ it("uses the full name returned at login even without Personnel access", async (
 it("shows invalid credentials without creating a session", async () => {
     vi.stubGlobal(
         "fetch",
-        vi
-            .fn()
-            .mockResolvedValue(
-                new Response(
-                    JSON.stringify({ message: "Invalid username or password" }),
-                    { status: 401 },
-                ),
+        vi.fn().mockResolvedValue(
+            new Response(
+                JSON.stringify({ message: "Invalid username or password" }),
+                {
+                    status: 401,
+                },
             ),
+        ),
     );
     render(
         <MemoryRouter>

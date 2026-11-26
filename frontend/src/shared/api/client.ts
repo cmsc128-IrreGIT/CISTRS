@@ -264,7 +264,9 @@ export const availabilityApi = {
     delete: (availability_UUID: string): Promise<{ deleted: boolean }> =>
         api<{ deleted: boolean }>(
             `/personnel/availability/${availability_UUID}`,
-            { method: "DELETE" },
+            {
+                method: "DELETE",
+            },
         ),
 };
 

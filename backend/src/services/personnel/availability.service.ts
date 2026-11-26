@@ -2,12 +2,7 @@ import { z } from "zod";
 import type { Prisma } from "../../generated/prisma/client.js";
 import { HttpError } from "../../lib/httpError.js";
 import { prisma } from "../../lib/prisma.js";
-import {
-    dateField,
-    throwIfIssues,
-    toDbDate,
-    uuidField,
-} from "../common/fields.js";
+import { dateField, toDbDate, uuidField } from "../common/fields.js";
 
 // =============================================================================
 // Employee Availability Service
@@ -102,7 +97,7 @@ async function assertEmployeeExists(emp_UUID: string) {
 
 export async function createAvailability(
     input: CreateAvailabilityInput,
-    actor_emp_UUID: string,
+    _actor_emp_UUID: string,
 ) {
     await assertEmployeeExists(input.emp_UUID);
 
@@ -193,7 +188,7 @@ export async function getAvailability(availability_UUID: string) {
 export async function updateAvailability(
     availability_UUID: string,
     input: UpdateAvailabilityInput,
-    actor_emp_UUID: string,
+    _actor_emp_UUID: string,
 ) {
     const existing = await findAvailabilityOr404(availability_UUID);
 
@@ -222,7 +217,7 @@ export async function updateAvailability(
 
 export async function deleteAvailability(
     availability_UUID: string,
-    actor_emp_UUID: string,
+    _actor_emp_UUID: string,
 ) {
     await findAvailabilityOr404(availability_UUID);
     await prisma.employeeAvailability.delete({ where: { availability_UUID } });

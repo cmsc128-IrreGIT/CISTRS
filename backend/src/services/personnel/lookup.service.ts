@@ -1,5 +1,4 @@
 import { prisma } from "../../lib/prisma.js";
-import { HttpError } from "../../lib/httpError.js";
 
 // License Types
 export async function listLicenseTypes() {
