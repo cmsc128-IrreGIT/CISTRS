@@ -4,6 +4,10 @@ import { toast } from "sonner";
 import FormField from "../../../shared/components/forms/form_field";
 import Button from "../../../shared/components/ui/button";
 import FormDialog from "../../../shared/components/ui/form_dialog";
+import {
+    changedFormField,
+    usePersistedForm,
+} from "../../../shared/hooks/use_persist_forms";
 import { INVENTORY_FORM_INPUT } from "../../inventory/constants/inventory_form_constants";
 import { aircraft_service } from "../services/aircraft_service";
 import type { AircraftStatus, AircraftType } from "../types/aircraft_types";
@@ -31,6 +35,16 @@ export default function AircraftCreateDialog({
     const [saving, set_saving] = useState(false);
     const [error, set_error] = useState("");
     const [field_errors, set_field_errors] = useState<FieldErrors>({});
+    const [draft, set_draft, { clear }] = usePersistedForm(
+        "aircraft:create",
+        {
+            registration: "",
+            aircraft_type_UUID: "",
+            aircraft_status_UUID: "",
+            current_hours: "",
+        },
+        { storage: "local" },
+    );
     const has_options = types.length > 0 && statuses.length > 0;
 
     async function save(event: SubmitEvent<HTMLFormElement>) {
@@ -106,6 +120,7 @@ export default function AircraftCreateDialog({
                 aircraft_status_UUID,
                 ...(hours !== "" ? { current_hours: amount } : {}),
             });
+            clear();
             toast.success("Aircraft added", { position: "bottom-right" });
             on_close();
             void navigate(`/aircraft/${encodeURIComponent(aircraft.id)}`);
@@ -121,25 +136,29 @@ export default function AircraftCreateDialog({
         }
     }
 
+    function discard() {
+        clear();
+        on_close();
+    }
+
     return (
         <FormDialog
             title="Add aircraft"
             compact
             is_busy={saving}
-            on_close={on_close}
+            on_close={discard}
         >
             <form
                 noValidate
                 onSubmit={save}
                 onChange={(event) => {
-                    const target = event.target;
-                    if (!(
-                        target instanceof HTMLInputElement ||
-                        target instanceof HTMLSelectElement
-                    ))
-                        return;
+                    const target = changedFormField(event);
+                    if (!target) return;
                     const field = fields.find((key) => key === target.name);
-                    if (field && field_errors[field]) {
+                    if (!field) return;
+                    const { value } = target;
+                    set_draft((current) => ({ ...current, [field]: value }));
+                    if (field_errors[field]) {
                         set_field_errors((current) => ({
                             ...current,
                             [field]: undefined,
@@ -180,6 +199,7 @@ export default function AircraftCreateDialog({
                                 <input
                                     {...props}
                                     name="registration"
+                                    defaultValue={draft.registration}
                                     required
                                     className={input_style}
                                 />
@@ -195,7 +215,15 @@ export default function AircraftCreateDialog({
                                     {...props}
                                     name="aircraft_type_UUID"
                                     required
-                                    defaultValue=""
+                                    defaultValue={
+                                        types.some(
+                                            (type) =>
+                                                type.aircraft_type_UUID ===
+                                                draft.aircraft_type_UUID,
+                                        )
+                                            ? draft.aircraft_type_UUID
+                                            : ""
+                                    }
                                     className={input_style}
                                 >
                                     <option value="" disabled>
@@ -222,7 +250,15 @@ export default function AircraftCreateDialog({
                                     {...props}
                                     name="aircraft_status_UUID"
                                     required
-                                    defaultValue=""
+                                    defaultValue={
+                                        statuses.some(
+                                            (status) =>
+                                                status.aircraft_status_UUID ===
+                                                draft.aircraft_status_UUID,
+                                        )
+                                            ? draft.aircraft_status_UUID
+                                            : ""
+                                    }
                                     className={input_style}
                                 >
                                     <option value="" disabled>
@@ -248,6 +284,7 @@ export default function AircraftCreateDialog({
                                 <input
                                     {...props}
                                     name="current_hours"
+                                    defaultValue={draft.current_hours}
                                     type="number"
                                     min={0}
                                     max={99999999.99}
@@ -263,7 +300,7 @@ export default function AircraftCreateDialog({
                         variant="secondary"
                         className="mr-auto"
                         disabled={saving}
-                        onClick={on_close}
+                        onClick={discard}
                     >
                         Cancel
                     </Button>

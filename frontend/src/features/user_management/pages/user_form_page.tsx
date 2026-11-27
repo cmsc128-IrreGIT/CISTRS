@@ -1,3 +1,4 @@
+import { usePersistedForm } from "../../../shared/hooks/use_persist_forms";
 import { useEffect, useRef, useState } from "react";
 import type { SubmitEvent } from "react";
 import { Navigate, useNavigate, useParams } from "react-router";
@@ -56,7 +57,11 @@ function CreateAccountDialog({ on_close }: { on_close: () => void }) {
         useState<Awaited<ReturnType<typeof list_eligible_employees>>>();
     const [load_error, set_load_error] = useState("");
     const [attempt, set_attempt] = useState(0);
-    const [selected, set_selected] = useState("");
+    const [{ selected, username }, set_draft, { clear }] = usePersistedForm(
+        "users:create",
+        { selected: "", username: "" },
+        { storage: "local" },
+    );
     const [error, set_error] = useState("");
     const [pending, set_pending] = useState(false);
     const saving = useRef(false);
@@ -110,6 +115,7 @@ function CreateAccountDialog({ on_close }: { on_close: () => void }) {
         set_error("");
         try {
             await create_account({ emp_UUID: person.id, username, password });
+            clear();
             toast.success("Account created", { position: "bottom-right" });
             workspace.reload();
             on_close();
@@ -125,12 +131,17 @@ function CreateAccountDialog({ on_close }: { on_close: () => void }) {
         }
     }
 
+    function discard() {
+        clear();
+        on_close();
+    }
+
     return (
         <FormDialog
             title="Create user account"
             compact
             is_busy={pending}
-            on_close={on_close}
+            on_close={discard}
         >
             <form onSubmit={submit}>
                 <div className={form_body}>
@@ -174,9 +185,12 @@ function CreateAccountDialog({ on_close }: { on_close: () => void }) {
                                             value={selected}
                                             className={account_field_style}
                                             onChange={(event) =>
-                                                set_selected(
-                                                    event.currentTarget.value,
-                                                )
+                                                set_draft({
+                                                    selected:
+                                                        event.currentTarget
+                                                            .value,
+                                                    username,
+                                                })
                                             }
                                         >
                                             <option value="">
@@ -202,6 +216,15 @@ function CreateAccountDialog({ on_close }: { on_close: () => void }) {
                                         <input
                                             {...props}
                                             name="username"
+                                            value={username}
+                                            onChange={(event) =>
+                                                set_draft({
+                                                    selected,
+                                                    username:
+                                                        event.currentTarget
+                                                            .value,
+                                                })
+                                            }
                                             minLength={3}
                                             maxLength={50}
                                             placeholder="e.g. first.last"
@@ -268,7 +291,7 @@ function CreateAccountDialog({ on_close }: { on_close: () => void }) {
                         variant="secondary"
                         className="mr-auto"
                         disabled={pending}
-                        onClick={on_close}
+                        onClick={discard}
                     >
                         Cancel
                     </Button>
@@ -300,6 +323,12 @@ function EditAccessDialog({
             ? account_statuses
             : [status, ...account_statuses];
 
+    const [draft, set_draft, { clear }] = usePersistedForm(
+        `users:access:${account.account_UUID}`,
+        { status: status || "Active", duties: preview?.duties ?? [] },
+        { storage: "local" },
+    );
+
     function submit(event: SubmitEvent<HTMLFormElement>) {
         event.preventDefault();
         const data = new FormData(event.currentTarget);
@@ -313,12 +342,18 @@ function EditAccessDialog({
                 data.getAll("duties").includes(duty),
             ),
         });
+        clear();
         toast.success("Access preview saved", { position: "bottom-right" });
         on_close();
     }
 
+    function discard() {
+        clear();
+        on_close();
+    }
+
     return (
-        <FormDialog title="Edit account access" compact on_close={on_close}>
+        <FormDialog title="Edit account access" compact on_close={discard}>
             <form onSubmit={submit}>
                 <div className={form_body}>
                     <p className="text-sm font-semibold">
@@ -333,7 +368,14 @@ function EditAccessDialog({
                             <select
                                 {...props}
                                 name="status"
-                                defaultValue={status || "Active"}
+                                value={draft.status}
+                                onChange={(event) => {
+                                    const status = event.currentTarget.value;
+                                    set_draft((current) => ({
+                                        ...current,
+                                        status,
+                                    }));
+                                }}
                                 className={account_field_style}
                             >
                                 {statuses.map((value) => (
@@ -355,9 +397,18 @@ function EditAccessDialog({
                                     type="checkbox"
                                     name="duties"
                                     value={duty}
-                                    defaultChecked={preview?.duties.includes(
-                                        duty,
-                                    )}
+                                    checked={draft.duties.includes(duty)}
+                                    onChange={(event) => {
+                                        const { checked } = event.currentTarget;
+                                        set_draft((current) => ({
+                                            ...current,
+                                            duties: checked
+                                                ? [...current.duties, duty]
+                                                : current.duties.filter(
+                                                      (value) => value !== duty,
+                                                  ),
+                                        }));
+                                    }}
                                 />
                                 {duty}
                             </label>
@@ -368,7 +419,7 @@ function EditAccessDialog({
                     <Button
                         variant="secondary"
                         className="mr-auto"
-                        onClick={on_close}
+                        onClick={discard}
                     >
                         Cancel
                     </Button>

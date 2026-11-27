@@ -9,12 +9,12 @@ export default function InventoryUnitField({
     initial_unit = "",
     units,
     error,
-    on_select,
+    on_value_change,
 }: {
     initial_unit?: string;
     units: string[];
     error?: string;
-    on_select: () => void;
+    on_value_change: (value: string) => void;
 }) {
     const [unit, set_unit] = useState(initial_unit);
     const [open, set_open] = useState(false);
@@ -46,7 +46,7 @@ export default function InventoryUnitField({
         set_unit(value);
         set_custom(is_custom);
         set_open(false);
-        on_select();
+        on_value_change(value);
         trigger.current?.focus();
     }
 
@@ -137,9 +137,12 @@ export default function InventoryUnitField({
                                         required
                                         maxLength={20}
                                         value={unit}
-                                        onChange={(event) =>
-                                            set_unit(event.currentTarget.value)
-                                        }
+                                        onChange={(event) => {
+                                            const value =
+                                                event.currentTarget.value;
+                                            set_unit(value);
+                                            on_value_change(value);
+                                        }}
                                         placeholder="Enter a unit"
                                         className="min-w-0 flex-1 bg-transparent px-2.5 text-sm text-[#0b2238] outline-none placeholder:text-slate-500 disabled:text-slate-500"
                                     />
