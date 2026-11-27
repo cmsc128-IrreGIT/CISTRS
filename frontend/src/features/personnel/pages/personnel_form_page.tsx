@@ -1,3 +1,7 @@
+import {
+    changedFormField,
+    usePersistedForm,
+} from "../../../shared/hooks/use_persist_forms";
 import { ChevronDown } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { SubmitEvent } from "react";
@@ -46,8 +50,17 @@ const personal_fields = new Set<keyof PersonnelInput>([
 const steps = ["Personal information", "Work information", "Review"];
 
 export default function PersonnelFormPage() {
-    const { rows, can_manage, save } = usePersonnelDirectory();
     const { personnel_id } = useParams();
+    return (
+        <PersonnelEditor
+            key={personnel_id ?? "new"}
+            personnel_id={personnel_id}
+        />
+    );
+}
+
+function PersonnelEditor({ personnel_id }: { personnel_id?: string }) {
+    const { rows, can_manage, save } = usePersonnelDirectory();
     const [params] = useSearchParams();
     const navigate = useNavigate();
     const record = rows.find((row) => row.id === personnel_id);
@@ -58,10 +71,19 @@ export default function PersonnelFormPage() {
     >({});
     const [save_error, set_save_error] = useState("");
     const [is_saving, set_is_saving] = useState(false);
-    const [step, set_step] = useState(0);
-    const [review_values, set_review_values] = useState<PersonnelInput | null>(
-        null,
-    );
+    const [{ step, fields, review_values }, set_draft, { clear }] =
+        usePersistedForm(
+            `personnel:${personnel_id ?? "new"}`,
+            {
+                step: 0,
+                fields: {} as Partial<Record<keyof PersonnelInput, string>>,
+                review_values: null as PersonnelInput | null,
+            },
+            { storage: "local" },
+        );
+    function set_step(step: number) {
+        set_draft((current) => ({ ...current, step }));
+    }
     const step_heading = useRef<HTMLHeadingElement>(null);
     const saving = useRef(false);
     useEffect(() => {
@@ -87,6 +109,7 @@ export default function PersonnelFormPage() {
         );
 
     function close() {
+        clear();
         void navigate(destination, { replace: true });
     }
 
@@ -163,8 +186,11 @@ export default function PersonnelFormPage() {
             set_step(1);
             return;
         }
-        set_review_values(values);
-        set_step(2);
+        set_draft((current) => ({
+            ...current,
+            step: 2,
+            review_values: values,
+        }));
     }
 
     async function confirm_save() {
@@ -173,6 +199,7 @@ export default function PersonnelFormPage() {
         set_is_saving(true);
         try {
             const id = await save(review_values, record?.id);
+            clear();
             toast.success(record ? "Personnel updated." : "Personnel added.", {
                 position: "bottom-right",
             });
@@ -208,7 +235,7 @@ export default function PersonnelFormPage() {
                         type={type}
                         maxLength={max_length}
                         required={required}
-                        defaultValue={initial?.[key] ?? ""}
+                        defaultValue={fields[key] ?? initial?.[key] ?? ""}
                         placeholder={
                             key === "emp_number" ? "SA-0001" : undefined
                         }
@@ -244,7 +271,7 @@ export default function PersonnelFormPage() {
                         <select
                             {...props}
                             name={key}
-                            defaultValue={selected}
+                            defaultValue={fields[key] ?? selected}
                             required={required}
                             className={`${input_style} appearance-none pr-9`}
                         >
@@ -300,20 +327,21 @@ export default function PersonnelFormPage() {
                         noValidate
                         onSubmit={submit}
                         onChange={(event) => {
-                            const field = event.target;
-                            if (!(
-                                field instanceof HTMLInputElement ||
-                                field instanceof HTMLSelectElement
-                            ))
-                                return;
+                            const field = changedFormField(event);
+                            if (!field) return;
                             const key = field.name as keyof PersonnelInput;
+                            const { value } = field;
                             if (errors[key])
                                 set_errors((current) => ({
                                     ...current,
                                     [key]: undefined,
                                 }));
                             if (save_error) set_save_error("");
-                            set_review_values(null);
+                            set_draft((current) => ({
+                                ...current,
+                                fields: { ...current.fields, [key]: value },
+                                review_values: null,
+                            }));
                         }}
                     >
                         <div className="space-y-4 px-4 py-4 sm:px-5">
@@ -754,7 +782,7 @@ export default function PersonnelFormPage() {
                                 <Button
                                     variant="secondary"
                                     onClick={() => {
-                                        set_step((current) => current - 1);
+                                        set_step(step - 1);
                                         set_save_error("");
                                     }}
                                     disabled={is_saving}

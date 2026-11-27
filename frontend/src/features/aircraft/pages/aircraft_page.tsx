@@ -1,6 +1,6 @@
 import { Plus } from "lucide-react";
 import { useContext, useState } from "react";
-import { Link } from "react-router";
+import { Link, useSearchParams } from "react-router";
 import SearchInput from "../../../shared/components/forms/search_input";
 import Card from "../../../shared/components/ui/card";
 import Button from "../../../shared/components/ui/button";
@@ -32,7 +32,21 @@ export default function AircraftPage() {
         useContext(AuthContext)?.user?.features.includes("User Accounts");
     const [search, set_search] = useState("");
     const [status, set_status] = useState("");
-    const [creating, set_creating] = useState(false);
+    const [params, set_params] = useSearchParams();
+    const creating = params.get("form") === "add-aircraft";
+
+    function set_creating(open: boolean) {
+        set_params(
+            (current) => {
+                const next = new URLSearchParams(current);
+                if (open) next.set("form", "add-aircraft");
+                else next.delete("form");
+                return next;
+            },
+            { replace: true, preventScrollReset: true },
+        );
+    }
+
     const statuses = [
         ...new Set([
             ...allowed_statuses.map((row) => row.status_name),
@@ -184,7 +198,7 @@ export default function AircraftPage() {
                     />
                 )}
             </Card>
-            {can_create && creating && (
+            {can_create && creating && !loading && !error && (
                 <AircraftCreateDialog
                     types={types}
                     statuses={allowed_statuses}

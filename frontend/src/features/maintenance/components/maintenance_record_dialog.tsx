@@ -1,6 +1,7 @@
+import { usePersistedForm } from "../../../shared/hooks/use_persist_forms";
 import { ChevronDown } from "lucide-react";
 import { useEffect, useState } from "react";
-import type { SubmitEvent } from "react";
+import type { ChangeEvent, SubmitEvent } from "react";
 import { toast } from "sonner";
 import FormField from "../../../shared/components/forms/form_field";
 import FormDialog from "../../../shared/components/ui/form_dialog";
@@ -80,6 +81,7 @@ export default function MaintenanceRecordDialog({
     record,
     aircraft,
     view = false,
+    on_edit,
     on_close,
     on_saved,
 }: {
@@ -87,10 +89,11 @@ export default function MaintenanceRecordDialog({
     record?: MaintenanceRecord;
     aircraft: MaintenanceAircraft[];
     view?: boolean;
+    on_edit: (record: MaintenanceRecord) => void;
     on_close: () => void;
     on_saved: () => void;
 }) {
-    const [editing, set_editing] = useState(!view);
+    const editing = !view;
     const [employees, set_employees] = useState<MaintenanceEmployee[]>([]);
     const [loading, set_loading] = useState(true);
     const [error, set_error] = useState("");
@@ -140,6 +143,17 @@ export default function MaintenanceRecordDialog({
         record && name in record
             ? String((record as unknown as Record<string, unknown>)[name] ?? "")
             : "";
+    const [draft, set_draft, { clear }] = usePersistedForm<
+        Record<string, string>
+    >(`maintenance:${kind}:${record ? maintenance_id(record) : "new"}`, {});
+    function remember(
+        event: ChangeEvent<
+            HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+        >,
+    ) {
+        const { name, value } = event.currentTarget;
+        set_draft((current) => ({ ...current, [name]: value }));
+    }
     async function submit(event: SubmitEvent<HTMLFormElement>) {
         event.preventDefault();
         if (saving) return;
@@ -165,6 +179,7 @@ export default function MaintenanceRecordDialog({
                 payload,
                 record ? maintenance_id(record) : undefined,
             );
+            clear();
             toast.success("Maintenance record saved", {
                 position: "bottom-right",
             });
@@ -190,22 +205,28 @@ export default function MaintenanceRecordDialog({
                         <textarea
                             {...props}
                             name={field.name}
+                            onChange={remember}
                             required={field.required}
                             maxLength={field.max}
                             rows={3}
-                            defaultValue={current(field.name)}
+                            defaultValue={
+                                draft[field.name] ?? current(field.name)
+                            }
                             className={`${INVENTORY_FORM_INPUT} ${field.name === "remarks" ? "resize-y" : "resize-none"}`}
                         />
                     ) : (
                         <input
                             {...props}
                             name={field.name}
+                            onChange={remember}
                             required={field.required}
                             maxLength={field.max}
                             type={field.type ?? "text"}
                             min={field.type === "number" ? 0 : undefined}
                             step={field.type === "number" ? "0.01" : undefined}
-                            defaultValue={current(field.name)}
+                            defaultValue={
+                                draft[field.name] ?? current(field.name)
+                            }
                             className={INVENTORY_FORM_INPUT}
                         />
                     )
@@ -213,11 +234,16 @@ export default function MaintenanceRecordDialog({
             </FormField>
         </div>
     );
+    function discard() {
+        clear();
+        on_close();
+    }
+
     return (
         <FormDialog
             title={`${editing ? (record ? "Edit" : "Add") : "View"} ${kind === "ad" ? "AD record" : "CPCP task"}`}
             compact
-            on_close={on_close}
+            on_close={editing ? discard : on_close}
             is_busy={saving}
         >
             {!editing && record ? (
@@ -318,7 +344,7 @@ export default function MaintenanceRecordDialog({
                         <Button variant="secondary" onClick={on_close}>
                             Close
                         </Button>
-                        <Button onClick={() => set_editing(true)}>Edit</Button>
+                        <Button onClick={() => on_edit(record)}>Edit</Button>
                     </div>
                 </>
             ) : (
@@ -348,7 +374,7 @@ export default function MaintenanceRecordDialog({
                                     record ? (
                                         <input
                                             {...props}
-                                            readOnly
+                                            disabled
                                             value={record.aircraft.registration}
                                             className={INVENTORY_FORM_INPUT}
                                         />
@@ -357,6 +383,8 @@ export default function MaintenanceRecordDialog({
                                             {...props}
                                             required
                                             name="aircraft_UUID"
+                                            onChange={remember}
+                                            value={draft.aircraft_UUID ?? ""}
                                             className={INVENTORY_FORM_INPUT}
                                         >
                                             <option value="">
@@ -386,8 +414,11 @@ export default function MaintenanceRecordDialog({
                                         required
                                         disabled={loading}
                                         name="employee"
-                                        defaultValue={
-                                            selected_employee?.emp_UUID ?? ""
+                                        onChange={remember}
+                                        value={
+                                            draft.employee ??
+                                            selected_employee?.emp_UUID ??
+                                            ""
                                         }
                                         className={INVENTORY_FORM_INPUT}
                                     >
@@ -441,7 +472,7 @@ export default function MaintenanceRecordDialog({
                             variant="secondary"
                             className="mr-auto"
                             disabled={saving}
-                            onClick={on_close}
+                            onClick={discard}
                         >
                             Cancel
                         </Button>

@@ -4,6 +4,10 @@ import { api } from "../../../shared/api/client";
 import FormField from "../../../shared/components/forms/form_field";
 import Button from "../../../shared/components/ui/button";
 import FormDialog from "../../../shared/components/ui/form_dialog";
+import {
+    changedFormField,
+    usePersistedForm,
+} from "../../../shared/hooks/use_persist_forms";
 import { account_field_style } from "../config/user_management_config";
 
 const kinds = {
@@ -24,7 +28,12 @@ export default function ReferenceDataDialog({
 }: {
     on_close: () => void;
 }) {
-    const [kind, set_kind] = useState<keyof typeof kinds>("flight-types");
+    const [draft, set_draft, { clear }] = usePersistedForm(
+        "reference-data:create",
+        { kind: "flight-types" as keyof typeof kinds, name: "", secondary: "" },
+        { storage: "session" },
+    );
+    const { kind } = draft;
     const [error, set_error] = useState("");
     const [busy, set_busy] = useState(false);
     const pending = useRef(false);
@@ -72,6 +81,7 @@ export default function ReferenceDataDialog({
                     ...(extra ? { [secondary.key]: extra } : {}),
                 }),
             });
+            clear();
             toast.success(`${kinds[kind].label} added`, {
                 position: "bottom-right",
             });
@@ -88,14 +98,28 @@ export default function ReferenceDataDialog({
         }
     }
 
+    function discard() {
+        clear();
+        on_close();
+    }
+
     return (
         <FormDialog
             title="Add reference data"
             compact
             is_busy={busy}
-            on_close={on_close}
+            on_close={discard}
         >
-            <form onSubmit={save}>
+            <form
+                onSubmit={save}
+                onChange={(event) => {
+                    const field = changedFormField(event);
+                    if (field?.name !== "name" && field?.name !== "secondary")
+                        return;
+                    const { name, value } = field;
+                    set_draft((current) => ({ ...current, [name]: value }));
+                }}
+            >
                 <fieldset disabled={busy} className="space-y-4 p-4 sm:px-5">
                     <legend className="sr-only">Reference data</legend>
                     <FormField label="Entry type">
@@ -105,10 +129,12 @@ export default function ReferenceDataDialog({
                                 value={kind}
                                 className={account_field_style}
                                 onChange={(event) => {
-                                    set_kind(
-                                        event.currentTarget
+                                    set_draft({
+                                        kind: event.currentTarget
                                             .value as keyof typeof kinds,
-                                    );
+                                        name: "",
+                                        secondary: "",
+                                    });
                                     set_error("");
                                 }}
                             >
@@ -138,6 +164,7 @@ export default function ReferenceDataDialog({
                                 <input
                                     {...props}
                                     name="name"
+                                    defaultValue={draft.name}
                                     maxLength={organization ? 150 : 100}
                                     className={account_field_style}
                                 />
@@ -152,6 +179,7 @@ export default function ReferenceDataDialog({
                                     <input
                                         {...props}
                                         name="secondary"
+                                        defaultValue={draft.secondary}
                                         maxLength={secondary.max}
                                         className={account_field_style}
                                     />
@@ -159,6 +187,7 @@ export default function ReferenceDataDialog({
                                     <textarea
                                         {...props}
                                         name="secondary"
+                                        defaultValue={draft.secondary}
                                         maxLength={secondary.max}
                                         className={account_field_style}
                                     />
@@ -172,7 +201,7 @@ export default function ReferenceDataDialog({
                         variant="secondary"
                         className="mr-auto"
                         disabled={busy}
-                        onClick={on_close}
+                        onClick={discard}
                     >
                         Cancel
                     </Button>

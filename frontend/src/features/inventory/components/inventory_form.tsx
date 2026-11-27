@@ -1,6 +1,10 @@
+import {
+    changedFormField,
+    usePersistedForm,
+} from "../../../shared/hooks/use_persist_forms";
 import { CalendarDays, ChevronDown } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useImperativeHandle, useRef, useState } from "react";
 import type { FormEvent, SubmitEvent } from "react";
 import FeatureHelp from "../../../shared/components/feedback/feature_help";
 import FormField from "../../../shared/components/forms/form_field";
@@ -34,8 +38,9 @@ type InventoryFormProps = {
     on_submit: (
         values: InventoryFormValues,
         initial_stock?: InitialStock,
-    ) => void;
+    ) => void | boolean | Promise<boolean>;
     on_cancel: () => void;
+    discard_ref?: React.Ref<() => void>;
     is_saving?: boolean;
     save_error?: string | null;
 };
@@ -47,12 +52,20 @@ export default function InventoryForm({
     units = [],
     on_submit,
     on_cancel,
+    discard_ref,
     is_saving = false,
     save_error,
 }: InventoryFormProps) {
     const [errors, set_errors] = useState<FieldErrors>({});
-    const [location_name, set_location_name] = useState("");
-    const [area_id, set_area_id] = useState("");
+    const [draft, set_draft, { clear }] = usePersistedForm<
+        Record<string, string>
+    >(`inventory:${item?.part_UUID ?? "new"}`, {});
+    useImperativeHandle(discard_ref, () => clear);
+    const location_name = draft.initial_stock_location ?? "";
+    const area_id = draft.initial_stock_area ?? "";
+    function remember(name: string, value: string) {
+        set_draft((current) => ({ ...current, [name]: value }));
+    }
     const location_names = [
         ...new Set(locations.map((location) => location.location_name)),
     ];
@@ -67,7 +80,15 @@ export default function InventoryForm({
     }, [save_error]);
 
     function clear_error(event: FormEvent<HTMLFormElement>) {
-        const field = event.target;
+        const field = changedFormField(event);
+        if (
+            field &&
+            !field.name.startsWith("initial_stock_") &&
+            field.name !== "unit_of_measure" &&
+            field.name !== "min_stock_level"
+        ) {
+            remember(field.name, field.value);
+        }
         if (!(
             field instanceof HTMLInputElement ||
             field instanceof HTMLSelectElement
@@ -96,7 +117,7 @@ export default function InventoryForm({
         });
     }
 
-    function handle_submit(event: SubmitEvent<HTMLFormElement>) {
+    async function handle_submit(event: SubmitEvent<HTMLFormElement>) {
         event.preventDefault();
         if (is_saving) return;
 
@@ -172,12 +193,13 @@ export default function InventoryForm({
             return;
         }
 
-        on_submit(
+        const saved = await on_submit(
             values,
             !initial_values && quantity > 0
                 ? { location_UUID, quantity }
                 : undefined,
         );
+        if (saved !== false) clear();
     }
 
     return (
@@ -222,7 +244,9 @@ export default function InventoryForm({
                                     placeholder="Enter item name"
                                     maxLength={150}
                                     defaultValue={
-                                        initial_values?.part_name ?? ""
+                                        draft.part_name ??
+                                        initial_values?.part_name ??
+                                        ""
                                     }
                                     className={INVENTORY_FORM_INPUT}
                                 />
@@ -246,19 +270,25 @@ export default function InventoryForm({
                                     placeholder="Enter part number"
                                     maxLength={50}
                                     defaultValue={
-                                        initial_values?.part_number ?? ""
+                                        draft.part_number ??
+                                        initial_values?.part_number ??
+                                        ""
                                     }
                                     className={INVENTORY_FORM_INPUT}
                                 />
                             )}
                         </FormField>
                         <InventoryUnitField
-                            initial_unit={initial_values?.unit_of_measure}
+                            initial_unit={
+                                draft.unit_of_measure ??
+                                initial_values?.unit_of_measure
+                            }
                             units={units}
                             error={errors.unit_of_measure}
-                            on_select={() =>
-                                clear_field_error("unit_of_measure", "")
-                            }
+                            on_value_change={(value) => {
+                                remember("unit_of_measure", value);
+                                clear_field_error("unit_of_measure", value);
+                            }}
                         />
                         {initial_values ? (
                             <>
@@ -299,10 +329,14 @@ export default function InventoryForm({
                                             name="initial_stock_location"
                                             value={location_name}
                                             onChange={(event) => {
-                                                set_location_name(
-                                                    event.currentTarget.value,
-                                                );
-                                                set_area_id("");
+                                                const value =
+                                                    event.currentTarget.value;
+                                                set_draft((current) => ({
+                                                    ...current,
+                                                    initial_stock_location:
+                                                        value,
+                                                    initial_stock_area: "",
+                                                }));
                                             }}
                                             className={INVENTORY_FORM_INPUT}
                                         >
@@ -329,7 +363,8 @@ export default function InventoryForm({
                                             name="initial_stock_area"
                                             value={selected_area}
                                             onChange={(event) =>
-                                                set_area_id(
+                                                remember(
+                                                    "initial_stock_area",
                                                     event.currentTarget.value,
                                                 )
                                             }
@@ -362,14 +397,20 @@ export default function InventoryForm({
                                     name="initial_stock_quantity"
                                     label="Opening quantity"
                                     help="Enter the starting quantity at the selected location. Use 0 to add the item without stock."
-                                    default_value={0}
+                                    default_value={
+                                        draft.initial_stock_quantity ?? 0
+                                    }
                                     error={errors.initial_stock_quantity}
-                                    on_value_change={(value) =>
+                                    on_value_change={(value) => {
+                                        remember(
+                                            "initial_stock_quantity",
+                                            value,
+                                        );
                                         clear_field_error(
                                             "initial_stock_quantity",
                                             value,
-                                        )
-                                    }
+                                        );
+                                    }}
                                 />
                             </>
                         )}
@@ -377,11 +418,16 @@ export default function InventoryForm({
                             name="min_stock_level"
                             label="Minimum stock level"
                             help="The item is marked Low stock when its total quantity falls below this number."
-                            default_value={initial_values?.min_stock_level ?? 0}
-                            error={errors.min_stock_level}
-                            on_value_change={(value) =>
-                                clear_field_error("min_stock_level", value)
+                            default_value={
+                                draft.min_stock_level ??
+                                initial_values?.min_stock_level ??
+                                0
                             }
+                            error={errors.min_stock_level}
+                            on_value_change={(value) => {
+                                remember("min_stock_level", value);
+                                clear_field_error("min_stock_level", value);
+                            }}
                         />
                         <UnavailableField
                             label="Expiry date"
@@ -418,7 +464,9 @@ export default function InventoryForm({
                                         maxLength={500}
                                         rows={2}
                                         defaultValue={
-                                            initial_values?.description ?? ""
+                                            draft.description ??
+                                            initial_values?.description ??
+                                            ""
                                         }
                                         className={INVENTORY_FORM_INPUT}
                                     />
@@ -447,7 +495,10 @@ export default function InventoryForm({
                 <Button
                     variant="secondary"
                     className="mr-auto"
-                    onClick={on_cancel}
+                    onClick={() => {
+                        clear();
+                        on_cancel();
+                    }}
                     disabled={is_saving}
                 >
                     Cancel

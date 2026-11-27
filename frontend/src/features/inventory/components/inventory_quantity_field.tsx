@@ -16,7 +16,7 @@ export default function InventoryQuantityField({
 }: {
     name: string;
     label: string;
-    default_value?: number;
+    default_value?: number | string;
     placeholder?: string;
     help?: string;
     error?: string;

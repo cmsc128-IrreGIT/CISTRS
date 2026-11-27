@@ -8,6 +8,7 @@ import {
 } from "react-router";
 import { toast } from "sonner";
 import FormDialog from "../../../shared/components/ui/form_dialog";
+import { useDiscardFormDraft } from "../../../shared/hooks/use_persist_forms";
 import InventoryForm from "../components/inventory_form";
 import InventoryNotFound from "../components/inventory_not_found";
 import {
@@ -29,6 +30,10 @@ export default function InventoryFormPage() {
         useOutletContext<ReturnType<typeof useInventory>>();
     const [is_saving, set_is_saving] = useState(false);
     const [save_error, set_save_error] = useState<string | null>(null);
+    const discard_ref = useRef<(() => void) | null>(null);
+    const discard_stored_draft = useDiscardFormDraft(
+        `inventory:${item_id ?? "new"}`,
+    );
     const mounted = useRef(false);
 
     useEffect(() => {
@@ -66,7 +71,7 @@ export default function InventoryFormPage() {
         values: InventoryFormValues,
         initial_stock?: InitialStock,
     ) {
-        if (is_saving) return;
+        if (is_saving) return false;
         set_is_saving(true);
         set_save_error(null);
         try {
@@ -89,6 +94,7 @@ export default function InventoryFormPage() {
 
             if (mounted.current) close_form();
             void refresh();
+            return true;
         } catch (error) {
             if (mounted.current) {
                 set_save_error(
@@ -97,6 +103,7 @@ export default function InventoryFormPage() {
                         : "The inventory request failed.",
                 );
             }
+            return false;
         } finally {
             if (mounted.current) set_is_saving(false);
         }
@@ -105,7 +112,10 @@ export default function InventoryFormPage() {
     return (
         <FormDialog
             title={is_editing ? "Edit inventory item" : "Add inventory item"}
-            on_close={close_form}
+            on_close={() => {
+                (discard_ref.current ?? discard_stored_draft)();
+                close_form();
+            }}
             compact
             is_busy={is_saving}
         >
@@ -151,6 +161,7 @@ export default function InventoryFormPage() {
                     units={units}
                     on_submit={handle_save}
                     on_cancel={close_form}
+                    discard_ref={discard_ref}
                     is_saving={is_saving}
                     save_error={save_error}
                 />

@@ -64,11 +64,7 @@ export default function MaintenancePage({
     const registration = params.get("aircraft") ?? "";
     const [search, set_search] = useState("");
     const [status, set_status] = useState("");
-    const [editor, set_editor] = useState<Editor | null>(
-        create_on_load
-            ? { kind: params.get("kind") === "ad" ? "ad" : "cpcp" }
-            : null,
-    );
+    const [editor, set_editor] = useState<Editor | null>(null);
     const [version, set_version] = useState(0);
     const all_records: MaintenanceRecord[] = [...data.ads, ...data.tasks];
     const aircraft = [
@@ -141,18 +137,17 @@ export default function MaintenancePage({
     const route_record = route_id
         ? all_records.find((row) => maintenance_id(row) === route_id)
         : undefined;
-    const active_editor =
-        editor ??
-        (route_record
-            ? {
-                  kind:
-                      "ad_UUID" in route_record
-                          ? ("ad" as const)
-                          : ("cpcp" as const),
-                  record: route_record,
-                  view: !edit_on_load,
-              }
-            : null);
+    const active_editor: Editor | null = create_on_load
+        ? { kind: params.get("kind") === "ad" ? "ad" : "cpcp" }
+        : route_record
+          ? {
+                kind: "ad_UUID" in route_record ? "ad" : "cpcp",
+                record: route_record,
+                view: !edit_on_load,
+            }
+          : route_id
+            ? null
+            : editor;
     const source: MaintenanceRecord[] =
         tab === "ad-records"
             ? data.ads
@@ -181,8 +176,13 @@ export default function MaintenancePage({
     );
     function close_editor() {
         set_editor(null);
-        if (route_id || create_on_load)
-            void navigate("/maintenance", { replace: true });
+        if (route_id || create_on_load) {
+            const next = new URLSearchParams(params);
+            next.delete("kind");
+            void navigate(`/maintenance${next.size ? `?${next}` : ""}`, {
+                replace: true,
+            });
+        }
     }
     function saved() {
         close_editor();
@@ -194,6 +194,12 @@ export default function MaintenancePage({
         if (value) next.set("aircraft", value);
         else next.delete("aircraft");
         set_params(next, { replace: true });
+    }
+    function open_create(kind: MaintenanceKind) {
+        const next = new URLSearchParams(params);
+        next.set("tab", kind === "ad" ? "ad-records" : "cpcp");
+        next.set("kind", kind);
+        void navigate(`/maintenance/new?${next}`);
     }
     return (
         <section aria-labelledby="page_title" className="space-y-4">
@@ -280,7 +286,7 @@ export default function MaintenancePage({
                         {tab === "ad-records" && (
                             <Button
                                 className={button_styles("primary")}
-                                onClick={() => set_editor({ kind: "ad" })}
+                                onClick={() => open_create("ad")}
                                 disabled={!aircraft.length || data.loading}
                             >
                                 <Plus size={16} />
@@ -290,7 +296,7 @@ export default function MaintenancePage({
                         {tab === "cpcp" && (
                             <Button
                                 className={button_styles("primary")}
-                                onClick={() => set_editor({ kind: "cpcp" })}
+                                onClick={() => open_create("cpcp")}
                                 disabled={!aircraft.length || data.loading}
                             >
                                 <Plus size={16} />
@@ -528,6 +534,12 @@ export default function MaintenancePage({
                     }
                     {...active_editor}
                     aircraft={aircraft}
+                    on_edit={(record) => {
+                        set_editor(null);
+                        void navigate(
+                            `/maintenance/${encodeURIComponent(maintenance_id(record))}/edit${params.size ? `?${params}` : ""}`,
+                        );
+                    }}
                     on_close={close_editor}
                     on_saved={saved}
                 />

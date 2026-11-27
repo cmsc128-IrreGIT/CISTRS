@@ -1,6 +1,6 @@
 import { Plus } from "lucide-react";
 import { useState } from "react";
-import { Link, Outlet } from "react-router";
+import { Link, Outlet, useSearchParams } from "react-router";
 import SearchInput from "../../../shared/components/forms/search_input";
 import WorkspaceBreadcrumbs from "../../../shared/components/navigation/workspace_breadcrumbs";
 import Card from "../../../shared/components/ui/card";
@@ -28,7 +28,21 @@ export default function UsersPage() {
     const [search, set_search] = useState("");
     const [position, set_position] = useState("");
     const [status, set_status] = useState("");
-    const [adding_reference, set_adding_reference] = useState(false);
+    const [params, set_params] = useSearchParams();
+    const adding_reference = params.get("form") === "add-reference-data";
+
+    function set_adding_reference(open: boolean) {
+        set_params(
+            (current) => {
+                const next = new URLSearchParams(current);
+                if (open) next.set("form", "add-reference-data");
+                else next.delete("form");
+                return next;
+            },
+            { replace: true, preventScrollReset: true },
+        );
+    }
+
     const term = search.trim().toLowerCase();
     const rows = workspace.accounts.map((account) => ({
         account,
