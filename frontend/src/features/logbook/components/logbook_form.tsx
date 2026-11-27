@@ -1,5 +1,6 @@
+import { usePersistedForm } from "../../../shared/hooks/use_persist_forms";
 import { ChevronDown, Plus } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useImperativeHandle, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { Link } from "react-router";
 import { api } from "../../../shared/api/client";
@@ -29,6 +30,7 @@ type Props = {
     lookup_error?: string;
     on_submit: (values: LogbookSectorInput) => Promise<void>;
     cancel_to?: string;
+    discard_ref?: React.Ref<() => void>;
 };
 
 function to_input_parts(value: string | null) {
@@ -47,6 +49,10 @@ function to_api_time(date: string, time: string) {
 
 function as_number(value: string) {
     return value.trim() ? Number(value) : null;
+}
+
+function today_utc() {
+    return new Date().toISOString().slice(0, 10);
 }
 
 function to_employee(value: PersonnelEmployeeResponse): LogbookEmployee {
@@ -80,90 +86,102 @@ export default function LogbookForm({
     delay_category_options,
     //lookup_error,
     on_submit,
+    discard_ref,
     cancel_to = "/logbook",
 }: Props) {
     const [directory, set_directory] = useState<LogbookEmployee[]>([]);
     const [loading_employees, set_loading_employees] = useState(true);
     const [saving, set_saving] = useState(false);
     const [error, set_error] = useState("");
-    const [step, set_step] = useState(0);
-    const [review_payload, set_review_payload] =
-        useState<LogbookSectorInput | null>(null);
     const save_pending = useRef(false);
     const step_heading = useRef<HTMLHeadingElement>(null);
-    const [fuel_rows, set_fuel_rows] = useState<number[]>([]);
-    const [fuel_drafts, set_fuel_drafts] = useState<
-        Record<number, LogbookFuelDraft>
-    >({});
-    const [values, set_values] = useState<LogbookFormValues>(() => ({
-        aircraft_UUID: "",
-        flight_status_UUID: "",
-        flight_type_UUID: "",
-        pic_emp_UUID: "",
-        flight_date: "",
-        route: "",
-        sic_emp_UUID: "",
-        observer_emp_UUID: "",
-        delay_category_UUID: "",
-        std: "",
-        sta: "",
-        off_block: "",
-        airborne: "",
-        touchdown: "",
-        on_block: "",
-        flight_time: "",
-        day_night: "",
-        pax_count: "0",
-        fuel_departure: "",
-        fuel_arrival: "",
-        fuel_used: "",
-        fuel_unit: "",
-        delay_cause: "",
-        qa_check_status: "",
-        fuel_transactions: [],
-        ...(initial_values
-            ? {
-                  aircraft_UUID: initial_values.aircraft.aircraft_UUID,
-                  flight_status_UUID:
-                      initial_values.flight_status.flight_status_UUID,
-                  flight_type_UUID: initial_values.flight_type.flight_type_UUID,
-                  pic_emp_UUID: initial_values.pic.emp_UUID,
-                  flight_date: initial_values.flight_date,
-                  route: initial_values.route,
-                  sic_emp_UUID: initial_values.sic?.emp_UUID ?? "",
-                  observer_emp_UUID: initial_values.observer?.emp_UUID ?? "",
-                  delay_category_UUID:
-                      initial_values.delay_category?.delay_category_UUID ?? "",
-                  std: initial_values.std ?? "",
-                  sta: initial_values.sta ?? "",
-                  off_block: initial_values.off_block ?? "",
-                  airborne: initial_values.airborne ?? "",
-                  touchdown: initial_values.touchdown ?? "",
-                  on_block: initial_values.on_block ?? "",
-                  flight_time:
-                      initial_values.flight_time === null
-                          ? ""
-                          : String(initial_values.flight_time),
-                  day_night: initial_values.day_night ?? "",
-                  pax_count: String(initial_values.pax_count),
-                  fuel_departure:
-                      initial_values.fuel_departure === null
-                          ? ""
-                          : String(initial_values.fuel_departure),
-                  fuel_arrival:
-                      initial_values.fuel_arrival === null
-                          ? ""
-                          : String(initial_values.fuel_arrival),
-                  fuel_used:
-                      initial_values.fuel_used === null
-                          ? ""
-                          : String(initial_values.fuel_used),
-                  fuel_unit: initial_values.fuel_unit ?? "",
-                  delay_cause: initial_values.delay_cause ?? "",
-                  qa_check_status: initial_values.qa_check_status ?? "",
-              }
-            : {}),
-    }));
+    const [
+        { step, values, fuel_drafts, review_payload },
+        set_draft,
+        { clear },
+    ] = usePersistedForm(`logbook:${initial_values?.sector_UUID ?? "new"}`, {
+        step: 0,
+        review_payload: null as LogbookSectorInput | null,
+        fuel_drafts: {} as Record<number, LogbookFuelDraft>,
+        values: {
+            aircraft_UUID: "",
+            flight_status_UUID: "",
+            flight_type_UUID: "",
+            pic_emp_UUID: "",
+            flight_date: "",
+            route: "",
+            sic_emp_UUID: "",
+            observer_emp_UUID: "",
+            delay_category_UUID: "",
+            std: "",
+            sta: "",
+            off_block: "",
+            airborne: "",
+            touchdown: "",
+            on_block: "",
+            flight_time: "",
+            day_night: "",
+            pax_count: "0",
+            fuel_departure: "",
+            fuel_arrival: "",
+            fuel_used: "",
+            fuel_unit: "",
+            delay_cause: "",
+            qa_check_status: "",
+            fuel_transactions: [],
+            ...(initial_values
+                ? {
+                      aircraft_UUID: initial_values.aircraft.aircraft_UUID,
+                      flight_status_UUID:
+                          initial_values.flight_status.flight_status_UUID,
+                      flight_type_UUID:
+                          initial_values.flight_type.flight_type_UUID,
+                      pic_emp_UUID: initial_values.pic.emp_UUID,
+                      flight_date: initial_values.flight_date,
+                      route: initial_values.route,
+                      sic_emp_UUID: initial_values.sic?.emp_UUID ?? "",
+                      observer_emp_UUID:
+                          initial_values.observer?.emp_UUID ?? "",
+                      delay_category_UUID:
+                          initial_values.delay_category?.delay_category_UUID ??
+                          "",
+                      std: initial_values.std ?? "",
+                      sta: initial_values.sta ?? "",
+                      off_block: initial_values.off_block ?? "",
+                      airborne: initial_values.airborne ?? "",
+                      touchdown: initial_values.touchdown ?? "",
+                      on_block: initial_values.on_block ?? "",
+                      flight_time:
+                          initial_values.flight_time === null
+                              ? ""
+                              : String(initial_values.flight_time),
+                      day_night: initial_values.day_night ?? "",
+                      pax_count: String(initial_values.pax_count),
+                      fuel_departure:
+                          initial_values.fuel_departure === null
+                              ? ""
+                              : String(initial_values.fuel_departure),
+                      fuel_arrival:
+                          initial_values.fuel_arrival === null
+                              ? ""
+                              : String(initial_values.fuel_arrival),
+                      fuel_used:
+                          initial_values.fuel_used === null
+                              ? ""
+                              : String(initial_values.fuel_used),
+                      fuel_unit: initial_values.fuel_unit ?? "",
+                      delay_cause: initial_values.delay_cause ?? "",
+                      qa_check_status: initial_values.qa_check_status ?? "",
+                  }
+                : {}),
+        } satisfies LogbookFormValues,
+    });
+    useImperativeHandle(discard_ref, () => clear);
+    const fuel_rows = Object.keys(fuel_drafts).map(Number);
+
+    function set_step(step: number) {
+        set_draft((current) => ({ ...current, step }));
+    }
 
     useEffect(() => {
         let active = true;
@@ -208,20 +226,26 @@ export default function LogbookForm({
     }, [step]);
 
     function set_value(key: keyof LogbookFormValues, value: string) {
-        set_values((current) => ({ ...current, [key]: value }));
+        set_draft((current) => ({
+            ...current,
+            values: { ...current.values, [key]: value },
+            review_payload: null,
+        }));
     }
 
     function add_fuel_entry() {
         const next = fuel_rows.length ? Math.max(...fuel_rows) + 1 : 0;
-        set_fuel_rows((rows) => [...rows, next]);
-        set_fuel_drafts((rows) => ({
-            ...rows,
-            [next]: {
-                issued_to: "",
-                transaction_date: values.flight_date,
-                transaction_type: "",
-                quantity_gal: "",
-                remarks: "",
+        set_draft((current) => ({
+            ...current,
+            fuel_drafts: {
+                ...current.fuel_drafts,
+                [next]: {
+                    issued_to: "",
+                    transaction_date: values.flight_date,
+                    transaction_type: "",
+                    quantity_gal: "",
+                    remarks: "",
+                },
             },
         }));
     }
@@ -231,9 +255,12 @@ export default function LogbookForm({
         key: keyof LogbookFuelDraft,
         value: string,
     ) {
-        set_fuel_drafts((rows) => ({
-            ...rows,
-            [index]: { ...rows[index], [key]: value },
+        set_draft((current) => ({
+            ...current,
+            fuel_drafts: {
+                ...current.fuel_drafts,
+                [index]: { ...current.fuel_drafts[index], [key]: value },
+            },
         }));
     }
 
@@ -245,6 +272,13 @@ export default function LogbookForm({
             return;
         }
         set_error("");
+        if (step === 0 && values.flight_date > today_utc()) {
+            set_error("Flight date cannot be in the future.");
+            event.currentTarget
+                .querySelector<HTMLInputElement>('[name="flight_date"]')
+                ?.focus();
+            return;
+        }
         const active_fields = event.currentTarget.querySelectorAll<
             HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
         >(
@@ -421,8 +455,11 @@ export default function LogbookForm({
             );
             return;
         }
-        set_review_payload(payload);
-        set_step(3);
+        set_draft((current) => ({
+            ...current,
+            step: 3,
+            review_payload: payload,
+        }));
     }
 
     async function confirm_save() {
@@ -432,6 +469,7 @@ export default function LogbookForm({
         set_saving(true);
         try {
             await on_submit(review_payload);
+            clear();
         } catch (cause) {
             set_error(
                 cause instanceof Error
@@ -559,11 +597,13 @@ export default function LogbookForm({
                                     : undefined
                             }
                             max={
-                                name === "pax_count"
-                                    ? 999
-                                    : name === "flight_time"
-                                      ? 9999.99
-                                      : undefined
+                                name === "flight_date"
+                                    ? today_utc()
+                                    : name === "pax_count"
+                                      ? 999
+                                      : name === "flight_time"
+                                        ? 9999.99
+                                        : undefined
                             }
                             value={values[name] as string}
                             onChange={(event) =>
@@ -629,11 +669,7 @@ export default function LogbookForm({
         [];
 
     return (
-        <form
-            noValidate
-            onSubmit={handle_submit}
-            onChange={() => set_review_payload(null)}
-        >
+        <form noValidate onSubmit={handle_submit}>
             <div className="space-y-4 px-4 py-4 sm:px-5">
                 <ol
                     aria-label="Logbook entry steps"
@@ -1025,15 +1061,21 @@ export default function LogbookForm({
                                                     type="button"
                                                     variant="ghost"
                                                     disabled={saving}
-                                                    onClick={() =>
-                                                        set_fuel_rows((rows) =>
-                                                            rows.filter(
-                                                                (item) =>
-                                                                    item !==
-                                                                    index,
-                                                            ),
-                                                        )
-                                                    }
+                                                    onClick={() => {
+                                                        set_draft((current) => {
+                                                            const fuel_drafts =
+                                                                {
+                                                                    ...current.fuel_drafts,
+                                                                };
+                                                            delete fuel_drafts[
+                                                                index
+                                                            ];
+                                                            return {
+                                                                ...current,
+                                                                fuel_drafts,
+                                                            };
+                                                        });
+                                                    }}
                                                 >
                                                     Cancel Fuel Entry
                                                 </Button>
@@ -1291,6 +1333,7 @@ export default function LogbookForm({
             <div className="sticky bottom-0 z-10 flex flex-wrap justify-end gap-2 border-t border-slate-200 bg-white px-4 py-3 sm:px-5">
                 <Link
                     to={cancel_to}
+                    onClick={clear}
                     className="mr-auto min-h-11 rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700"
                 >
                     Cancel
@@ -1301,7 +1344,7 @@ export default function LogbookForm({
                         variant="secondary"
                         disabled={saving}
                         onClick={() => {
-                            set_step((current) => current - 1);
+                            set_step(step - 1);
                             set_error("");
                         }}
                     >

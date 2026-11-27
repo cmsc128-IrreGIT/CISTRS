@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
 import useAircraft from "../../aircraft/hooks/use_aircraft";
 import FormDialog from "../../../shared/components/ui/form_dialog";
+import { useDiscardFormDraft } from "../../../shared/hooks/use_persist_forms";
 import EmptyState from "../../../shared/components/feedback/empty_state";
 import LoadingState from "../../../shared/components/feedback/loading_state";
 import ErrorState from "../../../shared/components/feedback/error_state";
@@ -21,6 +22,10 @@ export default function LogbookFormPage() {
     const { records, is_loading, error, reload } = useLogbookData();
     const { entry_id } = useParams();
     const navigate = useNavigate();
+    const discard_ref = useRef<(() => void) | null>(null);
+    const discard_stored_draft = useDiscardFormDraft(
+        `logbook:${entry_id ?? "new"}`,
+    );
     const entry = records.find((row) => row.sector_UUID === entry_id);
     const [lookups, set_lookups] = useState<LogbookLookups | null>(null);
     const [lookup_error, set_lookup_error] = useState("");
@@ -105,7 +110,10 @@ export default function LogbookFormPage() {
             title={entry_id ? "Edit logbook entry" : "Add flight logbook entry"}
             compact
             wide
-            on_close={() => void navigate(return_to, { replace: true })}
+            on_close={() => {
+                (discard_ref.current ?? discard_stored_draft)();
+                void navigate(return_to, { replace: true });
+            }}
         >
             {is_loading && entry_id && !entry ? (
                 <LoadingState message="Loading logbook entry…" />
@@ -134,6 +142,7 @@ export default function LogbookFormPage() {
                     delay_category_options={delay_category_options}
                     lookup_error={lookup_error}
                     cancel_to={return_to}
+                    discard_ref={discard_ref}
                     on_submit={save}
                 />
             )}
